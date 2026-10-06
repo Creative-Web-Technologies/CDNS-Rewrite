@@ -1,0 +1,57 @@
+# .env — never commit secrets
+.env
+
+## ── .NET ──────────────────────────────────────────────────────────────────────
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+.nuget/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / JetBrains
+.idea/
+*.DotSettings.user
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+coverage/
+*.coverage
+*.coveragexml
+
+# Published output
+publish/
+PublishProfiles/
+
+## ── Node / Frontend ────────────────────────────────────────────────────────────
+node_modules/
+dist/
+dist-ssr/
+.vite/
+.eslintcache
+*.tsbuildinfo
+
+# Package manager locks (keep one; remove the others you don't use)
+# yarn.lock
+# pnpm-lock.yaml
+
+## ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+## ── Misc ──────────────────────────────────────────────────────────────────────
+*.bak
+*.orig

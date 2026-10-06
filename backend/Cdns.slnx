@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Cdns.Api/Cdns.Api.csproj" />
+    <Project Path="src/Cdns.Application/Cdns.Application.csproj" />
+    <Project Path="src/Cdns.Domain/Cdns.Domain.csproj" />
+    <Project Path="src/Cdns.Infrastructure/Cdns.Infrastructure.csproj" />
+    <Project Path="src/Cdns.Worker/Cdns.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Cdns.Application.Tests/Cdns.Application.Tests.csproj" />
+    <Project Path="tests/Cdns.Domain.Tests/Cdns.Domain.Tests.csproj" />
+  </Folder>
+</Solution>

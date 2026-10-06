@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Report audit warnings only for direct dependencies until AspNetCore.OpenApi ships with a patched Microsoft.OpenApi -->
+    <NuGetAuditMode>direct</NuGetAuditMode>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cdns.Application\Cdns.Application.csproj" />
+    <ProjectReference Include="..\Cdns.Infrastructure\Cdns.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
