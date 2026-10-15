@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cdns.Application\Cdns.Application.csproj" />
+    <ProjectReference Include="..\Cdns.Domain\Cdns.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
