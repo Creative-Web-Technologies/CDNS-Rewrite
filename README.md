@@ -131,6 +131,8 @@ A successful response prints the PostgreSQL version string and exits with code 0
 The application connection string is not stored in git.
 Each developer stores it locally using .NET user-secrets, which writes to an OS-managed directory outside the repository and is never included in builds.
 
+Secrets are per-machine — every developer must run these commands once on their own machine. A `git pull` does not carry secrets across.
+
 Run both commands from the repository root, substituting your `.env` values:
 
 **Cdns.Api**
@@ -147,6 +149,14 @@ dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5432;Da
 
 Replace `5432`, `cdns_dev`, `cdns`, and `<your-password>` with your actual `.env` values.
 
+Verify the secret was stored correctly:
+
+```shell
+dotnet user-secrets list --project backend/src/Cdns.Api
+```
+
+If the output is `Could not find the global property 'UserSecretsId'`, the csproj on your checkout is missing the secret ID — run `git pull` to get the latest version, then rerun the `set` command.
+
 In non-local environments (CI, staging, production), supply the same key as an environment variable instead.
 Note the double underscore (`__`), which is the .NET environment-variable hierarchy separator:
 
@@ -156,14 +166,33 @@ ConnectionStrings__Default=Host=...;Port=...;Database=...;Username=...;Password=
 
 ### 7. Apply database migrations and run the apps
 
-**Migrations — coming soon.**
-`CdnsDbContext` and the baseline EF Core migration have not been created yet.
-Once they exist, install the EF Core CLI tool (first time only) and apply the migration:
+**Migrations**
+
+Complete step 6 before running any `dotnet ef` command. The CLI starts `Cdns.Api` to build the `DbContext`; if the user-secret is missing it will fail with `ConnectionStrings:Default is not configured`.
+
+Install the EF Core CLI (first time only):
 
 ```shell
 dotnet tool install --global dotnet-ef
+```
+
+Apply existing migrations (the Postgres container from step 3 must be running):
+
+```shell
 dotnet ef database update --project backend/src/Cdns.Infrastructure --startup-project backend/src/Cdns.Api
 ```
+
+**Creating a new migration**
+
+Always run `git pull` first to make sure you have the latest `CdnsDbContextModelSnapshot.cs` before adding a migration:
+
+```shell
+dotnet ef migrations add <MigrationName> --project backend/src/Cdns.Infrastructure --startup-project backend/src/Cdns.Api
+```
+
+Rules:
+- Never edit or delete a migration that has already been pushed to `main` — add a new one instead.
+- If two branches each add a migration, you will get a merge conflict in `CdnsDbContextModelSnapshot.cs`. Resolve it by rebasing your branch on `main` and regenerating your migration.
 
 The schema uses snake_case column and table names (EFCore.NamingConventions).
 Each developer runs migrations against their own local database.
@@ -175,7 +204,8 @@ cd backend
 dotnet run --project src/Cdns.Api
 ```
 
-Health check: `GET http://localhost:<port>/health`
+The API will be available at `https://localhost:5001` (or the port shown in the terminal).
+Health check: `GET https://localhost:5001/health`
 
 **Frontend**
 
@@ -196,6 +226,9 @@ Vite dev server: `http://localhost:5173`
 | `FATAL: password authentication failed for user "cdns"` | `.env` password does not match the password stored in the existing volume | `docker compose down -v && docker compose up -d` — this deletes local data |
 | Container stays `(starting)` / goes `(unhealthy)` | Postgres failed to initialise | `docker compose logs postgres` to read the error |
 | `\r` errors or `Permission denied` on scripts (Linux / macOS) | Files checked out with Windows line endings | `git config core.autocrlf input` and re-checkout the affected files |
+| `ConnectionStrings:Default is not configured` or `Unable to create a 'DbContext'` when running `dotnet ef` | The user-secret from step 6 isn't set on this machine | Run the `user-secrets set` command from step 6, then confirm with `dotnet user-secrets list --project backend/src/Cdns.Api` |
+| `Could not find the global property 'UserSecretsId'` when running `dotnet user-secrets` | Checkout is missing the csproj change that added the secret ID | `git pull`, then rerun the `set` command |
+| `dotnet ef database update` fails to connect to the database | Port, database name, or password in the secret doesn't match `.env`, or the container isn't running | Compare the secret with `.env`, then run `docker compose ps` |
 
 ### 9. Useful commands
 
@@ -217,47 +250,6 @@ docker compose down -v
 ```
 
 ---
-
-## Prerequisites
-
-- [.NET 10 SDK](https://dotnet.microsoft.com/download)
-- [Node.js 22+](https://nodejs.org/)
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
-
-## Running locally
-
-### 1. Environment variables
-
-```shell
-cp .env.example .env
-# Edit .env and set POSTGRES_PASSWORD (and any other values)
-```
-
-### 2. Start Postgres
-
-```shell
-docker compose up -d
-```
-
-### 3. Backend
-
-```shell
-cd backend
-dotnet run --project src/Cdns.Api
-```
-
-The API will be available at `https://localhost:5001` (or the port shown in the console).
-Health check: `GET /health`
-
-### 4. Frontend
-
-```shell
-cd frontend
-npm install   # first time only
-npm run dev
-```
-
-Vite dev server runs at `http://localhost:5173` by default.
 
 ## Running backend tests
 
