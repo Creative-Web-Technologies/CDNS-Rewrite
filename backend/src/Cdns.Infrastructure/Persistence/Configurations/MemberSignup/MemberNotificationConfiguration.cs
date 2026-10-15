@@ -29,5 +29,8 @@ public class MemberNotificationConfiguration : IEntityTypeConfiguration<MemberNo
 
         // Proposed index for the bell/home query; confirm against the legacy Get procs
         builder.HasIndex(x => new { x.MemberId, x.IsDeleted, x.IsSeen, x.NotificationDateTime });
+
+           // Hide a soft-deleted member's login history together with the member
+        builder.HasQueryFilter(x => !x.Member.IsDeleted);
     }
 }
