@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Cdns.Domain.Entities.AdminPortal;
 using Cdns.Domain.Entities.MemberLoginTables;
 using Cdns.Domain.Entities.MemberSignupTables;
+using Cdns.Domain.Entities.CusdecTables;
 
 
 namespace Cdns.Infrastructure.Persistence;
@@ -34,7 +35,8 @@ public class CdnsDbContext : DbContext
     public DbSet<MemberUserLoginDetail> MemberUserLoginDetails => Set<MemberUserLoginDetail>();
     public DbSet<MemberActivityLog> MemberActivityLogs => Set<MemberActivityLog>();
 
-
+    //Cusdec Tables
+    public DbSet<CusDecStatusMapping> cusDecStatusMappings => Set<CusDecStatusMapping>();
 
  
     protected override void OnModelCreating(ModelBuilder modelBuilder)
