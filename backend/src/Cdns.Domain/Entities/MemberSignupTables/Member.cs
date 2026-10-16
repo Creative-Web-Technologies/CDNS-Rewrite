@@ -1,4 +1,4 @@
-using Cdns.Domain.Enums;
+using Cdns.Domain.Entities.Enums;
 
 namespace Cdns.Domain.Entities.MemberSignupTables;
 
