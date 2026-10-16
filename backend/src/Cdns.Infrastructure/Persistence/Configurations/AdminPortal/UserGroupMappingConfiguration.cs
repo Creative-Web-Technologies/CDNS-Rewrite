@@ -1,4 +1,4 @@
-using Cdns.Domain.Entities.AdminPortal;
+using global::Cdns.Domain.Entities.AdminPortal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

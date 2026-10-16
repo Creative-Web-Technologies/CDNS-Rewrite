@@ -1,21 +1,16 @@
-using Cdns.Domain.Entities.AdminPortal;
+using global::Cdns.Domain.Entities.AdminPortal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Cdns.Infrastructure.Persistence.Configurations.Staff;
+namespace Cdns.Infrastructure.Persistence.Configurations.AdminPortal;
 
-public class UserConfiguration : IEntityTypeConfiguration<User>
+public class UserConfigurations : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        // Table name (PostgreSQL convention usually handles snake_case, but can be explicit if needed)
-        // builder.ToTable("user");
-
-        // Primary key (value comes from Employee, not auto-generated)
         builder.HasKey(x => x.EmployeeId);
         builder.Property(x => x.EmployeeId).ValueGeneratedNever();
 
-        // Columns & constraints
         builder.Property(x => x.UserName).HasMaxLength(200).IsRequired();
         builder.Property(x => x.Password).HasMaxLength(500);
         builder.Property(x => x.PasswordSalt).HasMaxLength(500);
@@ -25,12 +20,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.IsSuspended).HasDefaultValue(false);
         builder.Property(x => x.OtpSequence).HasDefaultValue(0);
 
-        // Indexes
         builder.HasIndex(x => x.UserName).IsUnique();
 
-        // Relationship: one Employee has one User
         builder.HasOne(x => x.Employee)
-               .WithOne() // Or .WithOne(emp => emp.User) if Employee has a navigation property back
+               .WithOne()
                .HasForeignKey<User>(x => x.EmployeeId)
                .OnDelete(DeleteBehavior.Cascade);
     }

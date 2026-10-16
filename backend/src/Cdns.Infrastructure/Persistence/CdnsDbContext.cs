@@ -1,12 +1,27 @@
-using Cdns.Domain.Entities.MemberSignupTables;
-using Cdns.Domain.Entities.MemberLoginTables;
 using Microsoft.EntityFrameworkCore;
+using Cdns.Domain.Entities.AdminPortal;
+using Cdns.Domain.Entities.MemberLoginTables;
+using Cdns.Domain.Entities.MemberSignupTables;
+
 
 namespace Cdns.Infrastructure.Persistence;
 
 public class CdnsDbContext : DbContext
 {
     public CdnsDbContext(DbContextOptions<CdnsDbContext> options) : base(options) { }
+    
+    //Admin Portal
+    public DbSet<User> User => Set<User>();
+    public DbSet<UserGroupMapping> UserGroupMappings => Set<UserGroupMapping>();
+    public DbSet<Employee> Employees => Set<Employee>();
+    public DbSet<Department> Department => Set<Department>();
+    public DbSet<Group> Group => Set<Group>();
+    public DbSet<Module> Module => Set<Module>();
+    public DbSet<Menu> Menus => Set<Menu>();
+    public DbSet<MenuItem> MenuItems => Set<MenuItem>();
+    public DbSet<MenuItemFunction> MenuItemFunction => Set<MenuItemFunction>();
+    public DbSet<AccessControl> AccessControl => Set<AccessControl>();
+    public DbSet<LoginUserActivity> LoginUserActivities => Set<LoginUserActivity>();
 
     //Signup Tables
     public DbSet<Member> Members => Set<Member>(); 
@@ -19,6 +34,9 @@ public class CdnsDbContext : DbContext
     public DbSet<MemberUserLoginDetail> MemberUserLoginDetails => Set<MemberUserLoginDetail>();
     public DbSet<MemberActivityLog> MemberActivityLogs => Set<MemberActivityLog>();
 
+
+
+ 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("citext");
