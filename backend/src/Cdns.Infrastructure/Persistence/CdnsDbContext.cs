@@ -1,9 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Cdns.Domain.Entities.AdminPortal;
 using Cdns.Domain.Entities.MemberLoginTables;
-using Cdns.Domain.Entities.MemberSingupTables;
-using Cdns.Domain.Entities.Enums;
-
+using Cdns.Domain.Entities.MemberSignupTables;
 
 
 namespace Cdns.Infrastructure.Persistence;
@@ -16,13 +14,13 @@ public class CdnsDbContext : DbContext
     public DbSet<User> User => Set<User>();
     public DbSet<UserGroupMapping> UserGroupMappings => Set<UserGroupMapping>();
     public DbSet<Employee> Employees => Set<Employee>();
-    public DbSet<Department> Department => set<Department>();
-    public DbSet<Group> Group => set<Group>();
-    public DbSet<Module> Module => set<Module>();
+    public DbSet<Department> Department => Set<Department>();
+    public DbSet<Group> Group => Set<Group>();
+    public DbSet<Module> Module => Set<Module>();
     public DbSet<Menu> Menus => Set<Menu>();
     public DbSet<MenuItem> MenuItems => Set<MenuItem>();
-    public DbSet<MenuItemFunction> MenuItemFunction => set<MenuItemFunction>();
-    public DbSet<AccessControl> AccessControl => set<AccessControl>();
+    public DbSet<MenuItemFunction> MenuItemFunction => Set<MenuItemFunction>();
+    public DbSet<AccessControl> AccessControl => Set<AccessControl>();
     public DbSet<LoginUserActivity> LoginUserActivities => Set<LoginUserActivity>();
 
     //Signup Tables
