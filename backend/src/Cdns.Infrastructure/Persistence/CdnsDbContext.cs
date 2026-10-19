@@ -40,6 +40,8 @@ public class CdnsDbContext : DbContext
     public DbSet<CusDec> CusDecs => Set<CusDec>();
     public DbSet<CusDecContainer> CusDecContainers => Set<CusDecContainer>();
     public DbSet<CusDecContainerStatus>CusDecContainerStatuses => Set<CusDecContainerStatus>(); 
+    public DbSet<CusDecItem> CusDecItems => Set<CusDecItem>();
+    public DbSet<CusDecStatus> CusDecStatuses => Set<CusDecStatus>();
     
  
     protected override void OnModelCreating(ModelBuilder modelBuilder)
