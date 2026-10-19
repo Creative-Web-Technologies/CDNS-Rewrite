@@ -2,7 +2,7 @@ using Cdns.Domain.Entities.CusdecTables;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Cdns.Infrastructure.Persistence.Configurations.CusDecProcessing;
+namespace Cdns.Infrastructure.Persistence.Configurations.Cusdec;
 
 public class CusDecStatusMappingConfiguration : IEntityTypeConfiguration<CusDecStatusMapping>
 {

@@ -36,8 +36,11 @@ public class CdnsDbContext : DbContext
     public DbSet<MemberActivityLog> MemberActivityLogs => Set<MemberActivityLog>();
 
     //Cusdec Tables
-    public DbSet<CusDecStatusMapping> cusDecStatusMappings => Set<CusDecStatusMapping>();
-
+    public DbSet<CusDecStatusMapping> CusDecStatusMappings => Set<CusDecStatusMapping>();
+    public DbSet<CusDec> CusDecs => Set<CusDec>();
+    public DbSet<CusDecContainer> CusDecContainers => Set<CusDecContainer>();
+    public DbSet<CusDecContainerStatus>CusDecContainerStatuses => Set<CusDecContainerStatus>(); 
+    
  
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
