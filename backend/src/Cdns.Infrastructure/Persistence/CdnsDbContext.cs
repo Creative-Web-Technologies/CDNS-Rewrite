@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Cdns.Domain.Entities.AdminPortal;
 using Cdns.Domain.Entities.MemberLoginTables;
 using Cdns.Domain.Entities.MemberSignupTables;
+using Cdns.Domain.Entities.CusdecTables;
 
 
 namespace Cdns.Infrastructure.Persistence;
@@ -34,8 +35,21 @@ public class CdnsDbContext : DbContext
     public DbSet<MemberUserLoginDetail> MemberUserLoginDetails => Set<MemberUserLoginDetail>();
     public DbSet<MemberActivityLog> MemberActivityLogs => Set<MemberActivityLog>();
 
-
-
+    //Cusdec Tables
+    public DbSet<CusDecStatusMapping> CusDecStatusMappings => Set<CusDecStatusMapping>();
+    public DbSet<CusDec> CusDecs => Set<CusDec>();
+    public DbSet<CusDecContainer> CusDecContainers => Set<CusDecContainer>();
+    public DbSet<CusDecContainerStatus>CusDecContainerStatuses => Set<CusDecContainerStatus>(); 
+    public DbSet<CusDecItem> CusDecItems => Set<CusDecItem>();
+    public DbSet<CusDecStatus> CusDecStatuses => Set<CusDecStatus>();
+    public DbSet<CusDecInspection> CusDecInspections => Set<CusDecInspection>();
+    public DbSet<CusDecTax> CusDecTaxes => Set<CusDecTax>();
+    public DbSet<CusDecReadyToProcessSetting> CusDecReadyToProcessSettings => Set<CusDecReadyToProcessSetting>();
+    public DbSet<ReadyToProcessConsignee> ReadyToProcessConsignees => Set<ReadyToProcessConsignee>();
+    public DbSet<CusDecInspectionMapping> CusDecInspectionMappings => Set<CusDecInspectionMapping>();
+    public DbSet<CusDecInspectionSectionTabStatusMapping> CusDecInspectionSectionTabStatusMappings => Set<CusDecInspectionSectionTabStatusMapping>();
+    public DbSet<CusDecPaymentSummary> CusDecPaymentSummaries => Set<CusDecPaymentSummary>();
+    
  
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
