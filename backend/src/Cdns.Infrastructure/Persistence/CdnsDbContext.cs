@@ -10,7 +10,7 @@ public class CdnsDbContext : DbContext
 {
     public CdnsDbContext(DbContextOptions<CdnsDbContext> options) : base(options) { }
     
-    //Admin Portal
+    //Admin Portal Tables
     public DbSet<User> User => Set<User>();
     public DbSet<UserGroupMapping> UserGroupMappings => Set<UserGroupMapping>();
     public DbSet<Employee> Employees => Set<Employee>();
@@ -34,6 +34,14 @@ public class CdnsDbContext : DbContext
     public DbSet<MemberUserLoginDetail> MemberUserLoginDetails => Set<MemberUserLoginDetail>();
     public DbSet<MemberActivityLog> MemberActivityLogs => Set<MemberActivityLog>();
 
+    //Company & subscription managment Tables
+    public DbSet<Company> Companies => Set<Company>();
+    public DbSet<CompanyStatusDetail> CompanyStatusDetails => Set<CompanyStatusDetail>();
+    public DbSet<CompanyMemberMapping> CompanyMemberMappings => Set<CompanyMemberMapping>();
+    public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<SubscriptionRequest> SubscriptionRequests => Set<SubscriptionRequest>();
+    public DbSet<MemberSubscription> MemberSubscriptions => Set<MemberSubscription>();
+    public DbSet<MemberSubscriptionStatusHistory> MemberSubscriptionStatusHistories => Set<MemberSubscriptionStatusHistory>();
 
 
  
