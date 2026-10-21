@@ -43,6 +43,12 @@ public class CdnsDbContext : DbContext
     public DbSet<CusDecItem> CusDecItems => Set<CusDecItem>();
     public DbSet<CusDecStatus> CusDecStatuses => Set<CusDecStatus>();
     public DbSet<CusDecInspection> CusDecInspections => Set<CusDecInspection>();
+    public DbSet<CusDecTax> CusDecTaxes => Set<CusDecTax>();
+    public DbSet<CusDecReadyToProcessSetting> CusDecReadyToProcessSettings => Set<CusDecReadyToProcessSetting>();
+    public DbSet<ReadyToProcessConsignee> ReadyToProcessConsignees => Set<ReadyToProcessConsignee>();
+    public DbSet<CusDecInspectionMapping> CusDecInspectionMappings => Set<CusDecInspectionMapping>();
+    public DbSet<CusDecInspectionSectionTabStatusMapping> CusDecInspectionSectionTabStatusMappings => Set<CusDecInspectionSectionTabStatusMapping>();
+    public DbSet<CusDecPaymentSummary> CusDecPaymentSummaries => Set<CusDecPaymentSummary>();
     
  
     protected override void OnModelCreating(ModelBuilder modelBuilder)
