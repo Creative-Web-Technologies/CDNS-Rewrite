@@ -1,4 +1,4 @@
-namespace Cdns.Domain.Entities.Company;
+namespace Cdns.Domain.Entities.CompanySubscriptionManagement;
 
 public class SubscriptionRequest
 {
