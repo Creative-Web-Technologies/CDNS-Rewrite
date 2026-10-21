@@ -3,6 +3,7 @@ using Cdns.Domain.Entities.AdminPortal;
 using Cdns.Domain.Entities.MemberLoginTables;
 using Cdns.Domain.Entities.MemberSignupTables;
 using Cdns.Domain.Entities.CusdecTables;
+using Cdns.Domain.Entities.CompanySubscriptionManagement;
 
 
 namespace Cdns.Infrastructure.Persistence;
@@ -11,7 +12,7 @@ public class CdnsDbContext : DbContext
 {
     public CdnsDbContext(DbContextOptions<CdnsDbContext> options) : base(options) { }
     
-    //Admin Portal
+    //Admin Portal Tables
     public DbSet<User> User => Set<User>();
     public DbSet<UserGroupMapping> UserGroupMappings => Set<UserGroupMapping>();
     public DbSet<Employee> Employees => Set<Employee>();
@@ -35,11 +36,21 @@ public class CdnsDbContext : DbContext
     public DbSet<MemberUserLoginDetail> MemberUserLoginDetails => Set<MemberUserLoginDetail>();
     public DbSet<MemberActivityLog> MemberActivityLogs => Set<MemberActivityLog>();
 
+    //Company & subscription managment Tables
+    public DbSet<Company> Companies => Set<Company>();
+    public DbSet<CompanyStatusDetail> CompanyStatusDetails => Set<CompanyStatusDetail>();
+    public DbSet<CompanyMemberMapping> CompanyMemberMappings => Set<CompanyMemberMapping>();
+    public DbSet<Subscription> Subscriptions => Set<Subscription>();
+    public DbSet<SubscriptionRequest> SubscriptionRequests => Set<SubscriptionRequest>();
+    public DbSet<MemberSubscription> MemberSubscriptions => Set<MemberSubscription>();
+    public DbSet<MemberSubscriptionStatusHistory> MemberSubscriptionStatusHistories => Set<MemberSubscriptionStatusHistory>();
+
+
     //Cusdec Tables
     public DbSet<CusDecStatusMapping> CusDecStatusMappings => Set<CusDecStatusMapping>();
     public DbSet<CusDec> CusDecs => Set<CusDec>();
     public DbSet<CusDecContainer> CusDecContainers => Set<CusDecContainer>();
-    public DbSet<CusDecContainerStatus>CusDecContainerStatuses => Set<CusDecContainerStatus>(); 
+    public DbSet<CusDecContainerStatus> CusDecContainerStatuses => Set<CusDecContainerStatus>(); 
     public DbSet<CusDecItem> CusDecItems => Set<CusDecItem>();
     public DbSet<CusDecStatus> CusDecStatuses => Set<CusDecStatus>();
     public DbSet<CusDecInspection> CusDecInspections => Set<CusDecInspection>();
