@@ -1,8 +1,9 @@
-using Cdns.Domain.Entities.Company;
+using Cdns.Domain.Entities.CompanySubscriptionManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Cdns.Infrastructure.Persistence.Configurations.Company;
+namespace Cdns.Infrastructure.Persistence.Configurations.CompanySubscriptionManagement;
+
 
 public class CompanyStatusDetailConfiguration : IEntityTypeConfiguration<CompanyStatusDetail>
 {

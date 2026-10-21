@@ -1,4 +1,7 @@
-namespace Cdns.Domain.Entities.Company;
+using Cdns.Domain.Entities.AdminPortal;
+using Cdns.Domain.Entities.MemberSignupTables;
+
+namespace Cdns.Domain.Entities.CompanySubscriptionManagement;
 
 public class MemberSubscriptionStatusHistory
 {
