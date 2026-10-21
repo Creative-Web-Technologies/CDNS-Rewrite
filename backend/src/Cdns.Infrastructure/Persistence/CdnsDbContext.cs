@@ -3,6 +3,7 @@ using Cdns.Domain.Entities.AdminPortal;
 using Cdns.Domain.Entities.MemberLoginTables;
 using Cdns.Domain.Entities.MemberSignupTables;
 using Cdns.Domain.Entities.CusdecTables;
+using Cdns.Domain.Entities.CompanySubscriptionManagement;
 
 
 namespace Cdns.Infrastructure.Persistence;
