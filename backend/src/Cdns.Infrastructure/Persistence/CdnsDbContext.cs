@@ -4,6 +4,8 @@ using Cdns.Domain.Entities.MemberLoginTables;
 using Cdns.Domain.Entities.MemberSignupTables;
 using Cdns.Domain.Entities.CusdecTables;
 using Cdns.Domain.Entities.CompanySubscriptionManagement;
+using Cdns.Domain.Entities.SystemInfrastructureAuditing;
+using Cdns.Domain.Entities.CustomerSupportTickets; 
 
 
 namespace Cdns.Infrastructure.Persistence;
@@ -61,6 +63,18 @@ public class CdnsDbContext : DbContext
     public DbSet<CusDecInspectionSectionTabStatusMapping> CusDecInspectionSectionTabStatusMappings => Set<CusDecInspectionSectionTabStatusMapping>();
     public DbSet<CusDecPaymentSummary> CusDecPaymentSummaries => Set<CusDecPaymentSummary>();
     
+    //System Infrastructure and Auditing
+    public DbSet<SystemActivityLog> SystemActivityLogs => Set<SystemActivityLog>();
+    public DbSet<SystemErrorLog> SystemErrorLogs => Set<SystemErrorLog>();
+    public DbSet<SystemSerial> SystemSerials => Set<SystemSerial>();
+    public DbSet<SmtpMailSetting> SmtpMailSettings => Set<SmtpMailSetting>();
+    public DbSet<TaskScheduleAppDetail> TaskScheduleAppDetails => Set<TaskScheduleAppDetail>();
+    public DbSet<OfficeCode> OfficeCodes => Set<OfficeCode>();
+    public DbSet<CustomerSupportTicket> CustomerSupportTickets => Set<CustomerSupportTicket>();
+
+
+
+
  
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

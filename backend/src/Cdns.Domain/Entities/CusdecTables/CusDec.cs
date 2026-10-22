@@ -7,7 +7,7 @@ public class CusDec
     public string? DeclarantTinNumber { get; set; }
     public string? ConsigneeTinNumber { get; set; }
 
-    // FKs to Company are added once Company & Subscription is built
+        // FKs to Company (nullable, Restrict) are configured in CusDecConfiguration
     public int? DeclarantCompanyId { get; set; }
     public int? ConsigneeCompanyId { get; set; }
 

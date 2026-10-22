@@ -1,3 +1,4 @@
+using Cdns.Domain.Entities.CompanySubscriptionManagement;
 using Cdns.Domain.Entities.CusdecTables;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -58,7 +59,25 @@ public class CusDecConfiguration : IEntityTypeConfiguration<CusDec>
         builder.Property(x => x.ConsigneeCompanyName).HasMaxLength(500);
         builder.Property(x => x.SupplierCompanyName).HasMaxLength(500);
 
-        // FKs on DeclarantCompanyId / ConsigneeCompanyId to Company come with the Company section.
+        // ---- Foreign keys to Company ----
+        // Nullable: the ASYCUDA sync inserts the CusDec first and the company link
+        // is backfilled afterwards. Restrict: deleting a Company must never erase
+        // or detach declaration history.
+        builder.HasOne<Company>()
+            .WithMany()
+            .HasForeignKey(x => x.DeclarantCompanyId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne<Company>()
+            .WithMany()
+            .HasForeignKey(x => x.ConsigneeCompanyId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(x => x.DeclarantCompanyId).HasDatabaseName("IX_CusDec_DeclarantCompanyId");
+        builder.HasIndex(x => x.ConsigneeCompanyId).HasDatabaseName("IX_CusDec_ConsigneeCompanyId");
+
         // The *ById columns (claim, disclaim, ready-to-process, can/can't process) are
         // plain bigint in legacy with no FK, so they stay that way for now.
     }
