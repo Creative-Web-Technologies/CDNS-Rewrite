@@ -1,5 +1,5 @@
-
 using Cdns.Domain.Entities.CusdecTables;
+using Cdns.Domain.Entities.SystemInfrastructureAuditing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
