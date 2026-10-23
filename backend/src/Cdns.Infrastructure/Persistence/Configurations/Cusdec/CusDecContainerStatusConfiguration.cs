@@ -8,7 +8,6 @@ public class CusDecContainerStatusConfiguration : IEntityTypeConfiguration<CusDe
 {
     public void Configure(EntityTypeBuilder<CusDecContainerStatus> builder)
     {
-        builder.ToTable("CusDecContainerStatus");
 
         builder.HasKey(x => x.CusDecContainerStatusId);
         builder.Property(x => x.CusDecContainerStatusId).ValueGeneratedOnAdd();

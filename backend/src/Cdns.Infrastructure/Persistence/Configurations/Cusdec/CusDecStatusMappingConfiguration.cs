@@ -8,7 +8,6 @@ public class CusDecStatusMappingConfiguration : IEntityTypeConfiguration<CusDecS
 {
     public void Configure(EntityTypeBuilder<CusDecStatusMapping> builder)
     {
-        builder.ToTable("CusDecStatusMapping");
 
         builder.HasKey(x => x.CusDecStatusMappingId);
         builder.Property(x => x.CusDecStatusMappingId).ValueGeneratedOnAdd();

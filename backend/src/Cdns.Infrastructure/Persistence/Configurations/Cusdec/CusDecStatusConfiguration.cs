@@ -9,7 +9,6 @@ public class CusDecStatusConfiguration
 {
     public void Configure(EntityTypeBuilder<CusDecStatus> builder)
     {
-        builder.ToTable("CusDecStatus");
 
         // Primary Key
         builder.HasKey(x => x.CusDecStatusId);
