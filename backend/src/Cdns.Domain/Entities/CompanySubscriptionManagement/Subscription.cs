@@ -1,5 +1,6 @@
 namespace Cdns.Domain.Entities.CompanySubscriptionManagement;
 
+
 public class Subscription
 {
     public int SubscriptionId { get; set; }

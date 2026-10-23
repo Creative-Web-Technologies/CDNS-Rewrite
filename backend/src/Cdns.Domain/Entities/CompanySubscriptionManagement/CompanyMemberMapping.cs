@@ -2,6 +2,7 @@ using Cdns.Domain.Entities.MemberSignupTables;
 
 namespace Cdns.Domain.Entities.CompanySubscriptionManagement;
 
+
 public class CompanyMemberMapping
 {
     public long CompanyMemberMappingId { get; set; }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Cdns.Infrastructure.Persistence.Configurations.CompanySubscriptionManagement;
 
+
 public class CompanyStatusDetailConfiguration : IEntityTypeConfiguration<CompanyStatusDetail>
 {
     public void Configure(EntityTypeBuilder<CompanyStatusDetail> builder)

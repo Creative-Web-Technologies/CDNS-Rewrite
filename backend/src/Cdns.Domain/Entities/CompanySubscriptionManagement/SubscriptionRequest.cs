@@ -2,6 +2,7 @@ using Cdns.Domain.Entities.MemberSignupTables;
 
 namespace Cdns.Domain.Entities.CompanySubscriptionManagement;
 
+
 public class SubscriptionRequest
 {
     public long SubscriptionRequestId { get; set; }

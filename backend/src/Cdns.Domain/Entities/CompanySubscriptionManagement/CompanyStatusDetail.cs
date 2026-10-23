@@ -1,5 +1,6 @@
 namespace Cdns.Domain.Entities.CompanySubscriptionManagement;
 
+
 public class CompanyStatusDetail
 {
     public long CompanyStatusDetailId { get; set; }
