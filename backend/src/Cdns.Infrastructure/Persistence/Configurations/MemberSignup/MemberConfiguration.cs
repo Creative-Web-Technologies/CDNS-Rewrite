@@ -9,7 +9,6 @@ public class MemberConfiguration : IEntityTypeConfiguration<Member>
 {
     public void Configure(EntityTypeBuilder<Member> builder)
     {
-        builder.ToTable("members");
 
         builder.HasKey(x => x.MemberId);
 

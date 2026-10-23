@@ -9,7 +9,6 @@ public class CusDecConfiguration : IEntityTypeConfiguration<CusDec>
 {
     public void Configure(EntityTypeBuilder<CusDec> builder)
     {
-        builder.ToTable("CusDec");
 
         builder.HasKey(x => x.CusDecId);
         builder.Property(x => x.CusDecId).ValueGeneratedOnAdd();

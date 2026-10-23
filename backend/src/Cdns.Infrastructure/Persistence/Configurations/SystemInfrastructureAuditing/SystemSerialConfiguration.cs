@@ -14,17 +14,17 @@ public class SystemSerialConfiguration : IEntityTypeConfiguration<SystemSerial>
                .ValueGeneratedOnAdd();
 
         // Columns, Limits & Defaults
-        builder.Property(x => x.AutoIncrementSerial)
-               .HasDefaultValue(0);
+       builder.Property(x => x.AutoIncrementSerial)
+              .HasDefaultValue(0L);
 
-        builder.Property(x => x.DailyIncrementSerial)
-               .HasDefaultValue(0);
+       builder.Property(x => x.DailyIncrementSerial)
+              .HasDefaultValue(0L);
 
-        builder.Property(x => x.MonthlyIncrementSerial)
-               .HasDefaultValue(0);
+       builder.Property(x => x.MonthlyIncrementSerial)
+              .HasDefaultValue(0L);
 
-        builder.Property(x => x.YearlyIncrementSerial)
-               .HasDefaultValue(0);
+       builder.Property(x => x.YearlyIncrementSerial)
+              .HasDefaultValue(0L);
 
         builder.Property(x => x.SerialFormatExpression)
                .HasMaxLength(400);

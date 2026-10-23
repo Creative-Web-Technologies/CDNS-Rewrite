@@ -8,7 +8,6 @@ public class CusDecContainerConfiguration : IEntityTypeConfiguration<CusDecConta
 {
     public void Configure(EntityTypeBuilder<CusDecContainer> builder)
     {
-        builder.ToTable("CusDecContainer");
 
         builder.HasKey(x => x.CusDecContainerId);
         builder.Property(x => x.CusDecContainerId).ValueGeneratedOnAdd();
