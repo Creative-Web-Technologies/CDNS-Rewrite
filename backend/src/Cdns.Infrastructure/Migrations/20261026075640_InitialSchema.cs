@@ -64,6 +64,24 @@ namespace Cdns.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "cus_dec_payment_summaries",
+                columns: table => new
+                {
+                    cus_dec_payment_summary_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    declarant_tin_number = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    consignee_tin_number = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    total_cif = table.Column<decimal>(type: "numeric(28,2)", precision: 28, scale: 2, nullable: true),
+                    total_tax_paid = table.Column<decimal>(type: "numeric(28,2)", precision: 28, scale: 2, nullable: true),
+                    inspection_recoveries = table.Column<decimal>(type: "numeric(28,2)", precision: 28, scale: 2, nullable: true),
+                    last_sync_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_cus_dec_payment_summaries", x => x.cus_dec_payment_summary_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "cus_dec_status_mappings",
                 columns: table => new
                 {
@@ -303,8 +321,8 @@ namespace Cdns.Infrastructure.Migrations
                     cus_dec_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     cus_dec_number = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    declarant_tin_number = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    consignee_tin_number = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    declarant_tin_number = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
+                    consignee_tin_number = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     declarant_company_id = table.Column<int>(type: "integer", nullable: true),
                     consignee_company_id = table.Column<int>(type: "integer", nullable: true),
                     invoice_value = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: true),
@@ -349,8 +367,6 @@ namespace Cdns.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_cus_decs", x => x.cus_dec_id);
-                    table.UniqueConstraint("ak_cus_decs_consignee_tin_number", x => x.consignee_tin_number);
-                    table.UniqueConstraint("ak_cus_decs_declarant_tin_number", x => x.declarant_tin_number);
                     table.ForeignKey(
                         name: "fk_cus_decs_companies_consignee_company_id",
                         column: x => x.consignee_company_id,
@@ -772,36 +788,6 @@ namespace Cdns.Infrastructure.Migrations
                         column: x => x.cus_dec_id,
                         principalTable: "cus_decs",
                         principalColumn: "cus_dec_id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "cus_dec_payment_summaries",
-                columns: table => new
-                {
-                    cus_dec_payment_summary_id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    declarant_tin_number = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    consignee_tin_number = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
-                    total_cif = table.Column<decimal>(type: "numeric(28,2)", precision: 28, scale: 2, nullable: true),
-                    total_tax_paid = table.Column<decimal>(type: "numeric(28,2)", precision: 28, scale: 2, nullable: true),
-                    inspection_recoveries = table.Column<decimal>(type: "numeric(28,2)", precision: 28, scale: 2, nullable: true),
-                    last_sync_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_cus_dec_payment_summaries", x => x.cus_dec_payment_summary_id);
-                    table.ForeignKey(
-                        name: "fk_cus_dec_payment_summaries_cus_decs_consignee_tin_number",
-                        column: x => x.consignee_tin_number,
-                        principalTable: "cus_decs",
-                        principalColumn: "consignee_tin_number",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "fk_cus_dec_payment_summaries_cus_decs_declarant_tin_number",
-                        column: x => x.declarant_tin_number,
-                        principalTable: "cus_decs",
-                        principalColumn: "declarant_tin_number",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -1253,14 +1239,10 @@ namespace Cdns.Infrastructure.Migrations
                 column: "cus_dec_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_cus_dec_payment_summaries_consignee_tin_number",
+                name: "ix_cus_dec_payment_summaries_declarant_tin_number_consignee_ti",
                 table: "cus_dec_payment_summaries",
-                column: "consignee_tin_number");
-
-            migrationBuilder.CreateIndex(
-                name: "ix_cus_dec_payment_summaries_declarant_tin_number",
-                table: "cus_dec_payment_summaries",
-                column: "declarant_tin_number");
+                columns: new[] { "declarant_tin_number", "consignee_tin_number" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_cus_dec_ready_to_process_settings_office_code_id",

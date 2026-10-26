@@ -1,7 +1,7 @@
 
-using Cdns.Domain.Entities.CusdecTables;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Cdns.Domain.Entities.CusdecTables;
 
 namespace Cdns.Infrastructure.Persistence.Configurations.CusdecTables;
 
@@ -34,18 +34,10 @@ public class CusDecPaymentSummaryConfiguration
             .IsRequired()
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
-        // Declarant TIN foreign key
-        builder.HasOne<CusDec>()
-            .WithMany()
-            .HasForeignKey(x => x.DeclarantTinNumber)
-            .HasPrincipalKey(x => x.DeclarantTinNumber)
-            .OnDelete(DeleteBehavior.Restrict);
-
-        // Consignee TIN foreign key
-        builder.HasOne<CusDec>()
-            .WithMany()
-            .HasForeignKey(x => x.ConsigneeTinNumber)
-            .HasPrincipalKey(x => x.ConsigneeTinNumber)
-            .OnDelete(DeleteBehavior.Restrict);
+        // Natural key: each (Declarant, Consignee) TIN pair represents one aggregate row.
+        // The legacy MERGE procs upsert on this exact pair; no FK to CusDec is correct —
+        // PaymentSummary is a cross-declaration aggregate, not tied to any single CusDec row.
+        builder.HasIndex(x => new { x.DeclarantTinNumber, x.ConsigneeTinNumber })
+            .IsUnique();
     }
 }

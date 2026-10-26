@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Cdns.Infrastructure.Migrations
 {
     [DbContext(typeof(CdnsDbContext))]
-    [Migration("20261023063744_InitialSchema")]
+    [Migration("20261026075640_InitialSchema")]
     partial class InitialSchema
     {
         /// <inheritdoc />
@@ -1073,7 +1073,6 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("consignee_disclaimed_date_time");
 
                     b.Property<string>("ConsigneeTinNumber")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("consignee_tin_number");
@@ -1122,7 +1121,6 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("declarant_disclaimed_date_time");
 
                     b.Property<string>("DeclarantTinNumber")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("declarant_tin_number");
@@ -1206,12 +1204,6 @@ namespace Cdns.Infrastructure.Migrations
 
                     b.HasKey("CusDecId")
                         .HasName("pk_cus_decs");
-
-                    b.HasAlternateKey("ConsigneeTinNumber")
-                        .HasName("ak_cus_decs_consignee_tin_number");
-
-                    b.HasAlternateKey("DeclarantTinNumber")
-                        .HasName("ak_cus_decs_declarant_tin_number");
 
                     b.HasIndex("ConsigneeCompanyId")
                         .HasDatabaseName("IX_CusDec_ConsigneeCompanyId");
@@ -1670,11 +1662,9 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasKey("CusDecPaymentSummaryId")
                         .HasName("pk_cus_dec_payment_summaries");
 
-                    b.HasIndex("ConsigneeTinNumber")
-                        .HasDatabaseName("ix_cus_dec_payment_summaries_consignee_tin_number");
-
-                    b.HasIndex("DeclarantTinNumber")
-                        .HasDatabaseName("ix_cus_dec_payment_summaries_declarant_tin_number");
+                    b.HasIndex("DeclarantTinNumber", "ConsigneeTinNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cus_dec_payment_summaries_declarant_tin_number_consignee_ti");
 
                     b.ToTable("cus_dec_payment_summaries", (string)null);
                 });
@@ -2989,23 +2979,6 @@ namespace Cdns.Infrastructure.Migrations
                         .HasConstraintName("fk_cus_dec_items_cus_decs_cus_dec_id");
 
                     b.Navigation("CusDec");
-                });
-
-            modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecPaymentSummary", b =>
-                {
-                    b.HasOne("Cdns.Domain.Entities.CusdecTables.CusDec", null)
-                        .WithMany()
-                        .HasForeignKey("ConsigneeTinNumber")
-                        .HasPrincipalKey("ConsigneeTinNumber")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_dec_payment_summaries_cus_decs_consignee_tin_number");
-
-                    b.HasOne("Cdns.Domain.Entities.CusdecTables.CusDec", null)
-                        .WithMany()
-                        .HasForeignKey("DeclarantTinNumber")
-                        .HasPrincipalKey("DeclarantTinNumber")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_dec_payment_summaries_cus_decs_declarant_tin_number");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecReadyToProcessSetting", b =>
