@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Cdns.Application\Cdns.Application.csproj" />
+    <ProjectReference Include="..\Cdns.Domain\Cdns.Domain.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -11,6 +12,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.12" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
   </ItemGroup>
 
