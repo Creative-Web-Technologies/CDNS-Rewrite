@@ -1,0 +1,181 @@
+/* All colors explicit — not using global CSS vars so dark mode doesn't affect
+   the auth pages. */
+
+.login-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px;
+  letter-spacing: -0.3px;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  text-align: left;
+}
+
+.login-subtitle {
+  font-size: 15px;
+  font-weight: 500;
+  /* FLAGGED: muted slate colour — pick from brand palette if available */
+  color: #64748b;
+  margin: 0 0 24px;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  text-align: left;
+}
+
+.login-error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #b91c1c;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 14px;
+  margin-bottom: 16px;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ── Form layout ── */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+.form-field input[type='email'],
+.form-field input[type='password'] {
+  padding: 10px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 15px;
+  color: #111827;
+  background: #ffffff;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-field input[type='email']:focus,
+.form-field input[type='password']:focus {
+  /* FLAGGED: focus ring uses the same #1e40af as the button — adjust if brand
+     colour changes */
+  border-color: #1e40af;
+  box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.12);
+}
+
+/* ── Turnstile visual stand-in ── */
+.turnstile-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 12px 14px;
+  color: #6b7280;
+  font-size: 14px;
+  background: #f9fafb;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  user-select: none;
+}
+
+.turnstile-check {
+  color: #16a34a;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* ── Remember me / forgot password row ── */
+.login-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  user-select: none;
+}
+
+.forgot-link {
+  font-size: 14px;
+  /* FLAGGED: same blue as button/focus — confirm with brand */
+  color: #1e40af;
+  text-decoration: none;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Submit button ── */
+.login-btn {
+  width: 100%;
+  padding: 11px;
+  /* FLAGGED: #1e40af is a standard deep blue chosen as a placeholder for the
+     real SL Customs brand primary colour. Update once confirmed. */
+  background: #1e40af;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  transition: background 0.15s;
+  margin-top: 4px;
+}
+
+.login-btn:hover:not(:disabled) {
+  background: #1d3a9e;
+}
+
+.login-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* ── Footer links ── */
+.login-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  font-size: 14px;
+  color: #6b7280;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+.login-footer a {
+  color: #1e40af;
+  text-decoration: none;
+}
+
+.login-footer a:hover {
+  text-decoration: underline;
+}
+
+.help-link {
+  font-size: 13px;
+  color: #9ca3af !important;
+}

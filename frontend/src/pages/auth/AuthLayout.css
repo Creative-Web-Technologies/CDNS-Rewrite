@@ -1,0 +1,106 @@
+/* AuthLayout — two-column auth shell. All colors are explicit (no CSS vars)
+   so this component is unaffected by the global dark-mode theme. */
+
+.auth-shell {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  /* explicit light background prevents any dark-mode bleed behind the shell */
+  background: #ffffff;
+}
+
+/* ── Left panel: dark navy hero image ── */
+.auth-left {
+  flex: 1 1 auto;
+  /* FLAGGED: #0b1e3d is a guess at the Sri Lanka Customs brand navy.
+     Confirm with the brand guidelines / legacy stylesheet. */
+  background-color: #0b1e3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  min-height: 100vh;
+}
+
+.auth-hero-card {
+  border-radius: 20px;
+  overflow: hidden;
+  width: 100%;
+  max-width: 520px;
+  /* FLAGGED: aspect-ratio 4/3 is a guess — adjust once the real port photo
+     is swapped in so the card frames it correctly. */
+  aspect-ratio: 4 / 3;
+}
+
+.auth-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Right panel: white content column ── */
+.auth-right {
+  /* FLAGGED: 540px column width is a judgment call — gives 460px inner content
+     with 40px padding each side. Adjust if the form feels too wide/narrow. */
+  flex: 0 0 540px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 40px;
+  overflow-y: auto;
+}
+
+.auth-right-content {
+  width: 100%;
+  max-width: 460px;
+}
+
+/* ── Brand header (logo + name) ── */
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+/* Circular placeholder until the real crest SVG is available */
+.auth-logo-crest {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  /* FLAGGED: #1e40af is a standard government-style deep blue. Confirm against
+     the real Sri Lanka Customs brand colour. */
+  background-color: #1e40af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+}
+
+.auth-brand-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0;
+  letter-spacing: 0.3px;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ── Responsive: single-column below 768px ── */
+@media (max-width: 768px) {
+  .auth-left {
+    display: none;
+  }
+
+  .auth-right {
+    flex: 1 1 auto;
+    width: 100%;
+    padding: 32px 24px;
+  }
+}
