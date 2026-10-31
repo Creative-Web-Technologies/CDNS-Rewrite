@@ -1,0 +1,36 @@
+.admin-dashboard {
+  width: min(100% - 32px, 1100px);
+  margin: 32px auto;
+}
+
+.admin-dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-dashboard-header h1 {
+  margin: 0;
+  font-size: 32px;
+  letter-spacing: -0.5px;
+}
+
+.admin-logout-button {
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: #1e40af;
+  color: #ffffff;
+  font: 600 14px system-ui, 'Segoe UI', Roboto, sans-serif;
+  cursor: pointer;
+}
+
+.admin-logout-button:hover {
+  background: #1d3a9e;
+}
+
+.admin-logout-button:focus-visible {
+  outline: 3px solid rgba(30, 64, 175, 0.3);
+  outline-offset: 2px;
+}

@@ -14,14 +14,12 @@
  *   }
  */
 import heroImg from '../../assets/hero.png';
+import customsLogo from '../../assets/Sri_Lanka_Customs_logo.svg';
 import './AuthLayout.css';
 
-// TODO: swap with the real Sri Lanka Customs crest SVG from legacy wwwroot
 function LogoCrest() {
   return (
-    <div className="auth-logo-crest" aria-hidden="true">
-      <span>SLC</span>
-    </div>
+    <img className="auth-logo-crest" src={customsLogo} alt="Sri Lanka Customs logo" />
   );
 }
 

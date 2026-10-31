@@ -8,7 +8,7 @@
   margin: 0 0 4px;
   letter-spacing: -0.3px;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  text-align: left;
+  text-align: center;
 }
 
 .login-subtitle {
@@ -18,7 +18,7 @@
   color: #64748b;
   margin: 0 0 24px;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  text-align: left;
+  text-align: center;
 }
 
 .login-error {
@@ -75,26 +75,27 @@
   box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.12);
 }
 
-/* ── Turnstile visual stand-in ── */
-.turnstile-placeholder {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 12px 14px;
-  color: #6b7280;
-  font-size: 14px;
-  background: #f9fafb;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  user-select: none;
+.field-error {
+  color: #b91c1c;
+  font: 13px/1.4 system-ui, 'Segoe UI', Roboto, sans-serif;
 }
 
-.turnstile-check {
-  color: #16a34a;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1;
+.otp-expiry {
+  color: #64748b;
+  font: 14px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+.otp-expiry strong {
+  color: #1e40af;
+  font-variant-numeric: tabular-nums;
+}
+
+.form-field input[aria-invalid='true'] {
+  border-color: #dc2626;
+}
+
+.turnstile-widget {
+  min-height: 65px;
 }
 
 /* ── Remember me / forgot password row ── */

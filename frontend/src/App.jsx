@@ -1,4 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import ForgotPasswordPage from './pages/auth/ForgotPassword/ForgotPasswordPage';
 import LoginPage from './pages/auth/Login/LoginPage';
 import MasterActivationPage from './pages/auth/MasterActivation/MasterActivationPage';
@@ -11,6 +12,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/otp-verification" element={<OtpVerificationPage />} />
         <Route path="/password-setup" element={<PasswordSetupPage />} />

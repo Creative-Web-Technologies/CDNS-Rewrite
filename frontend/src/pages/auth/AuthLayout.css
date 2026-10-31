@@ -18,18 +18,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px;
+  padding: 0;
   min-height: 100vh;
 }
 
 .auth-hero-card {
-  border-radius: 20px;
   overflow: hidden;
   width: 100%;
-  max-width: 520px;
-  /* FLAGGED: aspect-ratio 4/3 is a guess — adjust once the real port photo
-     is swapped in so the card frames it correctly. */
-  aspect-ratio: 4 / 3;
+  height: 100vh;
 }
 
 .auth-hero-img {
@@ -65,21 +61,10 @@
   margin-bottom: 32px;
 }
 
-/* Circular placeholder until the real crest SVG is available */
 .auth-logo-crest {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  /* FLAGGED: #1e40af is a standard government-style deep blue. Confirm against
-     the real Sri Lanka Customs brand colour. */
-  background-color: #1e40af;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
   margin-bottom: 10px;
 }
 
