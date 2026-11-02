@@ -24,4 +24,5 @@ public class TemporaryMember
 
     public DateTimeOffset CreatedDateTime { get; set; }
     public bool IsDeleted { get; set; }
+
 }

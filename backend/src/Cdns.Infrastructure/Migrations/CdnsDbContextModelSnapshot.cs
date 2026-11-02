@@ -27,1180 +27,945 @@ namespace Cdns.Infrastructure.Migrations
                 {
                     b.Property<long>("AccessControlId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("access_control_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("AccessControlId"));
 
                     b.Property<int?>("GroupId")
-                        .HasColumnType("integer")
-                        .HasColumnName("group_id");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<int?>("MenuItemFunctionId")
-                        .HasColumnType("integer")
-                        .HasColumnName("menu_item_function_id");
+                        .HasColumnType("integer");
 
-                    b.HasKey("AccessControlId")
-                        .HasName("pk_access_control");
+                    b.HasKey("AccessControlId");
 
-                    b.HasIndex("GroupId")
-                        .HasDatabaseName("ix_access_control_group_id");
+                    b.HasIndex("GroupId");
 
-                    b.HasIndex("MenuItemFunctionId")
-                        .HasDatabaseName("ix_access_control_menu_item_function_id");
+                    b.HasIndex("MenuItemFunctionId");
 
-                    b.ToTable("access_control", (string)null);
+                    b.ToTable("AccessControl");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.AdminPortal.Department", b =>
                 {
                     b.Property<int>("DepartmentId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("department_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DepartmentId"));
 
                     b.Property<string>("DepartmentName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("department_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
-                    b.HasKey("DepartmentId")
-                        .HasName("pk_department");
+                    b.HasKey("DepartmentId");
 
-                    b.ToTable("department", (string)null);
+                    b.ToTable("Department");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.AdminPortal.Employee", b =>
                 {
                     b.Property<long>("EmployeeId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("employee_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("EmployeeId"));
 
                     b.Property<int?>("DepartmentId")
-                        .HasColumnType("integer")
-                        .HasColumnName("department_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Email")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("email");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("EmployeeCode")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("employee_code");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("FirstName")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("first_name");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<string>("LastName")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("last_name");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("ProfileImageUrl")
-                        .HasColumnType("text")
-                        .HasColumnName("profile_image_url");
+                        .HasColumnType("text");
 
-                    b.HasKey("EmployeeId")
-                        .HasName("pk_employees");
+                    b.HasKey("EmployeeId");
 
-                    b.HasIndex("DepartmentId")
-                        .HasDatabaseName("ix_employees_department_id");
+                    b.HasIndex("DepartmentId");
 
-                    b.ToTable("employees", (string)null);
+                    b.ToTable("Employees");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.AdminPortal.Group", b =>
                 {
                     b.Property<int>("GroupId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("group_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("GroupId"));
 
                     b.Property<string>("GroupName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("group_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
-                    b.HasKey("GroupId")
-                        .HasName("pk_group");
+                    b.HasKey("GroupId");
 
-                    b.ToTable("group", (string)null);
+                    b.ToTable("Group");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.AdminPortal.LoginUserActivity", b =>
                 {
                     b.Property<long>("LoginUserActivityId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("login_user_activity_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("LoginUserActivityId"));
 
                     b.Property<Guid>("GlobalIdentity")
-                        .HasColumnType("uuid")
-                        .HasColumnName("global_identity");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsCurrentSession")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_current_session");
+                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset>("LoggedDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("logged_date_time");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LoggedDevice")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("logged_device");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("LoggedIpAddress")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("logged_ip_address");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<long>("UserId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("user_id");
+                        .HasColumnType("bigint");
 
-                    b.HasKey("LoginUserActivityId")
-                        .HasName("pk_login_user_activities");
+                    b.HasKey("LoginUserActivityId");
 
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_login_user_activities_user_id");
+                    b.HasIndex("UserId");
 
-                    b.ToTable("login_user_activities", (string)null);
+                    b.ToTable("LoginUserActivities");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.AdminPortal.Menu", b =>
                 {
                     b.Property<int>("MenuId")
-                        .HasColumnType("integer")
-                        .HasColumnName("menu_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Action")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("action");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Area")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("area");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Controller")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("controller");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("IconName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("icon_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<string>("MenuName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("menu_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("MenuOrder")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("menu_order");
+                        .HasDefaultValue(0);
 
                     b.Property<int?>("ModuleId")
-                        .HasColumnType("integer")
-                        .HasColumnName("module_id");
+                        .HasColumnType("integer");
 
-                    b.HasKey("MenuId")
-                        .HasName("pk_menus");
+                    b.HasKey("MenuId");
 
-                    b.HasIndex("ModuleId")
-                        .HasDatabaseName("ix_menus_module_id");
+                    b.HasIndex("ModuleId");
 
-                    b.ToTable("menus", (string)null);
+                    b.ToTable("Menus");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.AdminPortal.MenuItem", b =>
                 {
                     b.Property<int>("MenuItemId")
-                        .HasColumnType("integer")
-                        .HasColumnName("menu_item_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Action")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("action");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Area")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("area");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Controller")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("controller");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("IconName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("icon_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsPowerBiDashboard")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_power_bi_dashboard");
+                        .HasDefaultValue(false);
 
                     b.Property<int?>("MenuId")
-                        .HasColumnType("integer")
-                        .HasColumnName("menu_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("MenuItemName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("menu_item_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("MenuItemOrder")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("menu_item_order");
+                        .HasDefaultValue(0);
 
                     b.Property<string>("ReportId")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("report_id");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("WorkSpaceId")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("work_space_id");
+                        .HasColumnType("character varying(50)");
 
-                    b.HasKey("MenuItemId")
-                        .HasName("pk_menu_items");
+                    b.HasKey("MenuItemId");
 
-                    b.HasIndex("MenuId")
-                        .HasDatabaseName("ix_menu_items_menu_id");
+                    b.HasIndex("MenuId");
 
-                    b.ToTable("menu_items", (string)null);
+                    b.ToTable("MenuItems");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.AdminPortal.MenuItemFunction", b =>
                 {
                     b.Property<int>("MenuItemFunctionId")
-                        .HasColumnType("integer")
-                        .HasColumnName("menu_item_function_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Action")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("action");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Area")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("area");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Controller")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("controller");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("IconName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("icon_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<string>("MenuItemFunctionName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("menu_item_function_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("MenuItemFunctionOrder")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("menu_item_function_order");
+                        .HasDefaultValue(0);
 
                     b.Property<int?>("MenuItemId")
-                        .HasColumnType("integer")
-                        .HasColumnName("menu_item_id");
+                        .HasColumnType("integer");
 
-                    b.HasKey("MenuItemFunctionId")
-                        .HasName("pk_menu_item_function");
+                    b.HasKey("MenuItemFunctionId");
 
-                    b.HasIndex("MenuItemId")
-                        .HasDatabaseName("ix_menu_item_function_menu_item_id");
+                    b.HasIndex("MenuItemId");
 
-                    b.ToTable("menu_item_function", (string)null);
+                    b.ToTable("MenuItemFunction");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.AdminPortal.Module", b =>
                 {
                     b.Property<int>("ModuleId")
-                        .HasColumnType("integer")
-                        .HasColumnName("module_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Action")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("action");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Area")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("area");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("BgColorClass")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("bg_color_class");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Controller")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("controller");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("IconName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("icon_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<string>("ModuleName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("module_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("ModuleOrder")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("module_order");
+                        .HasDefaultValue(0);
 
                     b.Property<string>("SmallIconName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("small_icon_name");
+                        .HasColumnType("character varying(200)");
 
-                    b.HasKey("ModuleId")
-                        .HasName("pk_module");
+                    b.HasKey("ModuleId");
 
-                    b.ToTable("module", (string)null);
+                    b.ToTable("Module");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.AdminPortal.User", b =>
                 {
                     b.Property<long>("EmployeeId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("employee_id");
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("ActivationCode")
-                        .HasColumnType("integer")
-                        .HasColumnName("activation_code");
+                        .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_active");
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsSuspended")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_suspended");
+                        .HasDefaultValue(false);
 
                     b.Property<DateTimeOffset?>("LastOtpGeneratedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_otp_generated_at");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("OtpSequence")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("otp_sequence");
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Password")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("password");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("PasswordSalt")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("password_salt");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTimeOffset?>("SuspendedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("suspended_at");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid?>("UserGlobalIdentity")
-                        .HasColumnType("uuid")
-                        .HasColumnName("user_global_identity");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UserName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("user_name");
+                        .HasColumnType("character varying(200)");
 
-                    b.HasKey("EmployeeId")
-                        .HasName("pk_user");
+                    b.HasKey("EmployeeId");
 
                     b.HasIndex("UserName")
-                        .IsUnique()
-                        .HasDatabaseName("ix_user_user_name");
+                        .IsUnique();
 
-                    b.ToTable("user", (string)null);
+                    b.ToTable("User");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.AdminPortal.UserGroupMapping", b =>
                 {
                     b.Property<int>("UserGroupMappingId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("user_group_mapping_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("UserGroupMappingId"));
 
                     b.Property<long>("EmployeeId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("employee_id");
+                        .HasColumnType("bigint");
 
                     b.Property<int>("GroupId")
-                        .HasColumnType("integer")
-                        .HasColumnName("group_id");
+                        .HasColumnType("integer");
 
-                    b.HasKey("UserGroupMappingId")
-                        .HasName("pk_user_group_mappings");
+                    b.HasKey("UserGroupMappingId");
 
-                    b.HasIndex("EmployeeId")
-                        .HasDatabaseName("ix_user_group_mappings_employee_id");
+                    b.HasIndex("EmployeeId");
 
-                    b.HasIndex("GroupId")
-                        .HasDatabaseName("ix_user_group_mappings_group_id");
+                    b.HasIndex("GroupId");
 
-                    b.ToTable("user_group_mappings", (string)null);
+                    b.ToTable("UserGroupMappings");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CompanySubscriptionManagement.Company", b =>
                 {
                     b.Property<int>("CompanyId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("company_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CompanyId"));
 
                     b.Property<string>("CompanyName")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("company_name");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<int>("CompanyStatusEnum")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("company_status_enum");
+                        .HasDefaultValue(0);
 
                     b.Property<string>("ERegSystemReferenceNumber")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("e_reg_system_reference_number");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<string>("TinNumber")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("tin_number");
+                        .HasColumnType("character varying(50)");
 
-                    b.HasKey("CompanyId")
-                        .HasName("pk_companies");
+                    b.HasKey("CompanyId");
 
-                    b.ToTable("companies", (string)null);
+                    b.ToTable("Companies");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CompanySubscriptionManagement.CompanyMemberMapping", b =>
                 {
                     b.Property<long>("CompanyMemberMappingId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("company_member_mapping_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CompanyMemberMappingId"));
 
                     b.Property<int>("CompanyId")
-                        .HasColumnType("integer")
-                        .HasColumnName("company_id");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<long>("MemberId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_id");
+                        .HasColumnType("bigint");
 
-                    b.HasKey("CompanyMemberMappingId")
-                        .HasName("pk_company_member_mappings");
+                    b.HasKey("CompanyMemberMappingId");
 
-                    b.HasIndex("CompanyId")
-                        .HasDatabaseName("ix_company_member_mappings_company_id");
+                    b.HasIndex("CompanyId");
 
-                    b.HasIndex("MemberId")
-                        .HasDatabaseName("ix_company_member_mappings_member_id");
+                    b.HasIndex("MemberId");
 
-                    b.ToTable("company_member_mappings", (string)null);
+                    b.ToTable("CompanyMemberMappings");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CompanySubscriptionManagement.CompanyStatusDetail", b =>
                 {
                     b.Property<long>("CompanyStatusDetailId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("company_status_detail_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CompanyStatusDetailId"));
 
                     b.Property<int>("CompanyId")
-                        .HasColumnType("integer")
-                        .HasColumnName("company_id");
+                        .HasColumnType("integer");
 
                     b.Property<int>("CompanyStatusEnum")
-                        .HasColumnType("integer")
-                        .HasColumnName("company_status_enum");
+                        .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<long?>("EmployeeId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("employee_id");
+                        .HasColumnType("bigint");
 
-                    b.HasKey("CompanyStatusDetailId")
-                        .HasName("pk_company_status_details");
+                    b.HasKey("CompanyStatusDetailId");
 
-                    b.HasIndex("CompanyId")
-                        .HasDatabaseName("ix_company_status_details_company_id");
+                    b.HasIndex("CompanyId");
 
-                    b.ToTable("company_status_details", (string)null);
+                    b.ToTable("CompanyStatusDetails");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CompanySubscriptionManagement.MemberSubscription", b =>
                 {
                     b.Property<long>("MemberSubscriptionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_subscription_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MemberSubscriptionId"));
 
                     b.Property<int>("CompanyId")
-                        .HasColumnType("integer")
-                        .HasColumnName("company_id");
+                        .HasColumnType("integer");
 
                     b.Property<long>("CompanyMasterMemberId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("company_master_member_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset?>("ExpiryDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("expiry_date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("GlobalIdentity")
-                        .HasColumnType("uuid")
-                        .HasColumnName("global_identity");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Key")
-                        .HasColumnType("text")
-                        .HasColumnName("key");
+                        .HasColumnType("text");
 
                     b.Property<long>("MemberId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_id");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("MemberSubscriptionNumber")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("member_subscription_number");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("MemberSubscriptionStatusEnum")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("member_subscription_status_enum");
+                        .HasDefaultValue(0);
 
                     b.Property<int>("NoOfActiveDuration")
-                        .HasColumnType("integer")
-                        .HasColumnName("no_of_active_duration");
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("PaidAmount")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasDefaultValue(0m)
-                        .HasColumnName("paid_amount");
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTimeOffset?>("PaidDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("paid_date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("StartDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("start_date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("SubscriptionActionTypeEnum")
-                        .HasColumnType("integer")
-                        .HasColumnName("subscription_action_type_enum");
+                        .HasColumnType("integer");
 
                     b.Property<decimal>("SubscriptionAmount")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("subscription_amount");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<int?>("SubscriptionDurationTypeEnum")
-                        .HasColumnType("integer")
-                        .HasColumnName("subscription_duration_type_enum");
+                        .HasColumnType("integer");
 
                     b.Property<int>("SubscriptionId")
-                        .HasColumnType("integer")
-                        .HasColumnName("subscription_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("SubscriptionName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("subscription_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<long>("SubscriptionRequestId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("subscription_request_id");
+                        .HasColumnType("bigint");
 
                     b.Property<int>("SubscriptionTypeEnum")
-                        .HasColumnType("integer")
-                        .HasColumnName("subscription_type_enum");
+                        .HasColumnType("integer");
 
                     b.Property<string>("TransactionReferenceNumber")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("transaction_reference_number");
+                        .HasColumnType("character varying(200)");
 
-                    b.HasKey("MemberSubscriptionId")
-                        .HasName("pk_member_subscriptions");
+                    b.HasKey("MemberSubscriptionId");
 
-                    b.HasIndex("CompanyId")
-                        .HasDatabaseName("ix_member_subscriptions_company_id");
+                    b.HasIndex("CompanyId");
 
-                    b.HasIndex("MemberId")
-                        .HasDatabaseName("ix_member_subscriptions_member_id");
+                    b.HasIndex("MemberId");
 
-                    b.HasIndex("SubscriptionId")
-                        .HasDatabaseName("ix_member_subscriptions_subscription_id");
+                    b.HasIndex("SubscriptionId");
 
-                    b.HasIndex("SubscriptionRequestId")
-                        .HasDatabaseName("ix_member_subscriptions_subscription_request_id");
+                    b.HasIndex("SubscriptionRequestId");
 
-                    b.ToTable("member_subscriptions", (string)null);
+                    b.ToTable("MemberSubscriptions");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CompanySubscriptionManagement.MemberSubscriptionStatusHistory", b =>
                 {
                     b.Property<long>("MemberSubscriptionStatusHistoryId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_subscription_status_history_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MemberSubscriptionStatusHistoryId"));
 
                     b.Property<string>("Comment")
-                        .HasColumnType("text")
-                        .HasColumnName("comment");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<long?>("EmployeeId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("employee_id");
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("MasterMemberId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("master_member_id");
+                        .HasColumnType("bigint");
 
                     b.Property<long>("MemberSubscriptionId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_subscription_id");
+                        .HasColumnType("bigint");
 
                     b.Property<int>("MemberSubscriptionStatusEnum")
-                        .HasColumnType("integer")
-                        .HasColumnName("member_subscription_status_enum");
+                        .HasColumnType("integer");
 
-                    b.HasKey("MemberSubscriptionStatusHistoryId")
-                        .HasName("pk_member_subscription_status_histories");
+                    b.HasKey("MemberSubscriptionStatusHistoryId");
 
-                    b.HasIndex("EmployeeId")
-                        .HasDatabaseName("ix_member_subscription_status_histories_employee_id");
+                    b.HasIndex("EmployeeId");
 
-                    b.HasIndex("MasterMemberId")
-                        .HasDatabaseName("ix_member_subscription_status_histories_master_member_id");
+                    b.HasIndex("MasterMemberId");
 
-                    b.HasIndex("MemberSubscriptionId")
-                        .HasDatabaseName("ix_member_subscription_status_histories_member_subscription_id");
+                    b.HasIndex("MemberSubscriptionId");
 
-                    b.ToTable("member_subscription_status_histories", (string)null);
+                    b.ToTable("MemberSubscriptionStatusHistories");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CompanySubscriptionManagement.Subscription", b =>
                 {
                     b.Property<int>("SubscriptionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("subscription_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SubscriptionId"));
 
                     b.Property<decimal>("Amount")
                         .HasPrecision(18, 4)
-                        .HasColumnType("numeric(18,4)")
-                        .HasColumnName("amount");
+                        .HasColumnType("numeric(18,4)");
 
                     b.Property<long?>("CreatedById")
-                        .HasColumnType("bigint")
-                        .HasColumnName("created_by_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset?>("CreatedDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("description");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<int>("NoOfActiveDuration")
-                        .HasColumnType("integer")
-                        .HasColumnName("no_of_active_duration");
+                        .HasColumnType("integer");
 
                     b.Property<int>("SubscriptionActionTypeEnum")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("subscription_action_type_enum");
+                        .HasDefaultValue(0);
 
                     b.Property<int?>("SubscriptionDurationTypeEnum")
-                        .HasColumnType("integer")
-                        .HasColumnName("subscription_duration_type_enum");
+                        .HasColumnType("integer");
 
                     b.Property<string>("SubscriptionName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("subscription_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("SubscriptionStatusEnum")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("subscription_status_enum");
+                        .HasDefaultValue(0);
 
                     b.Property<int?>("SubscriptionTypeEnum")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("subscription_type_enum");
+                        .HasDefaultValue(0);
 
                     b.Property<long?>("UpdatedById")
-                        .HasColumnType("bigint")
-                        .HasColumnName("updated_by_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset?>("UpdatedDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_date_time");
+                        .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("SubscriptionId")
-                        .HasName("pk_subscriptions");
+                    b.HasKey("SubscriptionId");
 
-                    b.ToTable("subscriptions", (string)null);
+                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CompanySubscriptionManagement.SubscriptionRequest", b =>
                 {
                     b.Property<long>("SubscriptionRequestId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("subscription_request_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SubscriptionRequestId"));
 
                     b.Property<string>("Comment")
-                        .HasColumnType("text")
-                        .HasColumnName("comment");
+                        .HasColumnType("text");
 
                     b.Property<int?>("CompanyId")
-                        .HasColumnType("integer")
-                        .HasColumnName("company_id");
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("GlobalIdentity")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
-                        .HasColumnName("global_identity")
                         .HasDefaultValueSql("gen_random_uuid()");
 
                     b.Property<bool?>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<long>("MemberId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset>("RequestedDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("requested_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<DateTimeOffset?>("RespondDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("respond_date_time");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ResponderComment")
-                        .HasColumnType("text")
-                        .HasColumnName("responder_comment");
+                        .HasColumnType("text");
 
                     b.Property<long?>("ResponderId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("responder_id");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("SubscriptionRequestNumber")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("subscription_request_number");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int?>("SubscriptionRequestStatusEnum")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("subscription_request_status_enum");
+                        .HasDefaultValue(0);
 
                     b.Property<int?>("SubscriptionTypeEnum")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("subscription_type_enum");
+                        .HasDefaultValue(0);
 
-                    b.HasKey("SubscriptionRequestId")
-                        .HasName("pk_subscription_requests");
+                    b.HasKey("SubscriptionRequestId");
 
-                    b.HasIndex("CompanyId")
-                        .HasDatabaseName("ix_subscription_requests_company_id");
+                    b.HasIndex("CompanyId");
 
-                    b.HasIndex("MemberId")
-                        .HasDatabaseName("ix_subscription_requests_member_id");
+                    b.HasIndex("MemberId");
 
-                    b.ToTable("subscription_requests", (string)null);
+                    b.ToTable("SubscriptionRequests");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDec", b =>
                 {
                     b.Property<long>("CusDecId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecId"));
 
                     b.Property<string>("BlNumber")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("bl_number");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("CanNotProcess")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("can_not_process");
+                        .HasDefaultValue(false);
 
                     b.Property<long?>("CanNotProcessById")
-                        .HasColumnType("bigint")
-                        .HasColumnName("can_not_process_by_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("CanNotProcessMarkDateTime")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("can_not_process_mark_date_time");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("CanNotProcessReason")
-                        .HasColumnType("text")
-                        .HasColumnName("can_not_process_reason");
+                        .HasColumnType("text");
 
                     b.Property<bool>("CanProcess")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("can_process");
+                        .HasDefaultValue(false);
 
                     b.Property<long?>("CanProcessById")
-                        .HasColumnType("bigint")
-                        .HasColumnName("can_process_by_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("CanProcessMarkDateTime")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("can_process_mark_date_time");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("Channel")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("channel");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<long?>("ConsigneeClaimedById")
-                        .HasColumnType("bigint")
-                        .HasColumnName("consignee_claimed_by_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("ConsigneeClaimedDateTime")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("consignee_claimed_date_time");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("ConsigneeCompanyId")
-                        .HasColumnType("integer")
-                        .HasColumnName("consignee_company_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("ConsigneeCompanyName")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("consignee_company_name");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<long?>("ConsigneeDisclaimedById")
-                        .HasColumnType("bigint")
-                        .HasColumnName("consignee_disclaimed_by_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("ConsigneeDisclaimedDateTime")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("consignee_disclaimed_date_time");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("ConsigneeTinNumber")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("consignee_tin_number");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime?>("CusDecDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("cus_dec_date");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<long>("CusDecExternalSystemNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_external_system_number");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("CusDecNumber")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("cus_dec_number");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("CusDecType")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("cus_dec_type");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<long?>("DeclarantClaimedById")
-                        .HasColumnType("bigint")
-                        .HasColumnName("declarant_claimed_by_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("DeclarantClaimedDateTime")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("declarant_claimed_date_time");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int?>("DeclarantCompanyId")
-                        .HasColumnType("integer")
-                        .HasColumnName("declarant_company_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("DeclarantCompanyName")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("declarant_company_name");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<long?>("DeclarantDisclaimedById")
-                        .HasColumnType("bigint")
-                        .HasColumnName("declarant_disclaimed_by_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("DeclarantDisclaimedDateTime")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("declarant_disclaimed_date_time");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("DeclarantTinNumber")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("declarant_tin_number");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Destination")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("destination");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Exporter")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("exporter");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<Guid>("GlobalIdentity")
-                        .HasColumnType("uuid")
-                        .HasColumnName("global_identity");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Incoterm")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("incoterm");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<decimal?>("InvoiceValue")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("invoice_value");
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<bool>("IsReadyToProcess")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_ready_to_process");
+                        .HasDefaultValue(false);
 
                     b.Property<DateTime>("LastSyncDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp without time zone")
-                        .HasColumnName("last_sync_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<int>("NoOfContainers")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("no_of_containers");
+                        .HasDefaultValue(0);
 
                     b.Property<int?>("NoOfItems")
-                        .HasColumnType("integer")
-                        .HasColumnName("no_of_items");
+                        .HasColumnType("integer");
 
                     b.Property<string>("OfficeCode")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("office_code");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("Origin")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("origin");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<long?>("ReadyToProcessMarkById")
-                        .HasColumnType("bigint")
-                        .HasColumnName("ready_to_process_mark_by_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("ReadyToProcessMarkDateTime")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("ready_to_process_mark_date_time");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("RegistrationDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("registration_date");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<DateTime?>("ReleaseDate")
-                        .HasColumnType("timestamp without time zone")
-                        .HasColumnName("release_date");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("SupplierCompanyName")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("supplier_company_name");
+                        .HasColumnType("character varying(500)");
 
-                    b.HasKey("CusDecId")
-                        .HasName("pk_cus_decs");
+                    b.HasKey("CusDecId");
 
                     b.HasIndex("ConsigneeCompanyId")
                         .HasDatabaseName("IX_CusDec_ConsigneeCompanyId");
@@ -1208,1476 +973,1196 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasIndex("DeclarantCompanyId")
                         .HasDatabaseName("IX_CusDec_DeclarantCompanyId");
 
-                    b.ToTable("cus_decs", (string)null);
+                    b.ToTable("CusDecs");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecContainer", b =>
                 {
                     b.Property<long>("CusDecContainerId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_container_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecContainerId"));
 
                     b.Property<DateTime?>("ArrivalDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("arrival_date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Container")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("container");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int?>("ContainerKey")
-                        .HasColumnType("integer")
-                        .HasColumnName("container_key");
+                        .HasColumnType("integer");
 
                     b.Property<int>("ContainerPassNumber")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("container_pass_number");
+                        .HasDefaultValue(0);
 
                     b.Property<string>("CurrentStatus")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("current_status");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<long?>("CusDecExternalSystemNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_external_system_number");
+                        .HasColumnType("bigint");
 
                     b.Property<Guid?>("CusDecGlobalIdentity")
-                        .HasColumnType("uuid")
-                        .HasColumnName("cus_dec_global_identity");
+                        .HasColumnType("uuid");
 
                     b.Property<long?>("CusDecId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_id");
+                        .HasColumnType("bigint");
 
                     b.Property<Guid?>("GlobalIdentity")
-                        .HasColumnType("uuid")
-                        .HasColumnName("global_identity");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("LastSyncDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_sync_date")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Location")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("location");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Size")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("size");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Type")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("type");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Vessel")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("vessel");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("Voyage")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("voyage");
+                        .HasColumnType("character varying(50)");
 
-                    b.HasKey("CusDecContainerId")
-                        .HasName("pk_cus_dec_containers");
+                    b.HasKey("CusDecContainerId");
 
-                    b.HasIndex("CusDecId")
-                        .HasDatabaseName("ix_cus_dec_containers_cus_dec_id");
+                    b.HasIndex("CusDecId");
 
-                    b.ToTable("cus_dec_containers", (string)null);
+                    b.ToTable("CusDecContainers");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecContainerStatus", b =>
                 {
                     b.Property<long>("CusDecContainerStatusId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_container_status_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecContainerStatusId"));
 
                     b.Property<string>("ContainerNumber")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("container_number");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<int?>("ContainerStatusNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("container_status_number");
+                        .HasColumnType("integer");
 
                     b.Property<long?>("CusDecContainerId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_container_id");
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("CusDecExternalSystemNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_external_system_number");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
+                        .HasColumnType("text");
 
                     b.Property<long?>("ExternalSystemNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("external_system_number");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("LastSyncDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_sync_date")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Status")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("status");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<DateTime?>("StatusDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("status_date_time");
+                        .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("CusDecContainerStatusId")
-                        .HasName("pk_cus_dec_container_statuses");
+                    b.HasKey("CusDecContainerStatusId");
 
-                    b.HasIndex("CusDecContainerId")
-                        .HasDatabaseName("ix_cus_dec_container_statuses_cus_dec_container_id");
+                    b.HasIndex("CusDecContainerId");
 
-                    b.ToTable("cus_dec_container_statuses", (string)null);
+                    b.ToTable("CusDecContainerStatuses");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecInspection", b =>
                 {
                     b.Property<long>("CusDecInspectionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_inspection_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecInspectionId"));
 
                     b.Property<long?>("CusDecExternalSystemNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_external_system_number");
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("CusDecId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_id");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
+                        .HasColumnType("text");
 
                     b.Property<string>("FrdNfr")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("frd_nfr");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("FrdUbr")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("frd_ubr");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("FrdUni")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("frd_uni");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<long?>("InspectionInstanceId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("inspection_instance_id");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("IssueCode")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("issue_code");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<int?>("KeyFrdNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("key_frd_number");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("LastSyncDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_sync_date_time")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<decimal?>("Value")
                         .HasPrecision(18, 2)
-                        .HasColumnType("numeric(18,2)")
-                        .HasColumnName("value");
+                        .HasColumnType("numeric(18,2)");
 
-                    b.HasKey("CusDecInspectionId")
-                        .HasName("pk_cus_dec_inspections");
+                    b.HasKey("CusDecInspectionId");
 
-                    b.HasIndex("CusDecId")
-                        .HasDatabaseName("ix_cus_dec_inspections_cus_dec_id");
+                    b.HasIndex("CusDecId");
 
-                    b.ToTable("cus_dec_inspections", (string)null);
+                    b.ToTable("CusDecInspections");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecInspectionMapping", b =>
                 {
                     b.Property<int>("CusDecInspectionMappingId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("cus_dec_inspection_mapping_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CusDecInspectionMappingId"));
 
                     b.Property<string>("AsycudaFrdNfr")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("asycuda_frd_nfr");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("description");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<bool>("IsShow")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_show");
+                        .HasDefaultValue(true);
 
-                    b.HasKey("CusDecInspectionMappingId")
-                        .HasName("pk_cus_dec_inspection_mappings");
+                    b.HasKey("CusDecInspectionMappingId");
 
-                    b.ToTable("cus_dec_inspection_mappings", (string)null);
+                    b.ToTable("CusDecInspectionMappings");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecInspectionSectionTab", b =>
                 {
                     b.Property<long>("CusDecInspectionSectionTabId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_inspection_section_tab_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecInspectionSectionTabId"));
 
                     b.Property<long?>("CusDecExternalSystemNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_external_system_number");
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("CusDecId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_id");
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("InsTabExternalSystemNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("ins_tab_external_system_number");
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("KeySecNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("key_sec_number");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("LastSyncDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_sync_date_time")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTime?>("SectionDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("section_date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SectionName")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("section_name");
+                        .HasColumnType("character varying(500)");
 
-                    b.HasKey("CusDecInspectionSectionTabId")
-                        .HasName("pk_cus_dec_inspection_section_tab");
+                    b.HasKey("CusDecInspectionSectionTabId");
 
-                    b.HasIndex("CusDecId")
-                        .HasDatabaseName("ix_cus_dec_inspection_section_tab_cus_dec_id");
+                    b.HasIndex("CusDecId");
 
-                    b.ToTable("cus_dec_inspection_section_tab", (string)null);
+                    b.ToTable("CusDecInspectionSectionTab");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecInspectionSectionTabStatusMapping", b =>
                 {
                     b.Property<int>("CusDecInspectionSectionTabStatusMappingId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("cus_dec_inspection_section_tab_status_mapping_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CusDecInspectionSectionTabStatusMappingId"));
 
                     b.Property<string>("AsycudaSectionName")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("asycuda_section_name");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("CdnsSectionName")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("cdns_section_name");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<bool>("IsShow")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_show");
+                        .HasDefaultValue(true);
 
                     b.Property<string>("OfficeCode")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("office_code");
+                        .HasColumnType("character varying(20)");
 
-                    b.HasKey("CusDecInspectionSectionTabStatusMappingId")
-                        .HasName("pk_cus_dec_inspection_section_tab_status_mappings");
+                    b.HasKey("CusDecInspectionSectionTabStatusMappingId");
 
-                    b.ToTable("cus_dec_inspection_section_tab_status_mappings", (string)null);
+                    b.ToTable("CusDecInspectionSectionTabStatusMappings");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecItem", b =>
                 {
                     b.Property<long>("CusDecItemId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_item_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecItemId"));
 
                     b.Property<string>("BlNumber")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("bl_number");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<long?>("CusDecExternalSystemNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_external_system_number");
+                        .HasColumnType("bigint");
 
                     b.Property<Guid?>("CusDecGlobalIdentity")
-                        .HasColumnType("uuid")
-                        .HasColumnName("cus_dec_global_identity");
+                        .HasColumnType("uuid");
 
                     b.Property<long?>("CusDecId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_id");
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("CusDecItemNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("cus_dec_item_number");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
+                        .HasColumnType("text");
 
                     b.Property<Guid?>("GlobalIdentity")
-                        .HasColumnType("uuid")
-                        .HasColumnName("global_identity");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("HsCode")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("hs_code");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTime>("LastSyncDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_sync_date")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Quantity")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("quantity");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<decimal?>("TotalValue")
                         .HasPrecision(18, 4)
-                        .HasColumnType("numeric(18,4)")
-                        .HasColumnName("total_value");
+                        .HasColumnType("numeric(18,4)");
 
                     b.Property<decimal?>("UnitPrice")
                         .HasPrecision(18, 4)
-                        .HasColumnType("numeric(18,4)")
-                        .HasColumnName("unit_price");
+                        .HasColumnType("numeric(18,4)");
 
-                    b.HasKey("CusDecItemId")
-                        .HasName("pk_cus_dec_items");
+                    b.HasKey("CusDecItemId");
 
-                    b.HasIndex("CusDecId")
-                        .HasDatabaseName("ix_cus_dec_items_cus_dec_id");
+                    b.HasIndex("CusDecId");
 
-                    b.ToTable("cus_dec_items", (string)null);
+                    b.ToTable("CusDecItems");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecPaymentSummary", b =>
                 {
                     b.Property<long>("CusDecPaymentSummaryId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_payment_summary_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecPaymentSummaryId"));
 
                     b.Property<string>("ConsigneeTinNumber")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("consignee_tin_number");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("DeclarantTinNumber")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("declarant_tin_number");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<decimal?>("InspectionRecoveries")
                         .HasPrecision(28, 2)
-                        .HasColumnType("numeric(28,2)")
-                        .HasColumnName("inspection_recoveries");
+                        .HasColumnType("numeric(28,2)");
 
                     b.Property<DateTime>("LastSyncDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_sync_date_time")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<decimal?>("TotalCif")
                         .HasPrecision(28, 2)
-                        .HasColumnType("numeric(28,2)")
-                        .HasColumnName("total_cif");
+                        .HasColumnType("numeric(28,2)");
 
                     b.Property<decimal?>("TotalTaxPaid")
                         .HasPrecision(28, 2)
-                        .HasColumnType("numeric(28,2)")
-                        .HasColumnName("total_tax_paid");
+                        .HasColumnType("numeric(28,2)");
 
-                    b.HasKey("CusDecPaymentSummaryId")
-                        .HasName("pk_cus_dec_payment_summaries");
+                    b.HasKey("CusDecPaymentSummaryId");
 
                     b.HasIndex("DeclarantTinNumber", "ConsigneeTinNumber")
-                        .IsUnique()
-                        .HasDatabaseName("ix_cus_dec_payment_summaries_declarant_tin_number_consignee_ti");
+                        .IsUnique();
 
-                    b.ToTable("cus_dec_payment_summaries", (string)null);
+                    b.ToTable("CusDecPaymentSummaries");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecReadyToProcessSetting", b =>
                 {
                     b.Property<int>("CusDecReadyToProcessSettingId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("cus_dec_ready_to_process_setting_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CusDecReadyToProcessSettingId"));
 
                     b.Property<bool>("AllConsignees")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("all_consignees");
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("AllItems")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("all_items");
+                        .HasDefaultValue(false);
 
                     b.Property<long>("CreatedById")
-                        .HasColumnType("bigint")
-                        .HasColumnName("created_by_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("CreatedDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date_time")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<int>("NoOfItems")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("no_of_items");
+                        .HasDefaultValue(0);
 
                     b.Property<int?>("OfficeCodeId")
-                        .HasColumnType("integer")
-                        .HasColumnName("office_code_id");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Title")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("title");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<long?>("UpdatedById")
-                        .HasColumnType("bigint")
-                        .HasColumnName("updated_by_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("UpdatedDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_date_time");
+                        .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("CusDecReadyToProcessSettingId")
-                        .HasName("pk_cus_dec_ready_to_process_settings");
+                    b.HasKey("CusDecReadyToProcessSettingId");
 
-                    b.HasIndex("OfficeCodeId")
-                        .HasDatabaseName("ix_cus_dec_ready_to_process_settings_office_code_id");
+                    b.HasIndex("OfficeCodeId");
 
-                    b.ToTable("cus_dec_ready_to_process_settings", (string)null);
+                    b.ToTable("CusDecReadyToProcessSettings");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecStatus", b =>
                 {
                     b.Property<long>("CusDecStatusId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_status_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecStatusId"));
 
                     b.Property<long?>("CusDecExternalSystemNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_external_system_number");
+                        .HasColumnType("bigint");
 
                     b.Property<Guid?>("CusDecGlobalIdentity")
-                        .HasColumnType("uuid")
-                        .HasColumnName("cus_dec_global_identity");
+                        .HasColumnType("uuid");
 
                     b.Property<long?>("CusDecId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_id");
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("CusDecStatusNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("cus_dec_status_number");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
+                        .HasColumnType("text");
 
                     b.Property<long?>("ExternalSystemNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("external_system_number");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("LastSyncDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_sync_date_time")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Status")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("status");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTime?>("StatusDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("status_date_time");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("TableName")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
-                        .HasColumnName("table_name");
+                        .HasColumnType("character varying(100)");
 
-                    b.HasKey("CusDecStatusId")
-                        .HasName("pk_cus_dec_statuses");
+                    b.HasKey("CusDecStatusId");
 
-                    b.HasIndex("CusDecId")
-                        .HasDatabaseName("ix_cus_dec_statuses_cus_dec_id");
+                    b.HasIndex("CusDecId");
 
-                    b.ToTable("cus_dec_statuses", (string)null);
+                    b.ToTable("CusDecStatuses");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecStatusMapping", b =>
                 {
                     b.Property<int>("CusDecStatusMappingId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("cus_dec_status_mapping_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("CusDecStatusMappingId"));
 
                     b.Property<string>("AsycudaDescription")
-                        .HasColumnType("text")
-                        .HasColumnName("asycuda_description");
+                        .HasColumnType("text");
 
                     b.Property<string>("AsycudaStatus")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("asycuda_status");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("CdnsDescription")
-                        .HasColumnType("text")
-                        .HasColumnName("cdns_description");
+                        .HasColumnType("text");
 
                     b.Property<string>("CdnsStatus")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("cdns_status");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<bool>("IsShow")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(true)
-                        .HasColumnName("is_show");
+                        .HasDefaultValue(true);
 
                     b.Property<string>("OfficeCode")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("office_code");
+                        .HasColumnType("character varying(20)");
 
-                    b.HasKey("CusDecStatusMappingId")
-                        .HasName("pk_cus_dec_status_mappings");
+                    b.HasKey("CusDecStatusMappingId");
 
-                    b.ToTable("cus_dec_status_mappings", (string)null);
+                    b.ToTable("CusDecStatusMappings");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecTax", b =>
                 {
                     b.Property<long>("CusDecTaxId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_tax_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecTaxId"));
 
                     b.Property<long?>("CusDecExternalSystemNumber")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_external_system_number");
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("CusDecId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_id");
+                        .HasColumnType("bigint");
 
                     b.Property<int?>("ItemNumber")
-                        .HasColumnType("integer")
-                        .HasColumnName("item_number");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("LastSyncDate")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_sync_date")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<decimal>("TaxAmount")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)")
-                        .HasDefaultValue(0m)
-                        .HasColumnName("tax_amount");
+                        .HasDefaultValue(0m);
 
                     b.Property<string>("TaxCode")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("tax_code");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<int?>("TaxRank")
-                        .HasColumnType("integer")
-                        .HasColumnName("tax_rank");
+                        .HasColumnType("integer");
 
-                    b.HasKey("CusDecTaxId")
-                        .HasName("pk_cus_dec_taxes");
+                    b.HasKey("CusDecTaxId");
 
-                    b.HasIndex("CusDecId")
-                        .HasDatabaseName("ix_cus_dec_taxes_cus_dec_id");
+                    b.HasIndex("CusDecId");
 
-                    b.ToTable("cus_dec_taxes", (string)null);
+                    b.ToTable("CusDecTaxes");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.ReadyToProcessConsignee", b =>
                 {
                     b.Property<int>("ReadyToProcessConsigneeId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("ready_to_process_consignee_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ReadyToProcessConsigneeId"));
 
                     b.Property<string>("ConsigneeTinNumber")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("consignee_tin_number");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int?>("CusDecReadyToProcessSettingId")
-                        .HasColumnType("integer")
-                        .HasColumnName("cus_dec_ready_to_process_setting_id");
+                        .HasColumnType("integer");
 
-                    b.HasKey("ReadyToProcessConsigneeId")
-                        .HasName("pk_ready_to_process_consignees");
+                    b.HasKey("ReadyToProcessConsigneeId");
 
-                    b.HasIndex("CusDecReadyToProcessSettingId")
-                        .HasDatabaseName("ix_ready_to_process_consignees_cus_dec_ready_to_process_settin");
+                    b.HasIndex("CusDecReadyToProcessSettingId");
 
-                    b.ToTable("ready_to_process_consignees", (string)null);
+                    b.ToTable("ReadyToProcessConsignees");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CustomerSupportTickets.CustomerSupportTicket", b =>
                 {
                     b.Property<long>("CustomerSupportTicketId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("customer_support_ticket_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CustomerSupportTicketId"));
 
                     b.Property<string>("ContactEmail")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("contact_email");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("ContactNumber")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("contact_number");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<bool>("IsCompleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_completed");
+                        .HasDefaultValue(false);
 
                     b.Property<long>("MemberId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_id");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Message")
-                        .HasColumnType("text")
-                        .HasColumnName("message");
+                        .HasColumnType("text");
 
                     b.Property<string>("TicketNumber")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("ticket_number");
+                        .HasColumnType("character varying(200)");
 
-                    b.HasKey("CustomerSupportTicketId")
-                        .HasName("pk_customer_support_tickets");
+                    b.HasKey("CustomerSupportTicketId");
 
-                    b.HasIndex("MemberId")
-                        .HasDatabaseName("ix_customer_support_tickets_member_id");
+                    b.HasIndex("MemberId");
 
-                    b.ToTable("customer_support_tickets", (string)null);
+                    b.ToTable("CustomerSupportTickets");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.MemberLoginTables.MemberActivityLog", b =>
                 {
                     b.Property<long>("MemberActivityLogId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_activity_log_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MemberActivityLogId"));
 
                     b.Property<string>("Activity")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("activity");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("ActivityJson")
-                        .HasColumnType("text")
-                        .HasColumnName("activity_json");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("LogDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("log_date_time");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<long?>("MemberId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_id");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("StoredProcedureName")
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("stored_procedure_name");
+                        .HasColumnType("character varying(300)");
 
-                    b.HasKey("MemberActivityLogId")
-                        .HasName("pk_member_activity_logs");
+                    b.HasKey("MemberActivityLogId");
 
-                    b.HasIndex("MemberId")
-                        .HasDatabaseName("ix_member_activity_logs_member_id");
+                    b.HasIndex("MemberId");
 
-                    b.ToTable("member_activity_logs", (string)null);
+                    b.ToTable("MemberActivityLogs");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.MemberLoginTables.MemberLoginSession", b =>
                 {
                     b.Property<long>("MemberLoginSessionId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_login_session_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MemberLoginSessionId"));
 
                     b.Property<string>("Key")
-                        .HasColumnType("text")
-                        .HasColumnName("key");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("LoginDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("login_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<long>("MemberId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_id");
+                        .HasColumnType("bigint");
 
                     b.Property<Guid>("SessionId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("session_id");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("UserName")
                         .IsRequired()
-                        .HasColumnType("citext")
-                        .HasColumnName("user_name");
+                        .HasColumnType("citext");
 
-                    b.HasKey("MemberLoginSessionId")
-                        .HasName("pk_member_login_sessions");
+                    b.HasKey("MemberLoginSessionId");
 
-                    b.HasIndex("MemberId")
-                        .HasDatabaseName("ix_member_login_sessions_member_id");
+                    b.HasIndex("MemberId");
 
                     b.HasIndex("SessionId")
-                        .IsUnique()
-                        .HasDatabaseName("ix_member_login_sessions_session_id");
+                        .IsUnique();
 
-                    b.ToTable("member_login_sessions", (string)null);
+                    b.ToTable("MemberLoginSessions");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.MemberLoginTables.MemberUser", b =>
                 {
                     b.Property<long>("MemberId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_id");
+                        .HasColumnType("bigint");
 
                     b.Property<int>("ActivationCode")
-                        .HasColumnType("integer")
-                        .HasColumnName("activation_code");
+                        .HasColumnType("integer");
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date_time");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("GlobalIdentity")
-                        .HasColumnType("uuid")
-                        .HasColumnName("global_identity");
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsActiveOtp")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_active_otp");
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsWrongAttempt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_wrong_attempt");
+                        .HasDefaultValue(false);
 
                     b.Property<DateTimeOffset?>("LastLoginAttemptDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_login_attempt_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<DateTimeOffset>("LastOtpGeneratedDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_otp_generated_date_time");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("MemberType")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(1)
-                        .HasColumnName("member_type");
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("password");
+                        .HasColumnType("text");
 
                     b.Property<string>("PasswordSalt")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("password_salt");
+                        .HasColumnType("text");
 
                     b.Property<bool>("RequiredEregVerification")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("required_ereg_verification");
+                        .HasDefaultValue(false);
 
                     b.Property<DateTimeOffset?>("SuspendedDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("suspended_date_time");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UserName")
                         .IsRequired()
-                        .HasColumnType("citext")
-                        .HasColumnName("user_name");
+                        .HasColumnType("citext");
 
                     b.Property<int>("UserStatusType")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("user_status_type");
+                        .HasDefaultValue(0);
 
-                    b.HasKey("MemberId")
-                        .HasName("pk_member_users");
+                    b.HasKey("MemberId");
 
                     b.HasIndex("UserName")
-                        .IsUnique()
-                        .HasDatabaseName("ix_member_users_user_name");
+                        .IsUnique();
 
-                    b.ToTable("member_users", (string)null);
+                    b.ToTable("MemberUsers");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.MemberLoginTables.MemberUserLoginDetail", b =>
                 {
                     b.Property<long>("MemberUserLoginDetailId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_user_login_detail_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MemberUserLoginDetailId"));
 
                     b.Property<string>("IpAddress")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("ip_address");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<DateTimeOffset>("LoginDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("login_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<long>("MemberId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_id");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("UserAgent")
-                        .HasColumnType("text")
-                        .HasColumnName("user_agent");
+                        .HasColumnType("text");
 
-                    b.HasKey("MemberUserLoginDetailId")
-                        .HasName("pk_member_user_login_details");
+                    b.HasKey("MemberUserLoginDetailId");
 
-                    b.HasIndex("MemberId")
-                        .HasDatabaseName("ix_member_user_login_details_member_id");
+                    b.HasIndex("MemberId");
 
-                    b.ToTable("member_user_login_details", (string)null);
+                    b.ToTable("MemberUserLoginDetails");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.MemberSignupTables.Member", b =>
                 {
                     b.Property<long>("MemberId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MemberId"));
 
                     b.Property<int?>("DefaultSubscriptionType")
-                        .HasColumnType("integer")
-                        .HasColumnName("default_subscription_type");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Designation")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("designation");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("email");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("first_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean")
-                        .HasColumnName("is_deleted");
+                        .HasColumnType("boolean");
 
                     b.Property<string>("LastName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("last_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<int>("MemberType")
-                        .HasColumnType("integer")
-                        .HasColumnName("member_type");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Mobile")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("mobile");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("Nic")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("nic");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("NotificationEmail")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("notification_email");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("ProfileImage")
-                        .HasColumnType("text")
-                        .HasColumnName("profile_image");
+                        .HasColumnType("text");
 
-                    b.HasKey("MemberId")
-                        .HasName("pk_members");
+                    b.HasKey("MemberId");
 
                     b.HasIndex("Email")
                         .IsUnique()
-                        .HasDatabaseName("ix_members_email")
                         .HasFilter("is_deleted = false");
 
-                    b.ToTable("members", (string)null);
+                    b.ToTable("Members");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.MemberSignupTables.MemberNotification", b =>
                 {
                     b.Property<long>("MemberNotificationId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_notification_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MemberNotificationId"));
 
                     b.Property<long?>("CusDecId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("cus_dec_id");
+                        .HasColumnType("bigint");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsSeen")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_seen");
+                        .HasDefaultValue(false);
 
                     b.Property<long>("MemberId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("member_id");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Message")
-                        .HasColumnType("text")
-                        .HasColumnName("message");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset>("NotificationDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("notification_date_time");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("NotificationType")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("notification_type");
+                        .HasDefaultValue(0);
 
                     b.Property<DateTimeOffset?>("SeenDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("seen_date_time");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("ShowOnHome")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("show_on_home");
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Title")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("title");
+                        .HasColumnType("character varying(500)");
 
-                    b.HasKey("MemberNotificationId")
-                        .HasName("pk_member_notifications");
+                    b.HasKey("MemberNotificationId");
 
-                    b.HasIndex("MemberId", "IsDeleted", "IsSeen", "NotificationDateTime")
-                        .HasDatabaseName("ix_member_notifications_member_id_is_deleted_is_seen_notificat");
+                    b.HasIndex("MemberId", "IsDeleted", "IsSeen", "NotificationDateTime");
 
-                    b.ToTable("member_notifications", (string)null);
+                    b.ToTable("MemberNotifications");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.MemberSignupTables.TemporaryMember", b =>
                 {
                     b.Property<long>("TemporaryMemberId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("temporary_member_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("TemporaryMemberId"));
 
                     b.Property<DateTimeOffset>("CreatedDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<int?>("DefaultSubscriptionType")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(1)
-                        .HasColumnName("default_subscription_type");
+                        .HasDefaultValue(1);
 
                     b.Property<string>("Designation")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("designation");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("email");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("FirstName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("first_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("GlobalIdentity")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)")
-                        .HasColumnName("global_identity");
+                        .HasColumnType("character varying(50)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<string>("LastName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("last_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Mobile")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("mobile");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("Nic")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasColumnName("nic");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<int?>("OneTimePassword")
-                        .HasColumnType("integer")
-                        .HasColumnName("one_time_password");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Password")
-                        .HasColumnType("text")
-                        .HasColumnName("password");
+                        .HasColumnType("text");
 
                     b.Property<string>("PasswordSalt")
-                        .HasColumnType("text")
-                        .HasColumnName("password_salt");
+                        .HasColumnType("text");
 
                     b.Property<string>("ProfileImage")
-                        .HasColumnType("text")
-                        .HasColumnName("profile_image");
+                        .HasColumnType("text");
 
-                    b.HasKey("TemporaryMemberId")
-                        .HasName("pk_temporary_members");
+                    b.HasKey("TemporaryMemberId");
 
-                    b.ToTable("temporary_members", (string)null);
+                    b.ToTable("TemporaryMembers");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.SystemInfrastructureAuditing.OfficeCode", b =>
                 {
                     b.Property<int>("OfficeCodeId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("office_code_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("OfficeCodeId"));
 
                     b.Property<string>("Code")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("code");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<string>("OfficeName")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("office_name");
+                        .HasColumnType("character varying(200)");
 
-                    b.HasKey("OfficeCodeId")
-                        .HasName("pk_office_codes");
+                    b.HasKey("OfficeCodeId");
 
-                    b.ToTable("office_codes", (string)null);
+                    b.ToTable("OfficeCodes");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.SystemInfrastructureAuditing.SmtpMailSetting", b =>
                 {
                     b.Property<int>("SmtpMailSettingId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("smtp_mail_setting_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SmtpMailSettingId"));
 
                     b.Property<string>("FromAddress")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("from_address");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<string>("FromName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("from_name");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("SmtpMailCode")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("character varying(10)")
-                        .HasColumnName("smtp_mail_code");
+                        .HasColumnType("character varying(10)");
 
                     b.Property<string>("SmtpPassword")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("smtp_password");
+                        .HasColumnType("text");
 
                     b.Property<int?>("SmtpPort")
-                        .HasColumnType("integer")
-                        .HasColumnName("smtp_port");
+                        .HasColumnType("integer");
 
                     b.Property<string>("SmtpUri")
                         .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("smtp_uri");
+                        .HasColumnType("text");
 
                     b.Property<string>("SmtpUsername")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("smtp_username");
+                        .HasColumnType("character varying(200)");
 
-                    b.HasKey("SmtpMailSettingId")
-                        .HasName("pk_smtp_mail_settings");
+                    b.HasKey("SmtpMailSettingId");
 
-                    b.ToTable("smtp_mail_settings", (string)null);
+                    b.ToTable("SmtpMailSettings");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.SystemInfrastructureAuditing.SystemActivityLog", b =>
                 {
                     b.Property<long>("SystemActivityLogId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("system_activity_log_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SystemActivityLogId"));
 
                     b.Property<string>("Activity")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("activity");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("ActivityJson")
-                        .HasColumnType("text")
-                        .HasColumnName("activity_json");
+                        .HasColumnType("text");
 
                     b.Property<long?>("EmployeeId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("employee_id");
+                        .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset?>("LogDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("log_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<string>("StoredProcedureName")
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("stored_procedure_name");
+                        .HasColumnType("character varying(300)");
 
-                    b.HasKey("SystemActivityLogId")
-                        .HasName("pk_system_activity_logs");
+                    b.HasKey("SystemActivityLogId");
 
-                    b.HasIndex("EmployeeId")
-                        .HasDatabaseName("ix_system_activity_logs_employee_id");
+                    b.HasIndex("EmployeeId");
 
-                    b.ToTable("system_activity_logs", (string)null);
+                    b.ToTable("SystemActivityLogs");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.SystemInfrastructureAuditing.SystemErrorLog", b =>
                 {
                     b.Property<long>("SystemErrorLogId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasColumnName("system_error_log_id");
+                        .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("SystemErrorLogId"));
 
                     b.Property<string>("Activity")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasColumnName("activity");
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text")
-                        .HasColumnName("description");
+                        .HasColumnType("text");
 
                     b.Property<long?>("EmployeeId")
-                        .HasColumnType("bigint")
-                        .HasColumnName("employee_id");
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Error")
-                        .HasColumnType("text")
-                        .HasColumnName("error");
+                        .HasColumnType("text");
 
                     b.Property<DateTimeOffset?>("LogDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
-                        .HasColumnName("log_date_time")
                         .HasDefaultValueSql("now()");
 
                     b.Property<string>("StoredProcedureName")
                         .HasMaxLength(300)
-                        .HasColumnType("character varying(300)")
-                        .HasColumnName("stored_procedure_name");
+                        .HasColumnType("character varying(300)");
 
-                    b.HasKey("SystemErrorLogId")
-                        .HasName("pk_system_error_logs");
+                    b.HasKey("SystemErrorLogId");
 
-                    b.HasIndex("EmployeeId")
-                        .HasDatabaseName("ix_system_error_logs_employee_id");
+                    b.HasIndex("EmployeeId");
 
-                    b.ToTable("system_error_logs", (string)null);
+                    b.ToTable("SystemErrorLogs");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.SystemInfrastructureAuditing.SystemSerial", b =>
                 {
                     b.Property<int>("SystemSerialId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("system_serial_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("SystemSerialId"));
 
                     b.Property<long?>("AutoIncrementSerial")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasDefaultValue(0L)
-                        .HasColumnName("auto_increment_serial");
+                        .HasDefaultValue(0L);
 
                     b.Property<long?>("DailyIncrementSerial")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasDefaultValue(0L)
-                        .HasColumnName("daily_increment_serial");
+                        .HasDefaultValue(0L);
 
                     b.Property<int?>("DocumentTypeEnum")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasDefaultValue(0)
-                        .HasColumnName("document_type_enum");
+                        .HasDefaultValue(0);
 
                     b.Property<DateTimeOffset?>("GeneratedDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("generated_date_time");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<bool?>("IsDefaultSerial")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_default_serial");
+                        .HasDefaultValue(false);
 
                     b.Property<bool?>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
-                        .HasDefaultValue(false)
-                        .HasColumnName("is_deleted");
+                        .HasDefaultValue(false);
 
                     b.Property<long?>("MonthlyIncrementSerial")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasDefaultValue(0L)
-                        .HasColumnName("monthly_increment_serial");
+                        .HasDefaultValue(0L);
 
                     b.Property<string>("SerialFormatExpression")
                         .HasMaxLength(400)
-                        .HasColumnType("character varying(400)")
-                        .HasColumnName("serial_format_expression");
+                        .HasColumnType("character varying(400)");
 
                     b.Property<string>("SerialName")
                         .HasMaxLength(250)
-                        .HasColumnType("character varying(250)")
-                        .HasColumnName("serial_name");
+                        .HasColumnType("character varying(250)");
 
                     b.Property<long?>("YearlyIncrementSerial")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasDefaultValue(0L)
-                        .HasColumnName("yearly_increment_serial");
+                        .HasDefaultValue(0L);
 
-                    b.HasKey("SystemSerialId")
-                        .HasName("pk_system_serials");
+                    b.HasKey("SystemSerialId");
 
-                    b.ToTable("system_serials", (string)null);
+                    b.ToTable("SystemSerials");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.SystemInfrastructureAuditing.TaskScheduleAppDetail", b =>
                 {
                     b.Property<int>("TaskScheduleAppDetailId")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("task_schedule_app_detail_id");
+                        .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("TaskScheduleAppDetailId"));
 
                     b.Property<Guid>("AppId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("app_id");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("AppName")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)")
-                        .HasColumnName("app_name");
+                        .HasColumnType("character varying(500)");
 
                     b.Property<DateTimeOffset?>("LastRunDateTime")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_run_date_time");
+                        .HasColumnType("timestamp with time zone");
 
-                    b.HasKey("TaskScheduleAppDetailId")
-                        .HasName("pk_task_schedule_app_details");
+                    b.HasKey("TaskScheduleAppDetailId");
 
-                    b.ToTable("task_schedule_app_details", (string)null);
+                    b.ToTable("TaskScheduleAppDetails");
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.AdminPortal.AccessControl", b =>
@@ -2685,14 +2170,12 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.AdminPortal.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_access_control_group_group_id");
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Cdns.Domain.Entities.AdminPortal.MenuItemFunction", "MenuItemFunction")
                         .WithMany()
                         .HasForeignKey("MenuItemFunctionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_access_control_menu_item_function_menu_item_function_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Group");
 
@@ -2704,8 +2187,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.AdminPortal.Department", "Department")
                         .WithMany()
                         .HasForeignKey("DepartmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_employees_department_department_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Department");
                 });
@@ -2716,8 +2198,7 @@ namespace Cdns.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_login_user_activities_user_user_id");
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -2727,8 +2208,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.AdminPortal.Module", "Module")
                         .WithMany()
                         .HasForeignKey("ModuleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_menus_module_module_id");
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Module");
                 });
@@ -2738,8 +2218,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.AdminPortal.Menu", "Menu")
                         .WithMany()
                         .HasForeignKey("MenuId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_menu_items_menus_menu_id");
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Menu");
                 });
@@ -2749,8 +2228,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.AdminPortal.MenuItem", "MenuItem")
                         .WithMany()
                         .HasForeignKey("MenuItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .HasConstraintName("fk_menu_item_function_menu_items_menu_item_id");
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("MenuItem");
                 });
@@ -2761,8 +2239,7 @@ namespace Cdns.Infrastructure.Migrations
                         .WithOne()
                         .HasForeignKey("Cdns.Domain.Entities.AdminPortal.User", "EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_employees_employee_id");
+                        .IsRequired();
 
                     b.Navigation("Employee");
                 });
@@ -2773,15 +2250,13 @@ namespace Cdns.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("EmployeeId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_group_mappings_employees_employee_id");
+                        .IsRequired();
 
                     b.HasOne("Cdns.Domain.Entities.AdminPortal.Group", "Group")
                         .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_user_group_mappings_group_group_id");
+                        .IsRequired();
 
                     b.Navigation("Employee");
 
@@ -2794,15 +2269,13 @@ namespace Cdns.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_company_member_mappings_companies_company_id");
+                        .IsRequired();
 
                     b.HasOne("Cdns.Domain.Entities.MemberSignupTables.Member", "Member")
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_company_member_mappings_members_member_id");
+                        .IsRequired();
 
                     b.Navigation("Company");
 
@@ -2815,8 +2288,7 @@ namespace Cdns.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_company_status_details_companies_company_id");
+                        .IsRequired();
 
                     b.Navigation("Company");
                 });
@@ -2827,29 +2299,25 @@ namespace Cdns.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_member_subscriptions_companies_company_id");
+                        .IsRequired();
 
                     b.HasOne("Cdns.Domain.Entities.MemberSignupTables.Member", "Member")
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_member_subscriptions_members_member_id");
+                        .IsRequired();
 
                     b.HasOne("Cdns.Domain.Entities.CompanySubscriptionManagement.Subscription", "Subscription")
                         .WithMany()
                         .HasForeignKey("SubscriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_member_subscriptions_subscriptions_subscription_id");
+                        .IsRequired();
 
                     b.HasOne("Cdns.Domain.Entities.CompanySubscriptionManagement.SubscriptionRequest", "SubscriptionRequest")
                         .WithMany()
                         .HasForeignKey("SubscriptionRequestId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_member_subscriptions_subscription_requests_subscription_req");
+                        .IsRequired();
 
                     b.Navigation("Company");
 
@@ -2865,21 +2333,18 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.AdminPortal.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_member_subscription_status_histories_employees_employee_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Cdns.Domain.Entities.MemberSignupTables.Member", "MasterMember")
                         .WithMany()
                         .HasForeignKey("MasterMemberId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_member_subscription_status_histories_members_master_member_");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Cdns.Domain.Entities.CompanySubscriptionManagement.MemberSubscription", "MemberSubscription")
                         .WithMany()
                         .HasForeignKey("MemberSubscriptionId")
                         .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("fk_member_subscription_status_histories_member_subscriptions_m");
+                        .IsRequired();
 
                     b.Navigation("Employee");
 
@@ -2893,15 +2358,13 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.CompanySubscriptionManagement.Company", "Company")
                         .WithMany()
                         .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .HasConstraintName("fk_subscription_requests_companies_company_id");
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Cdns.Domain.Entities.MemberSignupTables.Member", "Member")
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_subscription_requests_members_member_id");
+                        .IsRequired();
 
                     b.Navigation("Company");
 
@@ -2913,14 +2376,12 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.CompanySubscriptionManagement.Company", null)
                         .WithMany()
                         .HasForeignKey("ConsigneeCompanyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_decs_companies_consignee_company_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Cdns.Domain.Entities.CompanySubscriptionManagement.Company", null)
                         .WithMany()
                         .HasForeignKey("DeclarantCompanyId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_decs_companies_declarant_company_id");
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecContainer", b =>
@@ -2928,8 +2389,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.CusdecTables.CusDec", "CusDec")
                         .WithMany()
                         .HasForeignKey("CusDecId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_dec_containers_cus_decs_cus_dec_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CusDec");
                 });
@@ -2939,8 +2399,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.CusdecTables.CusDecContainer", "CusDecContainer")
                         .WithMany()
                         .HasForeignKey("CusDecContainerId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_dec_container_statuses_cus_dec_containers_cus_dec_conta");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CusDecContainer");
                 });
@@ -2950,8 +2409,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.CusdecTables.CusDec", "CusDec")
                         .WithMany()
                         .HasForeignKey("CusDecId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_dec_inspections_cus_decs_cus_dec_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CusDec");
                 });
@@ -2961,8 +2419,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.CusdecTables.CusDec", "CusDec")
                         .WithMany()
                         .HasForeignKey("CusDecId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_dec_inspection_section_tab_cus_decs_cus_dec_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CusDec");
                 });
@@ -2972,8 +2429,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.CusdecTables.CusDec", "CusDec")
                         .WithMany()
                         .HasForeignKey("CusDecId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_dec_items_cus_decs_cus_dec_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CusDec");
                 });
@@ -2983,8 +2439,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.SystemInfrastructureAuditing.OfficeCode", null)
                         .WithMany()
                         .HasForeignKey("OfficeCodeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_dec_ready_to_process_settings_office_codes_office_code_");
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDecStatus", b =>
@@ -2992,8 +2447,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.CusdecTables.CusDec", "CusDec")
                         .WithMany()
                         .HasForeignKey("CusDecId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_dec_statuses_cus_decs_cus_dec_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CusDec");
                 });
@@ -3003,8 +2457,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.CusdecTables.CusDec", "CusDec")
                         .WithMany()
                         .HasForeignKey("CusDecId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_cus_dec_taxes_cus_decs_cus_dec_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CusDec");
                 });
@@ -3014,8 +2467,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.CusdecTables.CusDecReadyToProcessSetting", "CusDecReadyToProcessSetting")
                         .WithMany()
                         .HasForeignKey("CusDecReadyToProcessSettingId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_ready_to_process_consignees_cus_dec_ready_to_process_settin");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("CusDecReadyToProcessSetting");
                 });
@@ -3026,8 +2478,7 @@ namespace Cdns.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_customer_support_tickets_members_member_id");
+                        .IsRequired();
 
                     b.Navigation("Member");
                 });
@@ -3037,8 +2488,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.MemberSignupTables.Member", "Member")
                         .WithMany()
                         .HasForeignKey("MemberId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_member_activity_logs_members_member_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Member");
                 });
@@ -3049,8 +2499,7 @@ namespace Cdns.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_member_login_sessions_members_member_id");
+                        .IsRequired();
 
                     b.Navigation("Member");
                 });
@@ -3061,8 +2510,7 @@ namespace Cdns.Infrastructure.Migrations
                         .WithOne()
                         .HasForeignKey("Cdns.Domain.Entities.MemberLoginTables.MemberUser", "MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_member_users_members_member_id");
+                        .IsRequired();
 
                     b.Navigation("Member");
                 });
@@ -3073,8 +2521,7 @@ namespace Cdns.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_member_user_login_details_members_member_id");
+                        .IsRequired();
 
                     b.Navigation("Member");
                 });
@@ -3085,8 +2532,7 @@ namespace Cdns.Infrastructure.Migrations
                         .WithMany()
                         .HasForeignKey("MemberId")
                         .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired()
-                        .HasConstraintName("fk_member_notifications_members_member_id");
+                        .IsRequired();
 
                     b.Navigation("Member");
                 });
@@ -3096,8 +2542,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.AdminPortal.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_system_activity_logs_employees_employee_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Employee");
                 });
@@ -3107,8 +2552,7 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasOne("Cdns.Domain.Entities.AdminPortal.Employee", "Employee")
                         .WithMany()
                         .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .HasConstraintName("fk_system_error_logs_employees_employee_id");
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Employee");
                 });

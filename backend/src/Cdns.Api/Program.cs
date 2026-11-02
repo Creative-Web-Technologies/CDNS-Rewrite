@@ -9,7 +9,26 @@ builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowVite", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
+    });
+});
+
+builder.Services.AddControllers();
+
 var app = builder.Build();
+
+app.UseCors("AllowVite"); 
+
+app.UseRouting(); 
+
+app.MapControllers(); 
 
 if (app.Environment.IsDevelopment())
 {
