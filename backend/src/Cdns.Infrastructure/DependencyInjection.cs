@@ -1,5 +1,10 @@
+using Cdns.Application.Auth;
+using Cdns.Application.Interfaces;
+using Cdns.Infrastructure.ExternalServices;
+using Cdns.Infrastructure.Notifications;
 using Cdns.Infrastructure.Persistence;
 using Cdns.Infrastructure.Security;
+using Cdns.Infrastructure.Services.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +25,13 @@ public static class DependencyInjection
                    .UseSnakeCaseNamingConvention());
 
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+
+        services.AddScoped<IEregService, FakeEregService>();
+        services.AddScoped<IEmailService, LoggingEmailService>();
+        services.AddScoped<IAuthResultIssuer, MemberLoginSessionIssuer>();
+        services.AddScoped<ILoginService, LoginService>();
+        services.AddScoped<IMasterActivationService, MasterActivationService>();
+        services.AddScoped<IPasswordResetService, PasswordResetService>();
 
         return services;
     }

@@ -1,3 +1,4 @@
+using Cdns.Api.Endpoints.Auth;
 using Cdns.Infrastructure;
 using Cdns.Infrastructure.Persistence;
 using Cdns.Infrastructure.Persistence.Seed;
@@ -24,5 +25,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.MapHealthChecks("/health");
+app.MapAuthEndpoints();
 
 app.Run();
