@@ -8,6 +8,8 @@ using Cdns.Infrastructure.Services.Auth;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Cdns.Application.Features.Signup; 
+using Cdns.Infrastructure.Services; 
 
 namespace Cdns.Infrastructure;
 
@@ -22,9 +24,10 @@ public static class DependencyInjection
 
         services.AddDbContext<CdnsDbContext>(options =>
             options.UseNpgsql(connectionString)
-                   .UseSnakeCaseNamingConvention());
+            .UseSnakeCaseNamingConvention());
 
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+        services.AddScoped<ISignupService, SignupService>();
 
         services.AddScoped<IEregService, FakeEregService>();
         services.AddScoped<IEmailService, LoggingEmailService>();
