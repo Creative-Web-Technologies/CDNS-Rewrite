@@ -126,38 +126,51 @@ A successful response prints the PostgreSQL version string and exits with code 0
 4. Click **Test Connection**. DBeaver may prompt you to download the PostgreSQL JDBC driver — allow it.
 5. Click **Finish**.
 
-### 6. Set connection strings (user-secrets)
+### 6. Set connection strings (appsettings.Development.json)
 
 The application connection string is not stored in git.
-Each developer stores it locally using .NET user-secrets, which writes to an OS-managed directory outside the repository and is never included in builds.
+Each developer creates a local `appsettings.Development.json` from the checked-in example file.
+The real file is listed in `.gitignore` and will never be committed.
 
-Secrets are per-machine — every developer must run these commands once on their own machine. A `git pull` does not carry secrets across.
-
-Run both commands from the repository root, substituting your `.env` values:
-
-**Cdns.Api**
+**Cdns.Api (required — used by the API and by `dotnet ef` migrations)**
 
 ```shell
-dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5432;Database=cdns_dev;Username=cdns;Password=<your-password>" --project backend/src/Cdns.Api
+# macOS / Linux / Git Bash
+cp backend/src/Cdns.Api/appsettings.Development.example.json backend/src/Cdns.Api/appsettings.Development.json
 ```
-
-**Cdns.Worker**
 
 ```shell
-dotnet user-secrets set "ConnectionStrings:Default" "Host=localhost;Port=5432;Database=cdns_dev;Username=cdns;Password=<your-password>" --project backend/src/Cdns.Worker
+# Windows Command Prompt
+copy backend\src\Cdns.Api\appsettings.Development.example.json backend\src\Cdns.Api\appsettings.Development.json
 ```
-
-Replace `5432`, `cdns_dev`, `cdns`, and `<your-password>` with your actual `.env` values.
-
-Verify the secret was stored correctly:
 
 ```shell
-dotnet user-secrets list --project backend/src/Cdns.Api
+# Windows PowerShell
+Copy-Item backend/src/Cdns.Api/appsettings.Development.example.json backend/src/Cdns.Api/appsettings.Development.json
 ```
 
-If the output is `Could not find the global property 'UserSecretsId'`, the csproj on your checkout is missing the secret ID — run `git pull` to get the latest version, then rerun the `set` command.
+Open the newly created `backend/src/Cdns.Api/appsettings.Development.json` and replace the placeholder with your real connection details — use the same values you set in `.env`:
 
-In non-local environments (CI, staging, production), supply the same key as an environment variable instead.
+```json
+{
+  "ConnectionStrings": {
+    "Default": "Host=localhost;Port=5433;Database=cdns_dev;Username=cdns;Password=<your-password>"
+  }
+}
+```
+
+**Cdns.Worker (if you run the worker service)**
+
+Repeat for the Worker project:
+
+```shell
+# macOS / Linux / Git Bash
+cp backend/src/Cdns.Worker/appsettings.Development.example.json backend/src/Cdns.Worker/appsettings.Development.json
+```
+
+Then fill in the same connection string values in `backend/src/Cdns.Worker/appsettings.Development.json`.
+
+In non-local environments (CI, staging, production), supply the connection string as an environment variable instead.
 Note the double underscore (`__`), which is the .NET environment-variable hierarchy separator:
 
 ```
@@ -168,7 +181,7 @@ ConnectionStrings__Default=Host=...;Port=...;Database=...;Username=...;Password=
 
 **Migrations**
 
-Complete step 6 before running any `dotnet ef` command. The CLI starts `Cdns.Api` to build the `DbContext`; if the user-secret is missing it will fail with `ConnectionStrings:Default is not configured`.
+Complete step 6 before running any `dotnet ef` command. The CLI starts `Cdns.Api` to build the `DbContext`; if `appsettings.Development.json` is missing or has no `ConnectionStrings:Default` it will fail.
 
 Install the EF Core CLI (first time only):
 
@@ -226,9 +239,8 @@ Vite dev server: `http://localhost:5173`
 | `FATAL: password authentication failed for user "cdns"` | `.env` password does not match the password stored in the existing volume | `docker compose down -v && docker compose up -d` — this deletes local data |
 | Container stays `(starting)` / goes `(unhealthy)` | Postgres failed to initialise | `docker compose logs postgres` to read the error |
 | `\r` errors or `Permission denied` on scripts (Linux / macOS) | Files checked out with Windows line endings | `git config core.autocrlf input` and re-checkout the affected files |
-| `ConnectionStrings:Default is not configured` or `Unable to create a 'DbContext'` when running `dotnet ef` | The user-secret from step 6 isn't set on this machine | Run the `user-secrets set` command from step 6, then confirm with `dotnet user-secrets list --project backend/src/Cdns.Api` |
-| `Could not find the global property 'UserSecretsId'` when running `dotnet user-secrets` | Checkout is missing the csproj change that added the secret ID | `git pull`, then rerun the `set` command |
-| `dotnet ef database update` fails to connect to the database | Port, database name, or password in the secret doesn't match `.env`, or the container isn't running | Compare the secret with `.env`, then run `docker compose ps` |
+| `ConnectionStrings:Default not found` or `Unable to create a 'DbContext'` when running `dotnet ef` | `appsettings.Development.json` is missing or has no `ConnectionStrings:Default` | Copy `appsettings.Development.example.json` to `appsettings.Development.json` in `backend/src/Cdns.Api` and fill in your password (step 6) |
+| `dotnet ef database update` fails to connect to the database | Port, database name, or password in `appsettings.Development.json` doesn't match `.env`, or the container isn't running | Compare `appsettings.Development.json` with `.env`, then run `docker compose ps` |
 
 ### 9. Useful commands
 

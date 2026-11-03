@@ -37,6 +37,7 @@ export default function Signup() {
       const res = await fetch('http://localhost:5030/api/signup/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
             tin: formData.tin,
             firstName: formData.firstName,
@@ -78,6 +79,7 @@ export default function Signup() {
         const res = await fetch('http://localhost:5030/api/signup/verify-otp', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({ tempSignupToken: tempToken, otp: parseInt(otpInput) })
         });
         
@@ -115,16 +117,17 @@ export default function Signup() {
         const res = await fetch('http://localhost:5030/api/signup/set-password', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                tempSignupToken: tempToken, 
-                password: passwordInput 
+            credentials: 'include',
+            body: JSON.stringify({
+                tempSignupToken: tempToken,
+                password: passwordInput
             })
         });
 
         const data = await res.json();
 
         if (res.ok) {
-            setStep('SUCCESS'); // Move to the beautiful success screen!
+            setStep('SUCCESS');
         } else {
             setErrorMsg(data.message || "Failed to set password.");
         }

@@ -13,8 +13,8 @@ public static class AuthEndpoints
             var result = await loginService.LoginAsync(req.UserName, req.Password, ct);
             return result switch
             {
-                LoginResult.Success s =>
-                    Results.Ok(new { type = "success", sessionToken = s.SessionToken }),
+                LoginResult.Success =>
+                    Results.Ok(new { type = "success" }),
                 LoginResult.MasterActivationRequired m =>
                     Results.Ok(new { type = "masterActivationRequired", activationToken = m.ActivationToken }),
                 LoginResult.AccountLocked =>
@@ -52,8 +52,8 @@ public static class AuthEndpoints
             var result = await svc.SetPasswordAsync(req.ActivationToken, req.Password, ct);
             return result switch
             {
-                SetActivationPasswordResult.Success s =>
-                    Results.Ok(new { type = "success", sessionToken = s.SessionToken }),
+                SetActivationPasswordResult.Success =>
+                    Results.Ok(new { type = "success" }),
                 SetActivationPasswordResult.InvalidToken =>
                     Results.NotFound(new { code = "InvalidActivationToken" }),
                 _ => Results.StatusCode(500)

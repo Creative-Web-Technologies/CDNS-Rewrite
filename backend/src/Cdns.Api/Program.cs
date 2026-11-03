@@ -1,13 +1,16 @@
+using Cdns.Api.Authentication;
 using Cdns.Api.Endpoints.Auth;
 using Cdns.Infrastructure;
 using Cdns.Infrastructure.Persistence;
 using Cdns.Infrastructure.Persistence.Seed;
 using Cdns.Infrastructure.Security;
+using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddCors(options =>
@@ -21,15 +24,22 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddAuthentication(SessionCookieAuthHandler.SchemeName)
+    .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthHandler>(
+        SessionCookieAuthHandler.SchemeName, _ => { });
+
+builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 
 var app = builder.Build();
 
-app.UseCors("AllowVite"); 
+app.UseCors("AllowVite");
 
-app.UseRouting(); 
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
 
-app.MapControllers(); 
+app.MapControllers();
 
 if (app.Environment.IsDevelopment())
 {
