@@ -11,7 +11,7 @@ namespace Cdns.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
-CREATE OR REPLACE FUNCTION check_tin_signup_status(p_tin text)
+CREATE OR REPLACE FUNCTION check_tin_signup_status(p_tin text).
 RETURNS integer
 LANGUAGE plpgsql
 AS $$
