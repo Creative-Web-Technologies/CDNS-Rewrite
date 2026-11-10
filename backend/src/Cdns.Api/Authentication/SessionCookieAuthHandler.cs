@@ -37,7 +37,8 @@ public class SessionCookieAuthHandler : AuthenticationHandler<AuthenticationSche
         if (session is null)
             return AuthenticateResult.Fail("Session not found.");
 
-        // No ExpiresAt column yet — add expiry check here once the column is added to the schema.
+        if (session.LoginDateTime.AddHours(8) < DateTimeOffset.UtcNow)
+            return AuthenticateResult.Fail("Session expired.");
 
         var claims = new[]
         {
