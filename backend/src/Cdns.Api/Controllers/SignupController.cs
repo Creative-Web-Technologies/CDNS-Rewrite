@@ -23,12 +23,11 @@ public class SignupController : ControllerBase
         var result = await _signupService.VerifyTinAsync(request.Tin);
 
         if (result.StatusCode != 1)
-            return BadRequest(result); 
+            return BadRequest(result);
 
-        return Ok(result); 
+        return Ok(result);
     }
 
-    // THIS IS THE NEW ENDPOINT
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
@@ -47,12 +46,16 @@ public class SignupController : ControllerBase
     public async Task<IActionResult> VerifyOtp([FromBody] VerifyOtpRequest request)
     {
         var result = await _signupService.VerifyOtpAsync(request);
-    
-        if (!result)
-            return BadRequest(new { success = false, message = "Invalid or expired OTP. Check backend terminal." });
-
-        return Ok(new { message = "OTP verified successfully.", success = true });
+        return result switch
+        {
+            SignupVerifyOtpResult.Success =>
+                Ok(new { message = "OTP verified successfully.", success = true }),
+            SignupVerifyOtpResult.InvalidToken =>
+                BadRequest(new { success = false, message = "Invalid or expired OTP." }),
+            _ => StatusCode(500)
+        };
     }
+
     [HttpPost("set-password")]
     public async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
     {
@@ -60,13 +63,13 @@ public class SignupController : ControllerBase
             return BadRequest(new { message = "Password must be at least 6 characters." });
 
         var result = await _signupService.SetPasswordAsync(request);
-
-        if (!result)
-            return BadRequest(new { message = "Invalid session or OTP not verified." });
-
-        // TODO: Generate Session Cookie here!
-
-        return Ok(new { message = "Password set successfully. You are now logged in.", success = true });
+        return result switch
+        {
+            SignupSetPasswordResult.Success =>
+                Ok(new { message = "Password set successfully. You are now logged in.", success = true }),
+            SignupSetPasswordResult.InvalidToken =>
+                BadRequest(new { success = false, message = "Invalid session or OTP not verified." }),
+            _ => StatusCode(500)
+        };
     }
-    
 }

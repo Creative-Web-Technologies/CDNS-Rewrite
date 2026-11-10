@@ -1,6 +1,9 @@
 # .env — never commit secrets
 .env
 
+# appsettings.Development.json — contains real local connection strings, never commit
+**/appsettings.Development.json
+
 ## ── .NET ──────────────────────────────────────────────────────────────────────
 # Build outputs
 [Bb]in/

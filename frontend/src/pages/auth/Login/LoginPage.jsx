@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../AuthLayout';
 import { apiPost } from '../../../lib/api';
 import './LoginPage.css';
@@ -9,14 +9,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setError(null);
     try {
-      await apiPost('/api/auth/login', { email, password });
-      // TODO: navigate to dashboard on success
+      await apiPost('/api/auth/login', { userName: email, password });
+      navigate('/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
