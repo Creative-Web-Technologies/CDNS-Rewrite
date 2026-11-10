@@ -1,0 +1,109 @@
+/* All colors explicit — dark-mode independent */
+
+.portal-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background: #ffffff;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ── Top header bar ── */
+.portal-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  height: 34px;
+  background: #0b1e3d;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+}
+
+.portal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.72);
+  letter-spacing: 0.3px;
+  font-family: 'Courier New', Courier, monospace;
+  white-space: nowrap;
+}
+
+.portal-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.portal-header-right {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
+}
+
+/* ── Two-panel body ── */
+.portal-body {
+  display: flex;
+  flex: 1;
+}
+
+.portal-left {
+  flex: 1 1 auto;
+  background-color: #0b1e3d;
+  min-height: calc(100vh - 34px);
+}
+
+.portal-right {
+  flex: 0 0 540px;
+  background: #ffffff;
+  overflow-y: auto;
+  min-height: calc(100vh - 34px);
+}
+
+.portal-right-inner {
+  min-height: calc(100vh - 34px);
+  padding: 28px 36px 36px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+/* ── Shared back link (used by both Login and Signup nav rows) ── */
+.portal-back-link {
+  font-size: 13px;
+  color: #64748b;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s;
+  white-space: nowrap;
+}
+
+.portal-back-link:hover {
+  color: #1e40af;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .portal-left {
+    display: none;
+  }
+
+  .portal-right {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+
+  .portal-header-right {
+    display: none;
+  }
+}

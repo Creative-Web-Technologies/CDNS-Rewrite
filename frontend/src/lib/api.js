@@ -6,8 +6,10 @@ export async function apiPost(url, body) {
     body: JSON.stringify(body),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || `HTTP ${res.status}`);
+    const body = await res.json().catch(() => ({}));
+    const error = new Error(body.message || `HTTP ${res.status}`);
+    error.code = body.code;
+    throw error;
   }
-  return res.json();
+  return res.json().catch(() => null);
 }

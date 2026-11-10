@@ -41,7 +41,7 @@ public class LoginService : ILoginService
 
         if (memberUser.IsWrongAttempt)
         {
-            if (memberUser.LastLoginAttemptDateTime.AddMinutes(LockoutMinutes) < DateTimeOffset.UtcNow)
+            if ((memberUser.LastLoginAttemptDateTime ?? DateTimeOffset.MinValue).AddMinutes(LockoutMinutes) < DateTimeOffset.UtcNow)
             {
                 // 20-minute window has passed — auto-unlock and treat this as a fresh attempt
                 memberUser.IsWrongAttempt = false;
