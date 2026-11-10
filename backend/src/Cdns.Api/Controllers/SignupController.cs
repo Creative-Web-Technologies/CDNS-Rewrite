@@ -37,7 +37,11 @@ public class SignupController : ControllerBase
         var result = await _signupService.RegisterAsync(request);
 
         if (!result.Success)
+        {
+            if (result.Code is "AccountExists" or "EmailBelongsToMaster")
+                return Conflict(result);
             return BadRequest(result);
+        }
 
         return Ok(result);
     }

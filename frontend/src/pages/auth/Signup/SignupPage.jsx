@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import { Link } from 'react-router-dom';
 import AuthShell from '../AuthShell';
+import { apiPost } from '../../../lib/api';
 import './Signup.css';
 
 function EyeIcon() {
@@ -21,8 +22,95 @@ function EyeOffIcon() {
   );
 }
 
+function SpinnerIcon() {
+  return <span className="btn-spinner" aria-hidden="true" />;
+}
+
+const STEP_LABELS = ['Details', 'Verify Email', 'Set Password'];
+
+function StepProgress({ current }) {
+  return (
+    <div className="signup-steps" aria-label="Registration progress">
+      {STEP_LABELS.map((label, i) => {
+        const n = i + 1;
+        const done = n < current;
+        const active = n === current;
+        return (
+          <Fragment key={label}>
+            {i > 0 && (
+              <div className={`signup-step-line${done ? ' signup-step-line--done' : ''}`} />
+            )}
+            <div
+              className={[
+                'signup-step',
+                done ? 'signup-step--done' : '',
+                active ? 'signup-step--active' : '',
+              ].filter(Boolean).join(' ')}
+              aria-current={active ? 'step' : undefined}
+            >
+              <div className="signup-step__dot" aria-hidden="true">
+                {done ? '✓' : n}
+              </div>
+              <div className="signup-step__label">{label}</div>
+            </div>
+          </Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+// Friendly messages keyed by backend error code
+const CODE_MESSAGES = {
+  InvalidTin: 'Please enter a valid 9-digit company TIN.',
+  OrganizationNotRegistered: "We couldn't find a registered company with this TIN. Please check the number and try again.",
+  CompanyNotActivated: "This company's account hasn't been activated yet. Please ask your company administrator to complete activation.",
+  CompanyPendingEregVerification: "This company's account hasn't been activated yet. Please ask your company administrator to complete activation.",
+  CompanySetupIncomplete: "This company's account setup is incomplete. Please contact your company administrator or CDNS support.",
+  EmailBelongsToMaster: "This email is already registered as the company's administrator account. Please log in instead.",
+  AccountExists: 'An account with this email already exists.',
+};
+
+// Which form field each error code maps to for highlighting
+const CODE_FIELD = {
+  InvalidTin: 'tin',
+  OrganizationNotRegistered: 'tin',
+  CompanyNotActivated: 'tin',
+  CompanyPendingEregVerification: 'tin',
+  CompanySetupIncomplete: 'tin',
+  EmailBelongsToMaster: 'email',
+  AccountExists: 'email',
+};
+
+const REQUIRED_FIELDS = ['tin', 'firstName', 'lastName', 'email', 'mobile', 'nic', 'designation'];
+
+function validateField(name, value) {
+  const v = (value || '').trim();
+  switch (name) {
+    case 'tin':
+      if (!value) return 'Company TIN is required.';
+      if (value.length !== 9) return 'TIN must be exactly 9 digits.';
+      return null;
+    case 'firstName':
+      return v ? null : 'First name is required.';
+    case 'lastName':
+      return v ? null : 'Last name is required.';
+    case 'email':
+      if (!v) return 'Email address is required.';
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : 'Please enter a valid email address.';
+    case 'mobile':
+      if (!v) return 'Mobile number is required.';
+      return /^\+?[\d\s\-]{7,15}$/.test(v) ? null : 'Please enter a valid mobile number.';
+    case 'nic':
+      return v ? null : 'NIC is required.';
+    case 'designation':
+      return v ? null : 'Designation is required.';
+    default:
+      return null;
+  }
+}
+
 export default function Signup() {
-  // --- States for the Form ---
   const [formData, setFormData] = useState({
     tin: '',
     accountType: 'CHA Agent (Declarant)',
@@ -31,138 +119,156 @@ export default function Signup() {
     email: '',
     mobile: '',
     nic: '',
-    designation: ''
+    designation: '',
   });
 
-  // --- States for the App Flow ---
-  const [step, setStep] = useState('SIGNUP'); // 'SIGNUP', 'OTP', 'PASSWORD', 'SUCCESS'
+  const [step, setStep] = useState('SIGNUP');
   const [tempToken, setTempToken] = useState('');
   const [otpInput, setOtpInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState(''); // Replaced raw JSON response with clean error string
+  const [touched, setTouched] = useState({});
+  const [fieldErrors, setFieldErrors] = useState({});
+  // serverErr = { code, message, field } | null
+  const [serverErr, setServerErr] = useState(null);
 
-  // --- Form Handlers ---
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setErrorMsg('');
-
-    try {
-      const res = await fetch('http://localhost:5030/api/signup/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-            tin: formData.tin,
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            mobile: formData.mobile,
-            nic: formData.nic,
-            designation: formData.designation
-        })
-      });
-
-      const data = await res.json();
-
-      // If successful, save the token and move to the OTP screen!
-      if (res.ok && data.success) {
-          setTempToken(data.tempSignupToken);
-          setStep('OTP');
+  // Focus the errored field (or banner) after server error state settles
+  useEffect(() => {
+    if (!serverErr) return;
+    setTimeout(() => {
+      if (serverErr.field) {
+        document.getElementById(`signup-${serverErr.field}`)?.focus();
       } else {
-          setErrorMsg(data.message || "Registration failed. Please check your details.");
+        document.getElementById('signup-error-banner')?.focus();
       }
+    }, 50);
+  }, [serverErr]);
 
-    } catch (error) {
-      setErrorMsg("Network error. Please try again.");
+  function getFieldError(name) {
+    if (serverErr?.field === name) return serverErr.message;
+    if (touched[name]) return fieldErrors[name] || null;
+    return null;
+  }
+
+  function inputClass(name) {
+    return getFieldError(name) ? 'input-error' : '';
+  }
+
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (serverErr?.field === name) setServerErr(null);
+    if (touched[name]) {
+      setFieldErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
+    }
+  }
+
+  function handleTinChange(e) {
+    const digits = e.target.value.replace(/\D/g, '').slice(0, 9);
+    setFormData(prev => ({ ...prev, tin: digits }));
+    if (serverErr?.field === 'tin') setServerErr(null);
+    if (touched.tin) {
+      setFieldErrors(prev => ({ ...prev, tin: validateField('tin', digits) }));
+    }
+  }
+
+  function handleBlur(name) {
+    setTouched(prev => ({ ...prev, [name]: true }));
+    setFieldErrors(prev => ({ ...prev, [name]: validateField(name, formData[name]) }));
+  }
+
+  function validateAll() {
+    const errors = {};
+    REQUIRED_FIELDS.forEach(name => {
+      const err = validateField(name, formData[name]);
+      if (err) errors[name] = err;
+    });
+    setFieldErrors(errors);
+    setTouched(Object.fromEntries(REQUIRED_FIELDS.map(f => [f, true])));
+    return Object.keys(errors).length === 0;
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setServerErr(null);
+
+    if (!validateAll()) {
+      const first = REQUIRED_FIELDS.find(name => !!validateField(name, formData[name]));
+      if (first) setTimeout(() => document.getElementById(`signup-${first}`)?.focus(), 0);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const data = await apiPost('/api/signup/register', {
+        tin: formData.tin,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        mobile: formData.mobile,
+        nic: formData.nic,
+        designation: formData.designation,
+      });
+      setTempToken(data.tempSignupToken);
+      setStep('OTP');
+    } catch (err) {
+      const code = err.code;
+      const field = CODE_FIELD[code] || null;
+      const message = CODE_MESSAGES[code] || err.message || 'Something went wrong. Please try again.';
+      setServerErr({ code, message, field });
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  // --- OTP Submit Handler ---
-  const handleVerifyOtp = async () => {
-    if (!otpInput) {
-        setErrorMsg("Please enter the OTP.");
-        return;
+  async function handleVerifyOtp() {
+    if (!otpInput.trim()) {
+      setServerErr({ code: null, message: 'Please enter the verification code.', field: null });
+      return;
     }
-
     setLoading(true);
-    setErrorMsg('');
+    setServerErr(null);
     try {
-        const res = await fetch('http://localhost:5030/api/signup/verify-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ tempSignupToken: tempToken, otp: parseInt(otpInput) })
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-            setStep('PASSWORD');
-        } else {
-            setErrorMsg(data.message || "Invalid OTP. Please try again.");
-        }
-    } catch (error) {
-        setErrorMsg("Network error. Please try again.");
+      await apiPost('/api/signup/verify-otp', {
+        tempSignupToken: tempToken,
+        otp: parseInt(otpInput, 10),
+      });
+      setStep('PASSWORD');
+    } catch {
+      setServerErr({ code: null, message: 'Invalid or expired code. Please try again.', field: null });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-  };
+  }
 
-  // --- Set Password Handler ---
-  const handleSetPassword = async () => {
-     if (!tempToken) {
-        setErrorMsg("Session expired. Please start over.");
-        setStep('SIGNUP');
-        return;
+  async function handleSetPassword() {
+    if (!tempToken) {
+      setServerErr({ code: null, message: 'Session expired. Please start over.', field: null });
+      setStep('SIGNUP');
+      return;
     }
-
     if (passwordInput.length < 6) {
-        setErrorMsg("Password must be at least 6 characters.");
-        return;
+      setServerErr({ code: null, message: 'Password must be at least 6 characters.', field: null });
+      return;
     }
-
     setLoading(true);
-    setErrorMsg('');
-
+    setServerErr(null);
     try {
-        const res = await fetch('http://localhost:5030/api/signup/set-password', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({
-                tempSignupToken: tempToken,
-                password: passwordInput
-            })
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-            setStep('SUCCESS');
-        } else {
-            setErrorMsg(data.message || "Failed to set password.");
-        }
-    } catch (error) {
-        setErrorMsg("Network error. Please try again.");
+      await apiPost('/api/signup/set-password', {
+        tempSignupToken: tempToken,
+        password: passwordInput,
+      });
+      setStep('SUCCESS');
+    } catch {
+      setServerErr({ code: null, message: 'Failed to set password. Please try again.', field: null });
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-  };
+  }
 
-
-  // ==========================================
-  // UI RENDER LOGIC
-  // ==========================================
+  // ── Render ──────────────────────────────────────────────────────────────
 
   return (
     <AuthShell>
@@ -170,71 +276,85 @@ export default function Signup() {
         <Link to="/login" className="portal-back-link">← Back to Login</Link>
       </div>
 
-      {/* 1. SUCCESS SCREEN */}
+      {/* SUCCESS */}
       {step === 'SUCCESS' && (
         <div className="form-wrapper form-wrapper--centered">
           <div className="header">
-            <div className="logo-placeholder">Logo</div>
+            <div className="logo-placeholder">SLC</div>
             <h2>Sri Lanka Customs</h2>
             <h1 className="success-title">Account Created!</h1>
-            <p>Your password has been set successfully. You are now ready to use the Document Notification System.</p>
+            <p>Your account has been set up successfully. You are now ready to use the Document Notification System.</p>
           </div>
-
-          <button
-            className="submit-btn"
-            onClick={() => window.location.href = '/dashboard'}
-          >
+          <button className="submit-btn" onClick={() => window.location.href = '/dashboard'}>
             Go to Dashboard
           </button>
         </div>
       )}
 
-      {/* 2. OTP SCREEN */}
+      {/* OTP */}
       {step === 'OTP' && (
         <div className="form-wrapper form-wrapper--centered">
+          <StepProgress current={2} />
           <div className="header">
             <h2>Sri Lanka Customs</h2>
             <h1>Verify Your Email</h1>
-            <p>We sent a 6-digit code to your email.</p>
+            <p>We sent a 6-digit code to your email address.</p>
           </div>
 
-          <div className="input-group">
-            <label>Enter OTP</label>
+          {serverErr && (
+            <div id="signup-error-banner" className="error-banner" role="alert" tabIndex={-1}>
+              {serverErr.message}
+            </div>
+          )}
+
+          <div className="input-group" style={{ marginTop: 20, textAlign: 'left' }}>
+            <label htmlFor="signup-otp">Verification Code</label>
             <input
+              id="signup-otp"
               type="text"
+              inputMode="numeric"
               className="otp-input"
               value={otpInput}
-              onChange={(e) => setOtpInput(e.target.value)}
-              placeholder="Enter 6-digit code"
+              onChange={e => setOtpInput(e.target.value.replace(/\D/g, ''))}
+              placeholder="000000"
+              maxLength={6}
+              autoComplete="one-time-code"
             />
           </div>
 
-          {errorMsg && <div className="error-banner" role="alert">{errorMsg}</div>}
-
           <button className="submit-btn" onClick={handleVerifyOtp} disabled={loading}>
-            {loading ? 'Verifying...' : 'Verify OTP'}
+            {loading ? <><SpinnerIcon /> Verifying…</> : 'Verify Code'}
           </button>
         </div>
       )}
 
-      {/* 3. PASSWORD SCREEN */}
+      {/* PASSWORD */}
       {step === 'PASSWORD' && (
         <div className="form-wrapper form-wrapper--centered">
+          <StepProgress current={3} />
           <div className="header">
-            <div className="logo-placeholder">Logo</div>
+            <div className="logo-placeholder">SLC</div>
             <h2>Sri Lanka Customs</h2>
             <h1>Set Your Password</h1>
-            <p>Please create a secure password for your account.</p>
+            <p>Create a secure password for your new account.</p>
           </div>
 
-          <div className="input-group">
-            <label>New Password *</label>
+          {serverErr && (
+            <div id="signup-error-banner" className="error-banner" role="alert" tabIndex={-1}>
+              {serverErr.message}
+            </div>
+          )}
+
+          <div className="input-group" style={{ marginTop: 20, textAlign: 'left' }}>
+            <label htmlFor="signup-password">New Password *</label>
             <div className="pw-wrap">
               <input
+                id="signup-password"
                 type={showPassword ? 'text' : 'password'}
                 value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                placeholder="Enter at least 6 characters"
+                onChange={e => setPasswordInput(e.target.value)}
+                placeholder="At least 6 characters"
+                autoComplete="new-password"
               />
               <button
                 type="button"
@@ -245,82 +365,220 @@ export default function Signup() {
                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
+            <p className="field-hint">Minimum 6 characters.</p>
           </div>
 
-          {errorMsg && <div className="error-banner" role="alert">{errorMsg}</div>}
-
           <button className="submit-btn" onClick={handleSetPassword} disabled={loading}>
-            {loading ? 'Saving...' : 'Complete Signup'}
+            {loading ? <><SpinnerIcon /> Creating account…</> : 'Complete Signup'}
           </button>
         </div>
       )}
 
-      {/* 4. SIGNUP FORM SCREEN (Default) */}
+      {/* SIGNUP FORM */}
       {step === 'SIGNUP' && (
         <div className="form-wrapper">
+          <StepProgress current={1} />
           <div className="header">
-            <div className="logo-placeholder">Logo</div>
+            <div className="logo-placeholder">SLC</div>
             <h2>Sri Lanka Customs</h2>
             <h1>Document Notification System</h1>
-            <p>Sign Up</p>
+            <p>Create your account</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="signup-form">
-            <div className="input-grid">
-              <div className="input-group">
-                <label>TIN Number (9 Digit) *</label>
-                <input required type="text" name="tin" value={formData.tin} onChange={handleChange} placeholder="TIN Number (9 Digit)" />
-              </div>
+          {serverErr && (
+            <div id="signup-error-banner" className="error-banner" role="alert" tabIndex={-1}>
+              {serverErr.code === 'AccountExists' ? (
+                <>
+                  An account with this email already exists.{' '}
+                  <Link to="/login">Already have an account? Log in</Link>
+                </>
+              ) : (
+                serverErr.message
+              )}
+            </div>
+          )}
 
-              <div className="input-group">
-                <label>Account Type *</label>
-                <select name="accountType" value={formData.accountType} onChange={handleChange}>
-                  <option>CHA Agent (Declarant)</option>
-                  <option>Importer</option>
-                  <option>Exporter</option>
-                </select>
-              </div>
+          <form onSubmit={handleSubmit} className="signup-form" noValidate>
 
-              <div className="input-group">
-                <label>First Name *</label>
-                <input required type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First Name" />
-              </div>
-
-              <div className="input-group">
-                <label>Last Name *</label>
-                <input required type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last Name" />
-              </div>
-
-              <div className="input-group">
-                <label>Email *</label>
-                <input required type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" />
-              </div>
-
-              <div className="input-group">
-                <label>Mobile *</label>
-                <input required type="text" name="mobile" value={formData.mobile} onChange={handleChange} placeholder="Mobile" />
-              </div>
-
-              <div className="input-group">
-                <label>NIC *</label>
-                <input required type="text" name="nic" value={formData.nic} onChange={handleChange} placeholder="NIC" />
-              </div>
-
-              <div className="input-group">
-                <label>Designation *</label>
-                <input required type="text" name="designation" value={formData.designation} onChange={handleChange} placeholder="Designation" />
-              </div>
+            {/* Company TIN — full width */}
+            <div className="input-group signup-input-full">
+              <label htmlFor="signup-tin">Company TIN (9 digits) *</label>
+              <input
+                id="signup-tin"
+                name="tin"
+                type="text"
+                inputMode="numeric"
+                maxLength={9}
+                value={formData.tin}
+                onChange={handleTinChange}
+                onBlur={() => handleBlur('tin')}
+                aria-invalid={getFieldError('tin') ? 'true' : 'false'}
+                aria-describedby={getFieldError('tin') ? 'signup-tin-error' : 'signup-tin-hint'}
+                className={inputClass('tin')}
+              />
+              {!getFieldError('tin') && (
+                <p id="signup-tin-hint" className="field-hint">
+                  Enter the TIN of the company you will work with.
+                </p>
+              )}
+              {getFieldError('tin') && (
+                <p id="signup-tin-error" className="field-error" role="alert">
+                  {getFieldError('tin')}
+                </p>
+              )}
             </div>
 
-            {errorMsg && <div className="error-banner" role="alert">{errorMsg}</div>}
+            {/* Personal + contact details — 2-col grid */}
+            <div className="input-grid" style={{ marginTop: 16 }}>
+
+              <div className="input-group">
+                <label htmlFor="signup-firstName">First Name *</label>
+                <input
+                  id="signup-firstName"
+                  name="firstName"
+                  type="text"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  onBlur={() => handleBlur('firstName')}
+                  aria-invalid={getFieldError('firstName') ? 'true' : 'false'}
+                  aria-describedby={getFieldError('firstName') ? 'signup-firstName-error' : undefined}
+                  className={inputClass('firstName')}
+                  autoComplete="given-name"
+                />
+                {getFieldError('firstName') && (
+                  <p id="signup-firstName-error" className="field-error" role="alert">
+                    {getFieldError('firstName')}
+                  </p>
+                )}
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="signup-lastName">Last Name *</label>
+                <input
+                  id="signup-lastName"
+                  name="lastName"
+                  type="text"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  onBlur={() => handleBlur('lastName')}
+                  aria-invalid={getFieldError('lastName') ? 'true' : 'false'}
+                  aria-describedby={getFieldError('lastName') ? 'signup-lastName-error' : undefined}
+                  className={inputClass('lastName')}
+                  autoComplete="family-name"
+                />
+                {getFieldError('lastName') && (
+                  <p id="signup-lastName-error" className="field-error" role="alert">
+                    {getFieldError('lastName')}
+                  </p>
+                )}
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="signup-email">Email Address *</label>
+                <input
+                  id="signup-email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  onBlur={() => handleBlur('email')}
+                  aria-invalid={getFieldError('email') ? 'true' : 'false'}
+                  aria-describedby={getFieldError('email') ? 'signup-email-error' : undefined}
+                  className={inputClass('email')}
+                  autoComplete="email"
+                />
+                {getFieldError('email') && (
+                  <p id="signup-email-error" className="field-error" role="alert">
+                    {getFieldError('email')}
+                  </p>
+                )}
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="signup-mobile">Mobile Number *</label>
+                <input
+                  id="signup-mobile"
+                  name="mobile"
+                  type="tel"
+                  value={formData.mobile}
+                  onChange={handleChange}
+                  onBlur={() => handleBlur('mobile')}
+                  aria-invalid={getFieldError('mobile') ? 'true' : 'false'}
+                  aria-describedby={getFieldError('mobile') ? 'signup-mobile-error' : undefined}
+                  className={inputClass('mobile')}
+                  autoComplete="tel"
+                />
+                {getFieldError('mobile') && (
+                  <p id="signup-mobile-error" className="field-error" role="alert">
+                    {getFieldError('mobile')}
+                  </p>
+                )}
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="signup-nic">NIC *</label>
+                <input
+                  id="signup-nic"
+                  name="nic"
+                  type="text"
+                  value={formData.nic}
+                  onChange={handleChange}
+                  onBlur={() => handleBlur('nic')}
+                  aria-invalid={getFieldError('nic') ? 'true' : 'false'}
+                  aria-describedby={getFieldError('nic') ? 'signup-nic-error' : undefined}
+                  className={inputClass('nic')}
+                />
+                {getFieldError('nic') && (
+                  <p id="signup-nic-error" className="field-error" role="alert">
+                    {getFieldError('nic')}
+                  </p>
+                )}
+              </div>
+
+              <div className="input-group">
+                <label htmlFor="signup-designation">Designation *</label>
+                <input
+                  id="signup-designation"
+                  name="designation"
+                  type="text"
+                  value={formData.designation}
+                  onChange={handleChange}
+                  onBlur={() => handleBlur('designation')}
+                  aria-invalid={getFieldError('designation') ? 'true' : 'false'}
+                  aria-describedby={getFieldError('designation') ? 'signup-designation-error' : undefined}
+                  className={inputClass('designation')}
+                />
+                {getFieldError('designation') && (
+                  <p id="signup-designation-error" className="field-error" role="alert">
+                    {getFieldError('designation')}
+                  </p>
+                )}
+              </div>
+
+            </div>
+
+            {/* Account type — full width */}
+            <div className="input-group signup-input-full" style={{ marginTop: 16 }}>
+              <label htmlFor="signup-accountType">Account Type</label>
+              <select
+                id="signup-accountType"
+                name="accountType"
+                value={formData.accountType}
+                onChange={handleChange}
+              >
+                <option>CHA Agent (Declarant)</option>
+                <option>Importer</option>
+                <option>Exporter</option>
+              </select>
+            </div>
 
             <button type="submit" disabled={loading} className="submit-btn">
-              {loading ? 'Checking...' : 'Next'}
+              {loading ? <><SpinnerIcon /> Creating account…</> : 'Create Account'}
             </button>
           </form>
 
           <p className="login-link">
-            Already have an account? <Link to="/login">Back to Login</Link>
+            Already have an account? <Link to="/login">Log in</Link>
           </p>
         </div>
       )}

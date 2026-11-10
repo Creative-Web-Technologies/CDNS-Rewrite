@@ -203,9 +203,144 @@
   text-decoration: underline;
 }
 
+/* ── Full-width input outside the grid ── */
+.signup-input-full {
+  width: 100%;
+}
+
+/* ── Field-level error message ── */
+.field-error {
+  color: #dc2626;
+  font-size: 12px;
+  margin: 4px 0 0;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.4;
+}
+
+/* ── Helper / hint text under a field ── */
+.field-hint {
+  color: #6b7280;
+  font-size: 12px;
+  margin: 4px 0 0;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.4;
+}
+
+/* ── Error state on a field ── */
+.input-group input.input-error,
+.input-group select.input-error {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+.input-group input.input-error:focus,
+.input-group select.input-error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18);
+}
+
+/* ── Error banner link (AccountExists "Log in" link) ── */
+.error-banner a {
+  color: #991b1b;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.error-banner a:hover {
+  color: #7f1d1d;
+}
+
+/* ── Submit button spinner ── */
+.btn-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: su-spin 0.75s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes su-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Step progress indicator ── */
+.signup-steps {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.signup-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.signup-step-line {
+  flex: 1;
+  height: 2px;
+  background: #e5e7eb;
+  margin-top: 11px;
+  border-radius: 1px;
+}
+
+.signup-step-line--done {
+  background: #1e40af;
+}
+
+.signup-step__dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signup-step--active .signup-step__dot {
+  background: #1e40af;
+  color: #ffffff;
+}
+
+.signup-step--done .signup-step__dot {
+  background: #1e40af;
+  color: #ffffff;
+}
+
+.signup-step__label {
+  font-size: 10.5px;
+  color: #9ca3af;
+  margin-top: 4px;
+  white-space: nowrap;
+  font-weight: 500;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+.signup-step--active .signup-step__label {
+  color: #1e40af;
+  font-weight: 600;
+}
+
+.signup-step--done .signup-step__label {
+  color: #1e40af;
+}
+
 /* ── Responsive: collapse grid to single col on narrow viewports ── */
 @media (max-width: 540px) {
   .input-grid {
     grid-template-columns: 1fr;
+  }
+
+  .signup-step__label {
+    display: none;
   }
 }
