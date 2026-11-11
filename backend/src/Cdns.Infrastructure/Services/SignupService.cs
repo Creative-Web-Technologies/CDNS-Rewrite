@@ -239,6 +239,6 @@ public class SignupService : ISignupService
         _logger.LogInformation("Member {MemberId} created via signup for {Email}", newMember.MemberId, tempMember.Email);
 
         var sessionToken = await _issuer.IssueAsync(newMember.MemberId, memberUser.UserName);
-        return new SignupSetPasswordResult.Success(sessionToken);
+        return new SignupSetPasswordResult.Success(sessionToken, "Member");
     }
 }

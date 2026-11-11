@@ -29,7 +29,11 @@ builder.Services.AddAuthentication(SessionCookieAuthHandler.SchemeName)
     .AddScheme<AuthenticationSchemeOptions, SessionCookieAuthHandler>(
         SessionCookieAuthHandler.SchemeName, _ => { });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("MemberOnly", p => p.RequireClaim("MemberType", "Member"));
+    options.AddPolicy("MasterOnly", p => p.RequireClaim("MemberType", "CompanyMasterMember"));
+});
 builder.Services.AddControllers();
 
 var app = builder.Build();

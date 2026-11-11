@@ -92,6 +92,7 @@ public class LoginService : ILoginService
         await _db.SaveChangesAsync(ct);
 
         var sessionToken = await _issuer.IssueAsync(memberUser.MemberId, memberUser.UserName, ct);
-        return new LoginResult.Success(sessionToken);
+        var portal = memberUser.MemberType == MemberType.CompanyMasterMember ? "Company" : "Member";
+        return new LoginResult.Success(sessionToken, portal);
     }
 }

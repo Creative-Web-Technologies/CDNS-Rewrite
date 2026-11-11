@@ -1,5 +1,5 @@
 import { useState, useEffect, Fragment } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthShell from '../AuthShell';
 import { apiPost } from '../../../lib/api';
 import './Signup.css';
@@ -100,7 +100,7 @@ function validateField(name, value) {
       return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : 'Please enter a valid email address.';
     case 'mobile':
       if (!v) return 'Mobile number is required.';
-      return /^\+?[\d\s\-]{7,15}$/.test(v) ? null : 'Please enter a valid mobile number.';
+      return /^\+?[\d\s-]{7,15}$/.test(v) ? null : 'Please enter a valid mobile number.';
     case 'nic':
       return v ? null : 'NIC is required.';
     case 'designation':
@@ -111,6 +111,8 @@ function validateField(name, value) {
 }
 
 export default function Signup() {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     tin: '',
     accountType: 'CHA Agent (Declarant)',
@@ -127,6 +129,7 @@ export default function Signup() {
   const [otpInput, setOtpInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [signupPortal, setSignupPortal] = useState('member');
 
   const [loading, setLoading] = useState(false);
   const [touched, setTouched] = useState({});
@@ -256,10 +259,12 @@ export default function Signup() {
     setLoading(true);
     setServerErr(null);
     try {
-      await apiPost('/api/signup/set-password', {
+      const data = await apiPost('/api/signup/set-password', {
         tempSignupToken: tempToken,
         password: passwordInput,
       });
+      const portal = data?.portal?.toLowerCase() ?? 'member';
+      setSignupPortal(portal);
       setStep('SUCCESS');
     } catch {
       setServerErr({ code: null, message: 'Failed to set password. Please try again.', field: null });
@@ -285,7 +290,7 @@ export default function Signup() {
             <h1 className="success-title">Account Created!</h1>
             <p>Your account has been set up successfully. You are now ready to use the Document Notification System.</p>
           </div>
-          <button className="submit-btn" onClick={() => window.location.href = '/dashboard'}>
+          <button className="submit-btn" onClick={() => navigate(`/${signupPortal}/dashboard`)}>
             Go to Dashboard
           </button>
         </div>

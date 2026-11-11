@@ -62,25 +62,42 @@ public class MasterActivationService : IMasterActivationService
         if (memberUser is null)
             return new SetActivationPasswordResult.InvalidToken();
 
-        var (hash, salt) = _hasher.HashNewPassword(newPassword);
-        memberUser.Password = hash;
-        memberUser.PasswordSalt = salt;
-        memberUser.RequiredEregVerification = false;
-        memberUser.UserStatusType = UserStatusType.Active;
-
-        await _db.SaveChangesAsync(ct);
-
-        var mapping = await _db.CompanyMemberMappings
-            .FirstOrDefaultAsync(m => m.MemberId == memberUser.MemberId && !m.IsDeleted, ct);
-
-        if (mapping is not null)
+        // All DB mutations run inside a single transaction so that a failure in
+        // ClaimCusDecsForMaster (or any later step) rolls back the password change
+        // and RequiredEregVerification flip, leaving the master still unactivated
+        // and retryable.
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+        try
         {
-            await SetupDefaultSubscription(memberUser.MemberId, mapping.CompanyId, ct);
-            await ClaimCusDecsForMaster(memberUser.MemberId, mapping.CompanyId, ct);
+            var (hash, salt) = _hasher.HashNewPassword(newPassword);
+            memberUser.Password = hash;
+            memberUser.PasswordSalt = salt;
+            memberUser.RequiredEregVerification = false;
+            memberUser.UserStatusType = UserStatusType.Active;
+
+            await _db.SaveChangesAsync(ct);
+
+            var mapping = await _db.CompanyMemberMappings
+                .FirstOrDefaultAsync(m => m.MemberId == memberUser.MemberId && !m.IsDeleted, ct);
+
+            if (mapping is not null)
+            {
+                await SetupDefaultSubscription(memberUser.MemberId, mapping.CompanyId, ct);
+                await ClaimCusDecsForMaster(memberUser.MemberId, mapping.CompanyId, ct);
+            }
+
+            await tx.CommitAsync(ct);
+        }
+        catch
+        {
+            await tx.RollbackAsync(ct);
+            throw;
         }
 
+        // Session issued AFTER commit: cookie writes are not transactional.
+        // If IssueAsync fails, the master is fully activated and can log in normally.
         var sessionToken = await _issuer.IssueAsync(memberUser.MemberId, memberUser.UserName, ct);
-        return new SetActivationPasswordResult.Success(sessionToken);
+        return new SetActivationPasswordResult.Success(sessionToken, "Company");
     }
 
     private async Task SetupDefaultSubscription(long memberId, int companyId, CancellationToken ct)
@@ -97,9 +114,10 @@ public class MasterActivationService : IMasterActivationService
 
     private async Task ClaimCusDecsForMaster(long memberId, int companyId, CancellationToken ct)
     {
-        var now = DateTime.UtcNow;
+        // timestamp without time zone columns require Unspecified Kind — UTC Kind throws in Npgsql
+        var now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
-        await _db.CusDecs
+        var declarantCount = await _db.CusDecs
             .Where(c => c.DeclarantCompanyId == companyId
                      && c.DeclarantClaimedById == null
                      && c.DeclarantDisclaimedById == null)
@@ -108,7 +126,7 @@ public class MasterActivationService : IMasterActivationService
                 .SetProperty(c => c.DeclarantClaimedDateTime, now),
             ct);
 
-        await _db.CusDecs
+        var consigneeCount = await _db.CusDecs
             .Where(c => c.ConsigneeCompanyId == companyId
                      && c.ConsigneeClaimedById == null
                      && c.ConsigneeDisclaimedById == null)
@@ -116,5 +134,9 @@ public class MasterActivationService : IMasterActivationService
                 .SetProperty(c => c.ConsigneeClaimedById, memberId)
                 .SetProperty(c => c.ConsigneeClaimedDateTime, now),
             ct);
+
+        _logger.LogInformation(
+            "ClaimCusDecsForMaster: member {MemberId} / company {CompanyId} — {D} declarant, {C} consignee CusDecs claimed",
+            memberId, companyId, declarantCount, consigneeCount);
     }
 }

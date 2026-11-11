@@ -15,7 +15,7 @@ public abstract record CompleteProfileResult
 
 public abstract record SetActivationPasswordResult
 {
-    public sealed record Success(string SessionToken) : SetActivationPasswordResult;
+    public sealed record Success(string SessionToken, string Portal) : SetActivationPasswordResult;
     public sealed record InvalidToken : SetActivationPasswordResult;
 }
 

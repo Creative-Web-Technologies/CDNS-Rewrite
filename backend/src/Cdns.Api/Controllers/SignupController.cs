@@ -69,8 +69,8 @@ public class SignupController : ControllerBase
         var result = await _signupService.SetPasswordAsync(request);
         return result switch
         {
-            SignupSetPasswordResult.Success =>
-                Ok(new { message = "Password set successfully. You are now logged in.", success = true }),
+            SignupSetPasswordResult.Success s =>
+                Ok(new { message = "Password set successfully. You are now logged in.", success = true, portal = s.Portal }),
             SignupSetPasswordResult.InvalidToken =>
                 BadRequest(new { success = false, message = "Invalid session or OTP not verified." }),
             _ => StatusCode(500)

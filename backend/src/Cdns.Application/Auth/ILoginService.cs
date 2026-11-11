@@ -2,7 +2,7 @@ namespace Cdns.Application.Auth;
 
 public abstract record LoginResult
 {
-    public sealed record Success(string SessionToken) : LoginResult;
+    public sealed record Success(string SessionToken, string Portal) : LoginResult;
 
     // eReg validated — client must proceed through profile-fill + set-password before a session is issued
     public sealed record MasterActivationRequired(Guid ActivationToken) : LoginResult;

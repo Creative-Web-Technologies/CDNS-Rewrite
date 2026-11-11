@@ -8,7 +8,7 @@ public abstract record SignupVerifyOtpResult
 
 public abstract record SignupSetPasswordResult
 {
-    public sealed record Success(string SessionToken) : SignupSetPasswordResult;
+    public sealed record Success(string SessionToken, string Portal) : SignupSetPasswordResult;
     public sealed record InvalidToken : SignupSetPasswordResult;
 }
 

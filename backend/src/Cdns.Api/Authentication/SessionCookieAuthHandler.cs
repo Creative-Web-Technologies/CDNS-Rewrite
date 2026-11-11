@@ -40,10 +40,17 @@ public class SessionCookieAuthHandler : AuthenticationHandler<AuthenticationSche
         if (session.LoginDateTime.AddHours(8) < DateTimeOffset.UtcNow)
             return AuthenticateResult.Fail("Session expired.");
 
+        // Look up MemberType so authorization policies can branch on it
+        var memberUser = await _db.MemberUsers
+            .FirstOrDefaultAsync(u => u.MemberId == session.MemberId);
+
+        var memberTypeValue = memberUser?.MemberType.ToString() ?? "Member";
+
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, session.MemberId.ToString()),
             new Claim(ClaimTypes.Name, session.UserName),
+            new Claim("MemberType", memberTypeValue),
         };
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme.Name);

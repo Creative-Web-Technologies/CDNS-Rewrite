@@ -68,8 +68,12 @@ export default function LoginPage() {
     setLoginLoading(true);
     setLoginError(null);
     try {
-      await apiPost('/api/auth/login', { userName: email, password });
-      navigate('/dashboard');
+      const data = await apiPost('/api/auth/login', { userName: email, password });
+      if (data?.type === 'masterActivationRequired') {
+        navigate(`/master-activation?token=${data.activationToken}`);
+      } else {
+        navigate(`/${data.portal.toLowerCase()}/dashboard`);
+      }
     } catch (err) {
       setLoginError(
         err.code === 'AccountLocked'
@@ -347,7 +351,7 @@ export default function LoginPage() {
 
       {/* Copyright */}
       <div className="login-copyright">
-        <span>© {new Date().getFullYear()} Sri Lanka Customs</span>
+        <span>© 2026 Sri Lanka Customs</span>
         <span className="login-copyright-links">
           <a href="#">Privacy Policy</a>
           <a href="#">Security Disclosure</a>
