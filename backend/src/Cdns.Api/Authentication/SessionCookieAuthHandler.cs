@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using Cdns.Domain.Enums;
 using Cdns.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
@@ -40,11 +41,14 @@ public class SessionCookieAuthHandler : AuthenticationHandler<AuthenticationSche
         if (session.LoginDateTime.AddHours(8) < DateTimeOffset.UtcNow)
             return AuthenticateResult.Fail("Session expired.");
 
-        // Look up MemberType so authorization policies can branch on it
+        // Load MemberUser for MemberType claim and live status re-check
         var memberUser = await _db.MemberUsers
             .FirstOrDefaultAsync(u => u.MemberId == session.MemberId);
 
-        var memberTypeValue = memberUser?.MemberType.ToString() ?? "Member";
+        if (memberUser is null || memberUser.UserStatusType != UserStatusType.Active)
+            return AuthenticateResult.Fail("Account is not active.");
+
+        var memberTypeValue = memberUser.MemberType.ToString();
 
         var claims = new[]
         {

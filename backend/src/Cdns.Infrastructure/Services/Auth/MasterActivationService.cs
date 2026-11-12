@@ -36,7 +36,9 @@ public class MasterActivationService : IMasterActivationService
             .Include(u => u.Member)
             .FirstOrDefaultAsync(u => u.GlobalIdentity == activationToken, ct);
 
-        if (memberUser is null)
+        if (memberUser is null
+            || memberUser.MemberType != MemberType.CompanyMasterMember
+            || !memberUser.RequiredEregVerification)
             return new CompleteProfileResult.InvalidToken();
 
         var member = memberUser.Member;
@@ -59,7 +61,9 @@ public class MasterActivationService : IMasterActivationService
             .Include(u => u.Member)
             .FirstOrDefaultAsync(u => u.GlobalIdentity == activationToken, ct);
 
-        if (memberUser is null)
+        if (memberUser is null
+            || memberUser.MemberType != MemberType.CompanyMasterMember
+            || !memberUser.RequiredEregVerification)
             return new SetActivationPasswordResult.InvalidToken();
 
         // All DB mutations run inside a single transaction so that a failure in

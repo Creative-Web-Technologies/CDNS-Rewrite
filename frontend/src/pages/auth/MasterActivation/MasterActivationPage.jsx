@@ -26,7 +26,7 @@ export default function MasterActivationPage() {
   const [params] = useSearchParams();
   const activationToken = params.get('token') ?? '';
   const navigate = useNavigate();
-  const { setAuth } = useAuth();
+  const { refreshUser } = useAuth();
 
   const [step, setStep] = useState('profile'); // 'profile' | 'password'
   const [loading, setLoading] = useState(false);
@@ -68,8 +68,10 @@ export default function MasterActivationPage() {
         ...profile,
       });
       setStep('password');
-    } catch {
-      setError('Could not save profile. Please try again.');
+    } catch (err) {
+      setError(err.code === 'InvalidActivationToken'
+        ? 'This activation link is invalid or has already been used.'
+        : 'Could not save profile. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -89,10 +91,12 @@ export default function MasterActivationPage() {
         password,
       });
       // data = { type: "success", portal: "Company" }
-      setAuth(null); // force /me re-fetch on next protected page load
+      await refreshUser();
       navigate(`/${data.portal.toLowerCase()}/dashboard`);
-    } catch {
-      setError('Could not set password. The activation link may have expired.');
+    } catch (err) {
+      setError(err.code === 'InvalidActivationToken'
+        ? 'This activation link is invalid or has already been used.'
+        : 'Could not set password. The activation link may have expired.');
     } finally {
       setLoading(false);
     }

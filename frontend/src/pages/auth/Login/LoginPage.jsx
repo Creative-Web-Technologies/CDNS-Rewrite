@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthShell from '../AuthShell';
 import { apiPost } from '../../../lib/api';
+import { useAuth } from '../../../contexts/useAuth';
 import './LoginPage.css';
 
 function EyeIcon() {
@@ -31,6 +32,7 @@ const TABS = [
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
   const [tab, setTab] = useState('login');
 
   // Login state
@@ -72,7 +74,8 @@ export default function LoginPage() {
       if (data?.type === 'masterActivationRequired') {
         navigate(`/master-activation?token=${data.activationToken}`);
       } else {
-        navigate(`/${data.portal.toLowerCase()}/dashboard`);
+        const u = await refreshUser();
+        navigate(`/${(u?.portal ?? data.portal).toLowerCase()}/dashboard`);
       }
     } catch (err) {
       setLoginError(

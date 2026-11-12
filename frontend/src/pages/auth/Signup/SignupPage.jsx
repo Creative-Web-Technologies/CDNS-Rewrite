@@ -2,6 +2,7 @@ import { useState, useEffect, Fragment } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import AuthShell from '../AuthShell';
 import { apiPost } from '../../../lib/api';
+import { useAuth } from '../../../contexts/useAuth';
 import './Signup.css';
 
 function EyeIcon() {
@@ -112,6 +113,7 @@ function validateField(name, value) {
 
 export default function Signup() {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
 
   const [formData, setFormData] = useState({
     tin: '',
@@ -265,6 +267,7 @@ export default function Signup() {
       });
       const portal = data?.portal?.toLowerCase() ?? 'member';
       setSignupPortal(portal);
+      await refreshUser();
       setStep('SUCCESS');
     } catch {
       setServerErr({ code: null, message: 'Failed to set password. Please try again.', field: null });

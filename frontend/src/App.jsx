@@ -7,7 +7,6 @@ import LoginPage from './pages/auth/Login/LoginPage';
 import SignupPage from './pages/auth/Signup/SignupPage';
 import MasterActivationPage from './pages/auth/MasterActivation/MasterActivationPage';
 import OtpVerificationPage from './pages/auth/OtpVerification/OtpVerificationPage';
-import PasswordSetupPage from './pages/auth/PasswordSetup/PasswordSetupPage';
 import ForgotPasswordPage from './pages/auth/ForgotPassword/ForgotPasswordPage';
 
 // Portal layout
@@ -79,10 +78,9 @@ function AppRoutes() {
       <Route path="/signup" element={
         <RedirectIfLoggedIn><SignupPage /></RedirectIfLoggedIn>
       } />
-      {/* Activation/OTP/password-setup are transient; don't redirect mid-flow */}
+      {/* Activation/OTP are transient; don't redirect mid-flow */}
       <Route path="/master-activation" element={<MasterActivationPage />} />
       <Route path="/otp-verification"  element={<OtpVerificationPage />} />
-      <Route path="/password-setup"    element={<PasswordSetupPage />} />
       <Route path="/forgot-password"   element={<ForgotPasswordPage />} />
 
       {/* Member Portal */}

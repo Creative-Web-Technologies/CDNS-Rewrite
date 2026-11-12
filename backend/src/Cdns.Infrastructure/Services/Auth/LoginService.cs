@@ -61,11 +61,38 @@ public class LoginService : ILoginService
         {
             var eregOk = await _ereg.ValidateMasterActivation(userName, password);
             if (!eregOk)
-                return new LoginResult.InvalidCredentials();
+            {
+                if (!_cache.TryGetValue<(int Count, DateTimeOffset ExpiresAt)>(cacheKey, out var entry))
+                    entry = (0, DateTimeOffset.UtcNow.AddMinutes(LockoutMinutes));
 
+                var newCount = entry.Count + 1;
+                _cache.Set(cacheKey, (newCount, entry.ExpiresAt), new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpiration = entry.ExpiresAt
+                });
+
+                if (newCount >= MaxFailedAttempts)
+                {
+                    memberUser.IsWrongAttempt = true;
+                    memberUser.LastLoginAttemptDateTime = DateTimeOffset.UtcNow;
+                    await _db.SaveChangesAsync(ct);
+                    return new LoginResult.AccountLocked();
+                }
+
+                return new LoginResult.InvalidCredentials();
+            }
+
+            _cache.Remove(cacheKey);
             // GlobalIdentity is the opaque token the client carries through the activation flow
             return new LoginResult.MasterActivationRequired(memberUser.GlobalIdentity);
         }
+
+        // Status check lives here — AFTER the eReg branch — so CompanyMasterMembers with
+        // RequiredEregVerification (legitimately NotActive until activation completes) are
+        // not blocked. Generic response: callers must not be able to distinguish a disabled
+        // account from a wrong password (enumeration / insider-knowledge risk).
+        if (memberUser.UserStatusType != UserStatusType.Active)
+            return new LoginResult.InvalidCredentials();
 
         if (!_hasher.Verify(password, memberUser.Password, memberUser.PasswordSalt))
         {
