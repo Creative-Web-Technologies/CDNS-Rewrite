@@ -28,7 +28,6 @@ public class LoginService : ILoginService
         _cache = cache;
     }
 
-    private static string WrongAttemptsKey(string userName) => $"wrong-attempts:{userName.Trim().ToLowerInvariant()}";
 
     public async Task<LoginResult> LoginAsync(string userName, string password, CancellationToken ct = default)
     {
@@ -39,7 +38,7 @@ public class LoginService : ILoginService
         if (memberUser is null)
             return new LoginResult.InvalidCredentials();
 
-        var cacheKey = WrongAttemptsKey(memberUser.UserName);
+        var cacheKey = AuthCacheKeys.WrongAttempts(memberUser.UserName);
 
         if (memberUser.IsWrongAttempt)
         {

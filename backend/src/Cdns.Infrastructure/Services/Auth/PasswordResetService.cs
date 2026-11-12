@@ -5,6 +5,7 @@ using Cdns.Application.Security;
 using Cdns.Infrastructure.Persistence;
 using Cdns.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Cdns.Infrastructure.Services.Auth;
 
@@ -13,12 +14,14 @@ public class PasswordResetService : IPasswordResetService
     private readonly CdnsDbContext _db;
     private readonly IPasswordHasher _hasher;
     private readonly IEmailService _email;
+    private readonly IMemoryCache _cache;
 
-    public PasswordResetService(CdnsDbContext db, IPasswordHasher hasher, IEmailService email)
+    public PasswordResetService(CdnsDbContext db, IPasswordHasher hasher, IEmailService email, IMemoryCache cache)
     {
         _db = db;
         _hasher = hasher;
         _email = email;
+        _cache = cache;
     }
 
     public async Task<SendOtpResult> SendOtpAsync(string userName, CancellationToken ct = default)
@@ -72,13 +75,21 @@ public class PasswordResetService : IPasswordResetService
         if (!PasswordPolicy.IsValid(newPassword))
             return new ResetPasswordResult.WeakPassword();
 
+        var sessions = await _db.MemberLoginSessions
+            .Where(s => s.MemberId == memberUser.MemberId)
+            .ToListAsync(ct);
+        _db.MemberLoginSessions.RemoveRange(sessions);
+
         var (hash, salt) = _hasher.HashNewPassword(newPassword);
         memberUser.Password = hash;
         memberUser.PasswordSalt = salt;
         memberUser.IsActiveOtp = false;
         memberUser.ActivationCode = 0;
         memberUser.IsWrongAttempt = false;
+
         await _db.SaveChangesAsync(ct);
+
+        _cache.Remove(AuthCacheKeys.WrongAttempts(memberUser.UserName));
 
         return new ResetPasswordResult.Success();
     }
