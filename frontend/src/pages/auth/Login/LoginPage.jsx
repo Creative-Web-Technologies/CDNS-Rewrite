@@ -4,6 +4,8 @@ import AuthShell from '../AuthShell';
 import { apiPost } from '../../../lib/api';
 import { useAuth } from '../../../contexts/useAuth';
 import './LoginPage.css';
+import { checkPassword } from '../../../utils/passwordPolicy';
+import PasswordRequirements from '../../../components/auth/PasswordRequirements';
 
 function EyeIcon() {
   return (
@@ -53,6 +55,8 @@ export default function LoginPage() {
   // Reset password state
   const [resetPassword, setResetPassword] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+  const [showConfirmReset, setShowConfirmReset] = useState(false);
   const [resetLoading, setResetLoading] = useState(false);
   const [resetError, setResetError] = useState(null);
   const [resetDone, setResetDone] = useState(false);
@@ -129,8 +133,12 @@ export default function LoginPage() {
       setResetError('Please complete the email verification step first (use the Forgot tab).');
       return;
     }
-    if (resetPassword.length < 6) {
-      setResetError('Password must be at least 6 characters.');
+    if (!checkPassword(resetPassword).valid) {
+      setResetError('Password does not meet the requirements below.');
+      return;
+    }
+    if (resetPassword !== resetConfirmPassword) {
+      setResetError('Passwords do not match.');
       return;
     }
     setResetLoading(true);
@@ -142,8 +150,12 @@ export default function LoginPage() {
         newPassword: resetPassword,
       });
       setResetDone(true);
-    } catch {
-      setResetError('Could not reset your password. The code may have expired — please start over using the Forgot tab.');
+    } catch (err) {
+      setResetError(
+        err?.code === 'WeakPassword'
+          ? 'Password does not meet the requirements. Please choose a stronger password.'
+          : 'Could not reset your password. The code may have expired — please start over using the Forgot tab.'
+      );
     } finally {
       setResetLoading(false);
     }
@@ -325,6 +337,31 @@ export default function LoginPage() {
                       {showResetPassword ? <EyeOffIcon /> : <EyeIcon />}
                     </button>
                   </div>
+                  <PasswordRequirements value={resetPassword} />
+                </div>
+                <div className="form-field">
+                  <label htmlFor="reset-confirm-password">Confirm New Password</label>
+                  <div className="pw-wrap">
+                    <input
+                      id="reset-confirm-password"
+                      type={showConfirmReset ? 'text' : 'password'}
+                      value={resetConfirmPassword}
+                      onChange={e => setResetConfirmPassword(e.target.value)}
+                      required
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      className="pw-toggle"
+                      onClick={() => setShowConfirmReset(v => !v)}
+                      aria-label={showConfirmReset ? 'Hide password' : 'Show password'}
+                    >
+                      {showConfirmReset ? <EyeOffIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
+                  {resetConfirmPassword.length > 0 && resetConfirmPassword !== resetPassword && (
+                    <p className="field-error">Passwords do not match.</p>
+                  )}
                 </div>
                 <button type="submit" className="login-btn" disabled={resetLoading}>
                   {resetLoading ? 'Resetting…' : 'Reset Password'}

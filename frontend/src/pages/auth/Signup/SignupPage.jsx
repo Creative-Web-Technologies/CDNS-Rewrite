@@ -4,6 +4,8 @@ import AuthShell from '../AuthShell';
 import { apiPost } from '../../../lib/api';
 import { useAuth } from '../../../contexts/useAuth';
 import './Signup.css';
+import { checkPassword } from '../../../utils/passwordPolicy';
+import PasswordRequirements from '../../../components/auth/PasswordRequirements';
 
 function EyeIcon() {
   return (
@@ -131,6 +133,8 @@ export default function Signup() {
   const [otpInput, setOtpInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [signupPortal, setSignupPortal] = useState('member');
 
   const [loading, setLoading] = useState(false);
@@ -254,8 +258,12 @@ export default function Signup() {
       setStep('SIGNUP');
       return;
     }
-    if (passwordInput.length < 6) {
-      setServerErr({ code: null, message: 'Password must be at least 6 characters.', field: null });
+    if (!checkPassword(passwordInput).valid) {
+      setServerErr({ code: null, message: 'Password does not meet the requirements below.', field: null });
+      return;
+    }
+    if (passwordInput !== confirmPassword) {
+      setServerErr({ code: null, message: 'Passwords do not match.', field: null });
       return;
     }
     setLoading(true);
@@ -269,8 +277,11 @@ export default function Signup() {
       setSignupPortal(portal);
       await refreshUser();
       setStep('SUCCESS');
-    } catch {
-      setServerErr({ code: null, message: 'Failed to set password. Please try again.', field: null });
+    } catch (err) {
+      const message = err.code === 'WeakPassword'
+        ? 'Password does not meet the requirements. Please choose a stronger password.'
+        : 'Failed to set password. Please try again.';
+      setServerErr({ code: err.code, message, field: null });
     } finally {
       setLoading(false);
     }
@@ -361,7 +372,7 @@ export default function Signup() {
                 type={showPassword ? 'text' : 'password'}
                 value={passwordInput}
                 onChange={e => setPasswordInput(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder="At least 8 characters"
                 autoComplete="new-password"
               />
               <button
@@ -373,7 +384,32 @@ export default function Signup() {
                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
-            <p className="field-hint">Minimum 6 characters.</p>
+            <PasswordRequirements value={passwordInput} />
+          </div>
+
+          <div className="input-group" style={{ marginTop: 16, textAlign: 'left' }}>
+            <label htmlFor="signup-confirm-password">Confirm Password *</label>
+            <div className="pw-wrap">
+              <input
+                id="signup-confirm-password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter your password"
+                autoComplete="new-password"
+              />
+              <button
+                type="button"
+                className="pw-toggle"
+                onClick={() => setShowConfirmPassword(v => !v)}
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
+                {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
+            {confirmPassword.length > 0 && confirmPassword !== passwordInput && (
+              <p className="field-error">Passwords do not match.</p>
+            )}
           </div>
 
           <button className="submit-btn" onClick={handleSetPassword} disabled={loading}>

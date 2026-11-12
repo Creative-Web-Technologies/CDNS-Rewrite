@@ -4,6 +4,8 @@ import AuthLayout from '../AuthLayout';
 import { apiPost } from '../../../lib/api';
 import { useAuth } from '../../../contexts/useAuth';
 import '../Login/LoginPage.css';
+import { checkPassword } from '../../../utils/passwordPolicy';
+import PasswordRequirements from '../../../components/auth/PasswordRequirements';
 
 function EyeIcon() {
   return (
@@ -40,6 +42,8 @@ export default function MasterActivationPage() {
   // Password form
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
+  const [confirmPw, setConfirmPw] = useState('');
+  const [showConfirmPw, setShowConfirmPw] = useState(false);
 
   if (!activationToken) {
     return (
@@ -79,8 +83,12 @@ export default function MasterActivationPage() {
 
   async function handlePassword(e) {
     e.preventDefault();
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    if (!checkPassword(password).valid) {
+      setError('Password does not meet the requirements below.');
+      return;
+    }
+    if (password !== confirmPw) {
+      setError('Passwords do not match.');
       return;
     }
     setLoading(true);
@@ -90,13 +98,16 @@ export default function MasterActivationPage() {
         activationToken,
         password,
       });
-      // data = { type: "success", portal: "Company" }
       await refreshUser();
       navigate(`/${data.portal.toLowerCase()}/dashboard`);
     } catch (err) {
-      setError(err.code === 'InvalidActivationToken'
-        ? 'This activation link is invalid or has already been used.'
-        : 'Could not set password. The activation link may have expired.');
+      setError(
+        err.code === 'InvalidActivationToken'
+          ? 'This activation link is invalid or has already been used.'
+          : err.code === 'WeakPassword'
+          ? 'Password does not meet the requirements. Please choose a stronger password.'
+          : 'Could not set password. The activation link may have expired.'
+      );
     } finally {
       setLoading(false);
     }
@@ -187,7 +198,7 @@ export default function MasterActivationPage() {
                 type={showPw ? 'text' : 'password'}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
+                placeholder="At least 8 characters"
                 autoComplete="new-password"
                 style={{ paddingRight: 44 }}
                 required
@@ -204,6 +215,34 @@ export default function MasterActivationPage() {
                 {showPw ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
+            <PasswordRequirements value={password} />
+          </Field>
+          <Field id="ma-confirm-password" label="Confirm Password *">
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input
+                id="ma-confirm-password"
+                type={showConfirmPw ? 'text' : 'password'}
+                value={confirmPw}
+                onChange={e => setConfirmPw(e.target.value)}
+                placeholder="Re-enter your password"
+                autoComplete="new-password"
+                style={{ paddingRight: 44 }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPw(v => !v)}
+                aria-label={showConfirmPw ? 'Hide password' : 'Show password'}
+                style={{
+                  position: 'absolute', right: 12, background: 'none', border: 'none',
+                  cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center',
+                }}
+              >
+                {showConfirmPw ? <EyeOffIcon /> : <EyeIcon />}
+              </button>
+            </div>
+            {confirmPw.length > 0 && confirmPw !== password && (
+              <p className="field-error">Passwords do not match.</p>
+            )}
           </Field>
           <SubmitBtn loading={loading} label="Activate Account" loadingLabel="Activating…" />
         </form>
