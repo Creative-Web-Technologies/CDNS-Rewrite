@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Cdns.Application.Auth;
 using Cdns.Application.Interfaces;
+using Cdns.Application.Security;
 using Cdns.Infrastructure.Persistence;
 using Cdns.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
@@ -67,6 +68,9 @@ public class PasswordResetService : IPasswordResetService
 
         if (!memberUser.IsActiveOtp || memberUser.ActivationCode != otp)
             return new ResetPasswordResult.InvalidOtp();
+
+        if (!PasswordPolicy.IsValid(newPassword))
+            return new ResetPasswordResult.WeakPassword();
 
         var (hash, salt) = _hasher.HashNewPassword(newPassword);
         memberUser.Password = hash;

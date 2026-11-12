@@ -17,6 +17,7 @@ public abstract record ResetPasswordResult
     public sealed record Success : ResetPasswordResult;
     public sealed record InvalidOtp : ResetPasswordResult;
     public sealed record UserNotFound : ResetPasswordResult;
+    public sealed record WeakPassword : ResetPasswordResult;
 }
 
 public interface IPasswordResetService

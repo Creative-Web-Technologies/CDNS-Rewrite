@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Cdns.Application.Features.Signup;
 using Cdns.Application.Interfaces;
+using Cdns.Application.Security;
 using Cdns.Infrastructure.Persistence;
 using Cdns.Domain.Entities.MemberSignupTables;
 using Cdns.Domain.Entities.MemberLoginTables;
@@ -199,6 +200,9 @@ public class SignupService : ISignupService
             _logger.LogWarning("SetPassword: temp member not found or OTP not verified for token {GlobalIdentity}", globalId);
             return new SignupSetPasswordResult.InvalidToken();
         }
+
+        if (!PasswordPolicy.IsValid(request.Password))
+            return new SignupSetPasswordResult.WeakPassword();
 
         var (hash, salt) = _passwordHasher.HashNewPassword(request.Password);
 

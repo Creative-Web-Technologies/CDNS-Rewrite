@@ -1,5 +1,6 @@
 using Cdns.Application.Auth;
 using Cdns.Application.Interfaces;
+using Cdns.Application.Security;
 using Cdns.Domain.Enums;
 using Cdns.Infrastructure.Persistence;
 using Cdns.Infrastructure.Security;
@@ -65,6 +66,9 @@ public class MasterActivationService : IMasterActivationService
             || memberUser.MemberType != MemberType.CompanyMasterMember
             || !memberUser.RequiredEregVerification)
             return new SetActivationPasswordResult.InvalidToken();
+
+        if (!PasswordPolicy.IsValid(newPassword))
+            return new SetActivationPasswordResult.WeakPassword();
 
         // All DB mutations run inside a single transaction so that a failure in
         // ClaimCusDecsForMaster (or any later step) rolls back the password change

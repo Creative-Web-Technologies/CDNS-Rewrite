@@ -106,6 +106,8 @@ public static class AuthEndpoints
                     Results.Ok(new { type = "success", portal = s.Portal }),
                 SetActivationPasswordResult.InvalidToken =>
                     Results.NotFound(new { code = "InvalidActivationToken" }),
+                SetActivationPasswordResult.WeakPassword =>
+                    Results.BadRequest(new { code = "WeakPassword" }),
                 _ => Results.StatusCode(500)
             };
         });
@@ -145,6 +147,7 @@ public static class AuthEndpoints
             return result switch
             {
                 ResetPasswordResult.Success => Results.Ok(),
+                ResetPasswordResult.WeakPassword => Results.BadRequest(new { code = "WeakPassword" }),
                 // Collapse InvalidOtp and UserNotFound — same code to avoid enumeration
                 _ => Results.BadRequest(new { code = "InvalidOtp" })
             };

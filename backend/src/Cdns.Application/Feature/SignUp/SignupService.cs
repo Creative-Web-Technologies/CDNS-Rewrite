@@ -10,6 +10,7 @@ public abstract record SignupSetPasswordResult
 {
     public sealed record Success(string SessionToken, string Portal) : SignupSetPasswordResult;
     public sealed record InvalidToken : SignupSetPasswordResult;
+    public sealed record WeakPassword : SignupSetPasswordResult;
 }
 
 public interface ISignupService

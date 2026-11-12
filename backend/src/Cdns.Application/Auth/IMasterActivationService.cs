@@ -17,6 +17,7 @@ public abstract record SetActivationPasswordResult
 {
     public sealed record Success(string SessionToken, string Portal) : SetActivationPasswordResult;
     public sealed record InvalidToken : SetActivationPasswordResult;
+    public sealed record WeakPassword : SetActivationPasswordResult;
 }
 
 public interface IMasterActivationService

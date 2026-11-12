@@ -63,14 +63,13 @@ public class SignupController : ControllerBase
     [HttpPost("set-password")]
     public async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
-            return BadRequest(new { message = "Password must be at least 6 characters." });
-
         var result = await _signupService.SetPasswordAsync(request);
         return result switch
         {
             SignupSetPasswordResult.Success s =>
                 Ok(new { message = "Password set successfully. You are now logged in.", success = true, portal = s.Portal }),
+            SignupSetPasswordResult.WeakPassword =>
+                BadRequest(new { code = "WeakPassword" }),
             SignupSetPasswordResult.InvalidToken =>
                 BadRequest(new { success = false, message = "Invalid session or OTP not verified." }),
             _ => StatusCode(500)
