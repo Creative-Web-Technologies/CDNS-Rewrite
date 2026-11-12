@@ -46,12 +46,15 @@ public class PasswordResetService : IPasswordResetService
         return new SendOtpResult.Sent();
     }
 
-    public async Task<VerifyOtpResult> VerifyOtpAsync(string userName, int otp, CancellationToken ct = default)
+    public async Task<VerifyOtpResult> VerifyOtpAsync(string userName, string otp, CancellationToken ct = default)
     {
+        if (!OtpPolicy.IsValidFormat(otp) || !int.TryParse(otp, out var otpInt))
+            return new VerifyOtpResult.Invalid();
+
         var memberUser = await _db.MemberUsers
             .FirstOrDefaultAsync(u => u.UserName == userName, ct);
 
-        if (memberUser is null || !memberUser.IsActiveOtp || memberUser.ActivationCode != otp)
+        if (memberUser is null || !memberUser.IsActiveOtp || memberUser.ActivationCode != otpInt)
             return new VerifyOtpResult.Invalid();
 
         memberUser.IsWrongAttempt = false; // unlock account on valid OTP
@@ -61,15 +64,18 @@ public class PasswordResetService : IPasswordResetService
     }
 
     public async Task<ResetPasswordResult> ResetPasswordAsync(
-        string userName, int otp, string newPassword, CancellationToken ct = default)
+        string userName, string otp, string newPassword, CancellationToken ct = default)
     {
+        if (!OtpPolicy.IsValidFormat(otp) || !int.TryParse(otp, out var otpInt))
+            return new ResetPasswordResult.InvalidOtp();
+
         var memberUser = await _db.MemberUsers
             .FirstOrDefaultAsync(u => u.UserName == userName, ct);
 
         if (memberUser is null)
             return new ResetPasswordResult.UserNotFound();
 
-        if (!memberUser.IsActiveOtp || memberUser.ActivationCode != otp)
+        if (!memberUser.IsActiveOtp || memberUser.ActivationCode != otpInt)
             return new ResetPasswordResult.InvalidOtp();
 
         if (!PasswordPolicy.IsValid(newPassword))

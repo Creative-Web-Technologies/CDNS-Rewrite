@@ -23,6 +23,6 @@ public abstract record ResetPasswordResult
 public interface IPasswordResetService
 {
     Task<SendOtpResult> SendOtpAsync(string userName, CancellationToken ct = default);
-    Task<VerifyOtpResult> VerifyOtpAsync(string userName, int otp, CancellationToken ct = default);
-    Task<ResetPasswordResult> ResetPasswordAsync(string userName, int otp, string newPassword, CancellationToken ct = default);
+    Task<VerifyOtpResult> VerifyOtpAsync(string userName, string otp, CancellationToken ct = default);
+    Task<ResetPasswordResult> ResetPasswordAsync(string userName, string otp, string newPassword, CancellationToken ct = default);
 }

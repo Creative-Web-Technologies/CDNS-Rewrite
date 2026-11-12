@@ -29,10 +29,9 @@ public class SignupController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest? request)
     {
-        if (string.IsNullOrWhiteSpace(request.Tin) || string.IsNullOrWhiteSpace(request.Email))
-            return BadRequest(new { message = "TIN and Email are required." });
+        if (request is null) return BadRequest(new { code = "InvalidRequest" });
 
         var result = await _signupService.RegisterAsync(request);
 

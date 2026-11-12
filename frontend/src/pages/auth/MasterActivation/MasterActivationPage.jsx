@@ -24,6 +24,41 @@ function EyeOffIcon() {
   );
 }
 
+// Field validation mirroring server ProfileValidator rules
+const PROFILE_FIELD_MESSAGES = {
+  InvalidName:        'Valid name required (letters, spaces, hyphens, apostrophes, dots; max 50 chars).',
+  InvalidMobile:      'Valid mobile required (8–15 digits, optional leading +).',
+  InvalidNic:         'Valid Sri Lankan NIC required (9 digits + V/X, or 12 digits).',
+  InvalidDesignation: 'Designation is required (max 100 characters).',
+};
+
+function validateProfileField(name, value) {
+  switch (name) {
+    case 'firstName':
+    case 'lastName': {
+      const v = (value || '').trim();
+      if (!v || v.length > 50 || !/^[A-Za-z\s\-'.]+$/.test(v)) return PROFILE_FIELD_MESSAGES.InvalidName;
+      return null;
+    }
+    case 'mobile': {
+      const mob = (value || '').replace(/\s/g, '');
+      if (!/^\+?\d{8,15}$/.test(mob)) return PROFILE_FIELD_MESSAGES.InvalidMobile;
+      return null;
+    }
+    case 'nic': {
+      const v = (value || '').trim();
+      if (!/^\d{9}[VvXx]$/i.test(v) && !/^\d{12}$/.test(v)) return PROFILE_FIELD_MESSAGES.InvalidNic;
+      return null;
+    }
+    case 'designation': {
+      const v = (value || '').trim();
+      if (!v || v.length > 100) return PROFILE_FIELD_MESSAGES.InvalidDesignation;
+      return null;
+    }
+    default: return null;
+  }
+}
+
 export default function MasterActivationPage() {
   const [params] = useSearchParams();
   const activationToken = params.get('token') ?? '';
@@ -33,6 +68,7 @@ export default function MasterActivationPage() {
   const [step, setStep] = useState('profile'); // 'profile' | 'password'
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   // Profile form
   const [profile, setProfile] = useState({
@@ -60,10 +96,18 @@ export default function MasterActivationPage() {
 
   async function handleProfile(e) {
     e.preventDefault();
-    if (!profile.firstName || !profile.lastName) {
-      setError('First name and last name are required.');
+    // Client-side validation first
+    const profileFields = ['firstName', 'lastName', 'mobile', 'nic', 'designation'];
+    const errors = {};
+    profileFields.forEach(f => {
+      const err = validateProfileField(f, profile[f]);
+      if (err) errors[f] = err;
+    });
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
       return;
     }
+    setFieldErrors({});
     setLoading(true);
     setError('');
     try {
@@ -73,9 +117,14 @@ export default function MasterActivationPage() {
       });
       setStep('password');
     } catch (err) {
-      setError(err.code === 'InvalidActivationToken'
-        ? 'This activation link is invalid or has already been used.'
-        : 'Could not save profile. Please try again.');
+      if (err.code === 'InvalidActivationToken') {
+        setError('This activation link is invalid or has already been used.');
+      } else if (err.field) {
+        const msg = PROFILE_FIELD_MESSAGES[err.code] || 'Invalid value.';
+        setFieldErrors({ [err.field]: msg });
+      } else {
+        setError('Could not save profile. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -114,7 +163,9 @@ export default function MasterActivationPage() {
   }
 
   function handleProfileChange(e) {
-    setProfile(p => ({ ...p, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setProfile(p => ({ ...p, [name]: value }));
+    if (fieldErrors[name]) setFieldErrors(prev => ({ ...prev, [name]: null }));
   }
 
   return (
@@ -164,26 +215,31 @@ export default function MasterActivationPage() {
       {step === 'profile' && (
         <form onSubmit={handleProfile} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <Field id="ma-firstName" label="First Name *">
+            <Field id="ma-firstName" label="First Name *" error={fieldErrors.firstName}>
               <input id="ma-firstName" name="firstName" type="text" value={profile.firstName}
-                onChange={handleProfileChange} required autoComplete="given-name" />
+                onChange={handleProfileChange} required autoComplete="given-name"
+                aria-invalid={fieldErrors.firstName ? 'true' : 'false'} />
             </Field>
-            <Field id="ma-lastName" label="Last Name *">
+            <Field id="ma-lastName" label="Last Name *" error={fieldErrors.lastName}>
               <input id="ma-lastName" name="lastName" type="text" value={profile.lastName}
-                onChange={handleProfileChange} required autoComplete="family-name" />
+                onChange={handleProfileChange} required autoComplete="family-name"
+                aria-invalid={fieldErrors.lastName ? 'true' : 'false'} />
             </Field>
-            <Field id="ma-mobile" label="Mobile">
+            <Field id="ma-mobile" label="Mobile *" error={fieldErrors.mobile}>
               <input id="ma-mobile" name="mobile" type="tel" value={profile.mobile}
-                onChange={handleProfileChange} autoComplete="tel" />
+                onChange={handleProfileChange} autoComplete="tel"
+                aria-invalid={fieldErrors.mobile ? 'true' : 'false'} />
             </Field>
-            <Field id="ma-nic" label="NIC">
+            <Field id="ma-nic" label="NIC *" error={fieldErrors.nic}>
               <input id="ma-nic" name="nic" type="text" value={profile.nic}
-                onChange={handleProfileChange} />
+                onChange={handleProfileChange}
+                aria-invalid={fieldErrors.nic ? 'true' : 'false'} />
             </Field>
           </div>
-          <Field id="ma-designation" label="Designation">
+          <Field id="ma-designation" label="Designation *" error={fieldErrors.designation}>
             <input id="ma-designation" name="designation" type="text" value={profile.designation}
-              onChange={handleProfileChange} />
+              onChange={handleProfileChange}
+              aria-invalid={fieldErrors.designation ? 'true' : 'false'} />
           </Field>
           <SubmitBtn loading={loading} label="Save & Continue" loadingLabel="Saving…" />
         </form>
@@ -251,13 +307,18 @@ export default function MasterActivationPage() {
   );
 }
 
-function Field({ id, label, children }) {
+function Field({ id, label, error, children }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <label htmlFor={id} style={{ fontSize: 13.5, fontWeight: 500, color: '#374151', fontFamily: 'system-ui, sans-serif' }}>
         {label}
       </label>
       {children}
+      {error && (
+        <p role="alert" style={{ color: '#b91c1c', fontSize: 12, margin: 0, fontFamily: 'system-ui, sans-serif' }}>
+          {error}
+        </p>
+      )}
     </div>
   );
 }

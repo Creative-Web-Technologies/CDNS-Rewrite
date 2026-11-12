@@ -61,9 +61,27 @@ public class SignupService : ISignupService
 
     public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
     {
-        // 1. Normalize
-        var tin = new string(request.Tin.Trim().Where(char.IsDigit).ToArray());
-        var email = request.Email.Trim().ToLowerInvariant();
+        // 1. Normalize all fields before validation (null-safe for missing JSON fields)
+        var tin         = new string((request.Tin ?? "").Trim().Where(char.IsDigit).ToArray());
+        var email       = (request.Email ?? "").Trim().ToLowerInvariant();
+        var firstName   = (request.FirstName ?? "").Trim();
+        var lastName    = (request.LastName ?? "").Trim();
+        var mobile      = (request.Mobile ?? "").Replace(" ", "");
+        var nic         = (request.Nic ?? "").Trim();
+        var designation = (request.Designation ?? "").Trim();
+
+        // 2. Field validation — runs before any DB write
+        var fieldErr = ProfileValidator.ValidateSignup(
+            firstName, lastName, email, mobile, nic, designation, request.AgreeToTerms);
+
+        if (fieldErr is not null)
+            return new RegisterResponse
+            {
+                Success = false,
+                Code    = fieldErr.Value.Code,
+                Field   = fieldErr.Value.Field,
+                Message = "Validation failed."
+            };
 
         if (tin.Length != 9)
             return new RegisterResponse { Success = false, Code = "InvalidTin", Message = "TIN must be exactly 9 digits." };
@@ -122,17 +140,17 @@ public class SignupService : ISignupService
         }
 
         // 5. Create TemporaryMember
-        int otp = RandomNumberGenerator.GetInt32(100000, 999999);
+        int otp = RandomNumberGenerator.GetInt32(100_000, 1_000_000); // [100000, 999999]
         string newGlobalIdentity = Guid.NewGuid().ToString();
 
         var tempMember = new TemporaryMember
         {
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Email = request.Email.Trim(),
-            Mobile = request.Mobile,
-            Nic = request.Nic,
-            Designation = request.Designation,
+            FirstName = firstName,
+            LastName = lastName,
+            Email = email,
+            Mobile = mobile,
+            Nic = nic,
+            Designation = designation,
             OneTimePassword = otp,
             CreatedDateTime = DateTime.UtcNow,
             GlobalIdentity = newGlobalIdentity
@@ -170,9 +188,11 @@ public class SignupService : ISignupService
             return new SignupVerifyOtpResult.InvalidToken();
         }
 
-        if (tempMember.OneTimePassword != request.Otp)
+        if (!OtpPolicy.IsValidFormat(request.Otp)
+            || !int.TryParse(request.Otp, out var otpInt)
+            || tempMember.OneTimePassword != otpInt)
         {
-            _logger.LogWarning("VerifyOtp: OTP mismatch for token {GlobalIdentity}", globalId);
+            _logger.LogWarning("VerifyOtp: OTP invalid or mismatch for token {GlobalIdentity}", globalId);
             return new SignupVerifyOtpResult.InvalidToken();
         }
 

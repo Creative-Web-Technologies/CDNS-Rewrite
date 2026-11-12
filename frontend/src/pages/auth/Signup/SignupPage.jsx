@@ -63,51 +63,75 @@ function StepProgress({ current }) {
   );
 }
 
-// Friendly messages keyed by backend error code
+// Friendly messages keyed by backend error code — ONE place for all codes
 const CODE_MESSAGES = {
-  InvalidTin: 'Please enter a valid 9-digit company TIN.',
-  OrganizationNotRegistered: "We couldn't find a registered company with this TIN. Please check the number and try again.",
-  CompanyNotActivated: "This company's account hasn't been activated yet. Please ask your company administrator to complete activation.",
+  InvalidTin:                     'Please enter a valid 9-digit company TIN.',
+  OrganizationNotRegistered:      "We couldn't find a registered company with this TIN. Please check the number and try again.",
+  CompanyNotActivated:            "This company's account hasn't been activated yet. Please ask your company administrator to complete activation.",
   CompanyPendingEregVerification: "This company's account hasn't been activated yet. Please ask your company administrator to complete activation.",
-  CompanySetupIncomplete: "This company's account setup is incomplete. Please contact your company administrator or CDNS support.",
-  EmailBelongsToMaster: "This email is already registered as the company's administrator account. Please log in instead.",
-  AccountExists: 'An account with this email already exists.',
+  CompanySetupIncomplete:         "This company's account setup is incomplete. Please contact your company administrator or CDNS support.",
+  EmailBelongsToMaster:           "This email is already registered as the company's administrator account. Please log in instead.",
+  AccountExists:                  'An account with this email already exists.',
+  InvalidName:        'Please enter a valid name (letters, spaces, hyphens, apostrophes, and dots only; max 50 characters).',
+  InvalidEmail:       'Please enter a valid email address (max 254 characters).',
+  InvalidMobile:      'Please enter a valid mobile number (8–15 digits, optional leading +).',
+  InvalidNic:         'Please enter a valid Sri Lankan NIC (9 digits + V/X, or 12 digits).',
+  InvalidDesignation: 'Please enter a designation (max 100 characters).',
+  TermsNotAccepted:   'You must agree to the Terms and Conditions to continue.',
 };
 
-// Which form field each error code maps to for highlighting
+// Fallback field mapping for codes that don't include a field from the server
 const CODE_FIELD = {
-  InvalidTin: 'tin',
-  OrganizationNotRegistered: 'tin',
-  CompanyNotActivated: 'tin',
+  InvalidTin:                     'tin',
+  OrganizationNotRegistered:      'tin',
+  CompanyNotActivated:            'tin',
   CompanyPendingEregVerification: 'tin',
-  CompanySetupIncomplete: 'tin',
-  EmailBelongsToMaster: 'email',
-  AccountExists: 'email',
+  CompanySetupIncomplete:         'tin',
+  EmailBelongsToMaster:           'email',
+  AccountExists:                  'email',
 };
 
-const REQUIRED_FIELDS = ['tin', 'firstName', 'lastName', 'email', 'mobile', 'nic', 'designation'];
+const REQUIRED_FIELDS = ['tin', 'firstName', 'lastName', 'email', 'mobile', 'nic', 'designation', 'agreeToTerms'];
 
+// Mirrors server ProfileValidator rules exactly (source of truth remains the server)
 function validateField(name, value) {
-  const v = (value || '').trim();
   switch (name) {
-    case 'tin':
-      if (!value) return 'Company TIN is required.';
-      if (value.length !== 9) return 'TIN must be exactly 9 digits.';
+    case 'tin': {
+      const v = (value || '').trim();
+      if (!v) return 'Company TIN is required.';
+      if (v.length !== 9) return 'TIN must be exactly 9 digits.';
       return null;
+    }
     case 'firstName':
-      return v ? null : 'First name is required.';
-    case 'lastName':
-      return v ? null : 'Last name is required.';
-    case 'email':
-      if (!v) return 'Email address is required.';
-      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : 'Please enter a valid email address.';
-    case 'mobile':
-      if (!v) return 'Mobile number is required.';
-      return /^\+?[\d\s-]{7,15}$/.test(v) ? null : 'Please enter a valid mobile number.';
-    case 'nic':
-      return v ? null : 'NIC is required.';
-    case 'designation':
-      return v ? null : 'Designation is required.';
+    case 'lastName': {
+      const v = (value || '').trim();
+      if (!v || v.length > 50 || !/^[A-Za-z\s\-'.]+$/.test(v))
+        return CODE_MESSAGES.InvalidName;
+      return null;
+    }
+    case 'email': {
+      const v = (value || '').trim();
+      if (!v || v.length > 254 || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v))
+        return CODE_MESSAGES.InvalidEmail;
+      return null;
+    }
+    case 'mobile': {
+      const mob = (value || '').replace(/\s/g, '');
+      if (!/^\+?\d{8,15}$/.test(mob)) return CODE_MESSAGES.InvalidMobile;
+      return null;
+    }
+    case 'nic': {
+      const v = (value || '').trim();
+      if (!/^\d{9}[VvXx]$/i.test(v) && !/^\d{12}$/.test(v)) return CODE_MESSAGES.InvalidNic;
+      return null;
+    }
+    case 'designation': {
+      const v = (value || '').trim();
+      if (!v || v.length > 100) return CODE_MESSAGES.InvalidDesignation;
+      return null;
+    }
+    case 'agreeToTerms':
+      return value ? null : CODE_MESSAGES.TermsNotAccepted;
     default:
       return null;
   }
@@ -126,6 +150,7 @@ export default function Signup() {
     mobile: '',
     nic: '',
     designation: '',
+    agreeToTerms: false,
   });
 
   const [step, setStep] = useState('SIGNUP');
@@ -166,11 +191,12 @@ export default function Signup() {
   }
 
   function handleChange(e) {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    const newValue = type === 'checkbox' ? checked : value;
+    setFormData(prev => ({ ...prev, [name]: newValue }));
     if (serverErr?.field === name) setServerErr(null);
     if (touched[name]) {
-      setFieldErrors(prev => ({ ...prev, [name]: validateField(name, value) }));
+      setFieldErrors(prev => ({ ...prev, [name]: validateField(name, newValue) }));
     }
   }
 
@@ -219,12 +245,13 @@ export default function Signup() {
         mobile: formData.mobile,
         nic: formData.nic,
         designation: formData.designation,
+        agreeToTerms: formData.agreeToTerms,
       });
       setTempToken(data.tempSignupToken);
       setStep('OTP');
     } catch (err) {
       const code = err.code;
-      const field = CODE_FIELD[code] || null;
+      const field = err.field || CODE_FIELD[code] || null;
       const message = CODE_MESSAGES[code] || err.message || 'Something went wrong. Please try again.';
       setServerErr({ code, message, field });
     } finally {
@@ -242,7 +269,7 @@ export default function Signup() {
     try {
       await apiPost('/api/signup/verify-otp', {
         tempSignupToken: tempToken,
-        otp: parseInt(otpInput, 10),
+        otp: otpInput,
       });
       setStep('PASSWORD');
     } catch {
@@ -614,6 +641,25 @@ export default function Signup() {
                 <option>Importer</option>
                 <option>Exporter</option>
               </select>
+            </div>
+
+            {/* Terms and Conditions — full width */}
+            <div className="input-group signup-input-full" style={{ marginTop: 16 }}>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  name="agreeToTerms"
+                  checked={formData.agreeToTerms}
+                  onChange={handleChange}
+                  onBlur={() => handleBlur('agreeToTerms')}
+                  aria-invalid={getFieldError('agreeToTerms') ? 'true' : 'false'}
+                />
+                {' '}I agree to the{' '}
+                <a href="#" onClick={e => e.preventDefault()}>Terms and Conditions</a>
+              </label>
+              {getFieldError('agreeToTerms') && (
+                <p className="field-error" role="alert">{getFieldError('agreeToTerms')}</p>
+              )}
             </div>
 
             <button type="submit" disabled={loading} className="submit-btn">

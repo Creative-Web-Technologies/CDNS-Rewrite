@@ -117,7 +117,7 @@ export default function LoginPage() {
     setForgotLoading(true);
     setForgotError(null);
     try {
-      await apiPost('/api/auth/password-reset/verify-otp', { userName: forgotEmail, otp: parseInt(forgotOtp, 10) });
+      await apiPost('/api/auth/password-reset/verify-otp', { userName: forgotEmail, otp: forgotOtp });
       setForgotInfo(null);
       setTab('reset');
     } catch {
@@ -146,7 +146,7 @@ export default function LoginPage() {
     try {
       await apiPost('/api/auth/password-reset/reset-password', {
         userName: forgotEmail,
-        otp: parseInt(forgotOtp, 10),
+        otp: forgotOtp,
         newPassword: resetPassword,
       });
       setResetDone(true);
@@ -232,9 +232,6 @@ export default function LoginPage() {
               </div>
             </div>
             <div className="login-row">
-              <label className="remember-me">
-                <input type="checkbox" /> Remember Me
-              </label>
               <button type="button" className="forgot-link" onClick={() => switchTab('forgot')}>
                 Forgot Password?
               </button>

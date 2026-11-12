@@ -24,6 +24,7 @@ export async function apiPost(url, body) {
     const body = await res.json().catch(() => ({}));
     const error = new Error(body.message || `HTTP ${res.status}`);
     error.code = body.code;
+    error.field = body.field;
     throw error;
   }
   return res.json().catch(() => null);

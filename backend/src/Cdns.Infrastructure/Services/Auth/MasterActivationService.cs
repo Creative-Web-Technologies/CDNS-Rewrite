@@ -6,6 +6,7 @@ using Cdns.Infrastructure.Persistence;
 using Cdns.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Threading;
 
 namespace Cdns.Infrastructure.Services.Auth;
 
@@ -33,6 +34,17 @@ public class MasterActivationService : IMasterActivationService
         CompleteProfileRequest request,
         CancellationToken ct = default)
     {
+        // Normalize first (null-safe for missing JSON fields), then validate before any DB operation
+        var firstName   = (request.FirstName ?? "").Trim();
+        var lastName    = (request.LastName ?? "").Trim();
+        var mobile      = (request.Mobile ?? "").Replace(" ", "");
+        var nic         = (request.Nic ?? "").Trim();
+        var designation = (request.Designation ?? "").Trim();
+
+        var fieldErr = ProfileValidator.ValidateProfile(firstName, lastName, mobile, nic, designation);
+        if (fieldErr is not null)
+            return new CompleteProfileResult.ValidationError(fieldErr.Value.Code, fieldErr.Value.Field);
+
         var memberUser = await _db.MemberUsers
             .Include(u => u.Member)
             .FirstOrDefaultAsync(u => u.GlobalIdentity == activationToken, ct);
@@ -43,11 +55,11 @@ public class MasterActivationService : IMasterActivationService
             return new CompleteProfileResult.InvalidToken();
 
         var member = memberUser.Member;
-        member.FirstName = request.FirstName;
-        member.LastName = request.LastName;
-        member.Mobile = request.Mobile;
-        member.Nic = request.Nic;
-        member.Designation = request.Designation;
+        member.FirstName   = firstName;
+        member.LastName    = lastName;
+        member.Mobile      = mobile;
+        member.Nic         = nic;
+        member.Designation = designation;
 
         await _db.SaveChangesAsync(ct);
         return new CompleteProfileResult.Success();

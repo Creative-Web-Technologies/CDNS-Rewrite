@@ -89,6 +89,7 @@ public static class AuthEndpoints
             return result switch
             {
                 CompleteProfileResult.Success => Results.Ok(),
+                CompleteProfileResult.ValidationError e => Results.BadRequest(new { code = e.Code, field = e.Field }),
                 CompleteProfileResult.InvalidToken => Results.NotFound(new { code = "InvalidActivationToken" }),
                 _ => Results.StatusCode(500)
             };
