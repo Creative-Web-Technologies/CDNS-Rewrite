@@ -1205,6 +1205,10 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasIndex("ConsigneeCompanyId")
                         .HasDatabaseName("IX_CusDec_ConsigneeCompanyId");
 
+                    b.HasIndex("CusDecExternalSystemNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cus_decs_cus_dec_external_system_number");
+
                     b.HasIndex("DeclarantCompanyId")
                         .HasDatabaseName("IX_CusDec_DeclarantCompanyId");
 
@@ -1297,6 +1301,10 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasIndex("CusDecId")
                         .HasDatabaseName("ix_cus_dec_containers_cus_dec_id");
 
+                    b.HasIndex("CusDecExternalSystemNumber", "ContainerKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cus_dec_containers_cus_dec_external_system_number_container");
+
                     b.ToTable("cus_dec_containers", (string)null);
                 });
 
@@ -1354,6 +1362,10 @@ namespace Cdns.Infrastructure.Migrations
 
                     b.HasIndex("CusDecContainerId")
                         .HasDatabaseName("ix_cus_dec_container_statuses_cus_dec_container_id");
+
+                    b.HasIndex("ExternalSystemNumber", "ContainerStatusNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cus_dec_container_statuses_external_system_number_container");
 
                     b.ToTable("cus_dec_container_statuses", (string)null);
                 });
@@ -1423,6 +1435,10 @@ namespace Cdns.Infrastructure.Migrations
 
                     b.HasIndex("CusDecId")
                         .HasDatabaseName("ix_cus_dec_inspections_cus_dec_id");
+
+                    b.HasIndex("CusDecExternalSystemNumber", "InspectionInstanceId", "KeyFrdNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cus_dec_inspections_cus_dec_external_system_number_inspecti");
 
                     b.ToTable("cus_dec_inspections", (string)null);
                 });
@@ -1503,6 +1519,10 @@ namespace Cdns.Infrastructure.Migrations
 
                     b.HasIndex("CusDecId")
                         .HasDatabaseName("ix_cus_dec_inspection_section_tab_cus_dec_id");
+
+                    b.HasIndex("CusDecExternalSystemNumber", "InsTabExternalSystemNumber", "KeySecNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cus_dec_inspection_section_tab_cus_dec_external_system_numb");
 
                     b.ToTable("cus_dec_inspection_section_tab", (string)null);
                 });
@@ -1612,6 +1632,10 @@ namespace Cdns.Infrastructure.Migrations
 
                     b.HasIndex("CusDecId")
                         .HasDatabaseName("ix_cus_dec_items_cus_dec_id");
+
+                    b.HasIndex("CusDecExternalSystemNumber", "CusDecItemNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cus_dec_items_cus_dec_external_system_number_cus_dec_item_n");
 
                     b.ToTable("cus_dec_items", (string)null);
                 });
@@ -1889,6 +1913,10 @@ namespace Cdns.Infrastructure.Migrations
 
                     b.HasIndex("CusDecId")
                         .HasDatabaseName("ix_cus_dec_taxes_cus_dec_id");
+
+                    b.HasIndex("CusDecExternalSystemNumber", "ItemNumber", "TaxRank")
+                        .IsUnique()
+                        .HasDatabaseName("ix_cus_dec_taxes_cus_dec_external_system_number_item_number_ta");
 
                     b.ToTable("cus_dec_taxes", (string)null);
                 });

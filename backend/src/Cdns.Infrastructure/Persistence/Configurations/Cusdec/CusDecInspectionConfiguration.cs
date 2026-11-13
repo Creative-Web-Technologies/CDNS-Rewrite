@@ -27,5 +27,7 @@ public class CusDecInspectionConfiguration : IEntityTypeConfiguration<CusDecInsp
             .WithMany()
             .HasForeignKey(x => x.CusDecId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(x => new { x.CusDecExternalSystemNumber, x.InspectionInstanceId, x.KeyFrdNumber }).IsUnique();
     }
 }

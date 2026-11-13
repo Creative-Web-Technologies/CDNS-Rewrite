@@ -26,5 +26,7 @@ public class CusDecTaxConfiguration : IEntityTypeConfiguration<CusDecTax>
             .WithMany()
             .HasForeignKey(x => x.CusDecId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(x => new { x.CusDecExternalSystemNumber, x.ItemNumber, x.TaxRank }).IsUnique();
     }
 }
