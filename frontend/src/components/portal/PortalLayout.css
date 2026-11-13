@@ -1,0 +1,231 @@
+/* PortalLayout — all colors explicit (no dark-mode vars from index.css bleed in) */
+
+/* ── Root layout ── */
+.pl-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f1f5f9;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ── Top bar ── */
+.pl-topbar {
+  height: 56px;
+  background: #0b1e3d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 12px;
+}
+
+.pl-topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.pl-topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pl-topbar__crest {
+  width: 30px;
+  height: 30px;
+  background: #1e40af;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.pl-topbar__app-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+.pl-topbar__badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  padding: 3px 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.pl-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.pl-topbar__user {
+  font-size: 13.5px;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pl-logout-btn {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.pl-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.pl-logout-btn:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+.pl-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  padding: 4px;
+  line-height: 0;
+  border-radius: 4px;
+  transition: color 0.15s;
+}
+
+.pl-menu-btn:hover { color: #ffffff; }
+
+.pl-menu-btn:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* ── Body (sidebar + content) ── */
+.pl-body {
+  display: flex;
+  flex: 1;
+  position: relative;
+}
+
+/* ── Sidebar ── */
+.pl-sidebar {
+  width: 228px;
+  background: #ffffff;
+  border-right: 1px solid #e5e7eb;
+  flex-shrink: 0;
+  padding: 12px 0;
+}
+
+.pl-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  font-size: 14px;
+  color: #374151;
+  text-decoration: none;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-weight: 500;
+  border-left: 3px solid transparent;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+
+.pl-nav-item:hover {
+  background: #f1f5f9;
+  color: #1e40af;
+}
+
+.pl-nav-item--active {
+  background: #eff6ff;
+  color: #1e40af;
+  border-left-color: #1e40af;
+  font-weight: 600;
+}
+
+.pl-nav-item:focus-visible {
+  outline: 2px solid #1e40af;
+  outline-offset: -2px;
+}
+
+.pl-nav-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  color: inherit;
+}
+
+/* ── Content ── */
+.pl-content {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+/* ── Mobile overlay ── */
+.pl-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.42);
+  z-index: 90;
+  display: none;
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .pl-menu-btn { display: flex; }
+  .pl-topbar__badge { display: none; }
+  .pl-topbar__user { display: none; }
+
+  .pl-sidebar {
+    position: fixed;
+    top: 56px;
+    left: 0;
+    bottom: 0;
+    z-index: 95;
+    transform: translateX(-100%);
+    transition: transform 0.22s ease;
+  }
+
+  .pl-sidebar--open {
+    transform: translateX(0);
+  }
+
+  .pl-sidebar-overlay {
+    display: block;
+  }
+
+  .pl-content {
+    padding: 20px 16px;
+  }
+}

@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Cdns.Application.Features.Signup;
 using Cdns.Application.Interfaces;
+using Cdns.Application.Security;
 using Cdns.Infrastructure.Persistence;
 using Cdns.Domain.Entities.MemberSignupTables;
 using Cdns.Domain.Entities.MemberLoginTables;
@@ -30,55 +31,126 @@ public class SignupService : ISignupService
         _logger = logger;
     }
 
-    public async Task<VerifyTinResponse> VerifyTinAsync(string tin)
+    private async Task<int> GetTinStatusAsync(string tin)
     {
-        var status = await _dbContext.Database
+        return await _dbContext.Database
             .SqlQueryRaw<int>("SELECT check_tin_signup_status({0}) AS \"Value\"", tin)
             .FirstOrDefaultAsync();
+    }
 
-        var response = new VerifyTinResponse { StatusCode = status };
+    private static (string Code, string Message) TinStatusToError(int status) => status switch
+    {
+        2 => ("CompanyPendingEregVerification", "This company's registration is pending eReg verification."),
+        3 => ("CompanyNotActivated", "This company's registration has not yet been activated."),
+        4 => ("InvalidTin", "Invalid TIN. Must be exactly 9 digits."),
+        5 => ("CompanySetupIncomplete", "This company's account setup is incomplete."),
+        6 => ("OrganizationNotRegistered", "Company not found. Please check your TIN."),
+        _ => ("UnexpectedError", "An unexpected error occurred. Please try again."),
+    };
 
-        switch (status)
-        {
-            case 1:
-                response.Message = "TIN verified successfully.";
-                break;
-            case 2:
-                response.Message = "This company's registration is pending eReg verification. Please wait for your company administrator to complete the eReg process.";
-                break;
-            case 3:
-                response.Message = "This company's registration has not yet been activated. Please contact your company administrator.";
-                break;
-            case 4:
-                response.Message = "Invalid TIN. Must be at least 9 characters.";
-                break;
-            case 5:
-                response.Message = "This company's account setup is incomplete. Please contact your company administrator or CDNS support.";
-                break;
-            case 6:
-                response.Message = "Company not found. Please check your TIN.";
-                break;
-            default:
-                response.Message = "An unexpected error occurred. Please try again or contact support.";
-                break;
-        }
+    public async Task<VerifyTinResponse> VerifyTinAsync(string tin)
+    {
+        var status = await GetTinStatusAsync(tin);
 
-        return response;
+        if (status == 1)
+            return new VerifyTinResponse { StatusCode = status, Message = "TIN verified successfully." };
+
+        var (_, message) = TinStatusToError(status);
+        return new VerifyTinResponse { StatusCode = status, Message = message };
     }
 
     public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)
     {
-        int otp = RandomNumberGenerator.GetInt32(100000, 999999);
+        // 1. Normalize all fields before validation (null-safe for missing JSON fields)
+        var tin         = new string((request.Tin ?? "").Trim().Where(char.IsDigit).ToArray());
+        var email       = (request.Email ?? "").Trim().ToLowerInvariant();
+        var firstName   = (request.FirstName ?? "").Trim();
+        var lastName    = (request.LastName ?? "").Trim();
+        var mobile      = (request.Mobile ?? "").Replace(" ", "");
+        var nic         = (request.Nic ?? "").Trim();
+        var designation = (request.Designation ?? "").Trim();
+
+        // 2. Field validation — runs before any DB write
+        var fieldErr = ProfileValidator.ValidateSignup(
+            firstName, lastName, email, mobile, nic, designation, request.AgreeToTerms);
+
+        if (fieldErr is not null)
+            return new RegisterResponse
+            {
+                Success = false,
+                Code    = fieldErr.Value.Code,
+                Field   = fieldErr.Value.Field,
+                Message = "Validation failed."
+            };
+
+        if (tin.Length != 9)
+            return new RegisterResponse { Success = false, Code = "InvalidTin", Message = "TIN must be exactly 9 digits." };
+
+        // 2. TIN gate — same logic as VerifyTinAsync so they can't drift
+        var tinStatus = await GetTinStatusAsync(tin);
+        if (tinStatus != 1)
+        {
+            var (code, message) = TinStatusToError(tinStatus);
+            return new RegisterResponse { Success = false, Code = code, Message = message };
+        }
+
+        // 3a. Email == Master's UserName for this company
+        var company = await _dbContext.Companies
+            .FirstOrDefaultAsync(c => c.TinNumber == tin);
+
+        if (company != null)
+        {
+            var masterUserName = await (
+                from mapping in _dbContext.CompanyMemberMappings
+                join member in _dbContext.Members on mapping.MemberId equals member.MemberId
+                join mu in _dbContext.MemberUsers on member.MemberId equals mu.MemberId
+                where mapping.CompanyId == company.CompanyId
+                    && !mapping.IsDeleted
+                    && member.MemberType == MemberType.CompanyMasterMember
+                select mu.UserName
+            ).FirstOrDefaultAsync();
+
+            if (masterUserName != null && masterUserName.ToLower() == email)
+                return new RegisterResponse
+                {
+                    Success = false,
+                    Code = "EmailBelongsToMaster",
+                    Message = "This email is registered as the company administrator account."
+                };
+        }
+
+        // 3b. Email in member_users (any existing user)
+        if (await _dbContext.MemberUsers.AnyAsync(mu => mu.UserName.ToLower() == email))
+            return new RegisterResponse { Success = false, Code = "AccountExists", Message = "An account with this email already exists." };
+
+        // 3c. Email in members (not deleted)
+        if (await _dbContext.Members.AnyAsync(m => !m.IsDeleted && m.Email != null && m.Email.ToLower() == email))
+            return new RegisterResponse { Success = false, Code = "AccountExists", Message = "An account with this email already exists." };
+
+        // 4. Soft-delete stale TemporaryMember rows so only the newest OTP/GlobalIdentity is live
+        var stale = await _dbContext.TemporaryMembers
+            .Where(t => !t.IsDeleted && t.Email != null && t.Email.ToLower() == email)
+            .ToListAsync();
+
+        if (stale.Count > 0)
+        {
+            foreach (var row in stale) row.IsDeleted = true;
+            await _dbContext.SaveChangesAsync();
+            _logger.LogInformation("Soft-deleted {Count} stale TemporaryMember row(s) for {Email}", stale.Count, email);
+        }
+
+        // 5. Create TemporaryMember
+        int otp = RandomNumberGenerator.GetInt32(100_000, 1_000_000); // [100000, 999999]
         string newGlobalIdentity = Guid.NewGuid().ToString();
 
         var tempMember = new TemporaryMember
         {
-            FirstName = request.FirstName,
-            LastName = request.LastName,
-            Email = request.Email,
-            Mobile = request.Mobile,
-            Nic = request.Nic,
-            Designation = request.Designation,
+            FirstName = firstName,
+            LastName = lastName,
+            Email = email,
+            Mobile = mobile,
+            Nic = nic,
+            Designation = designation,
             OneTimePassword = otp,
             CreatedDateTime = DateTime.UtcNow,
             GlobalIdentity = newGlobalIdentity
@@ -87,7 +159,6 @@ public class SignupService : ISignupService
         _dbContext.TemporaryMembers.Add(tempMember);
         await _dbContext.SaveChangesAsync();
 
-        // OTP is intentionally not logged — check the member's email or query temporary_members directly for dev testing
         _logger.LogInformation("Signup OTP generated for session {GlobalIdentity}", newGlobalIdentity);
 
         return new RegisterResponse
@@ -107,18 +178,21 @@ public class SignupService : ISignupService
             return new SignupVerifyOtpResult.InvalidToken();
         }
 
+        // Filter IsDeleted so stale rows from previous registrations are ignored
         var tempMember = await _dbContext.TemporaryMembers
-            .FirstOrDefaultAsync(x => x.GlobalIdentity == globalId);
+            .FirstOrDefaultAsync(x => x.GlobalIdentity == globalId && !x.IsDeleted);
 
         if (tempMember == null)
         {
-            _logger.LogWarning("VerifyOtp: no TemporaryMember for token {GlobalIdentity}", globalId);
+            _logger.LogWarning("VerifyOtp: no active TemporaryMember for token {GlobalIdentity}", globalId);
             return new SignupVerifyOtpResult.InvalidToken();
         }
 
-        if (tempMember.OneTimePassword != request.Otp)
+        if (!OtpPolicy.IsValidFormat(request.Otp)
+            || !int.TryParse(request.Otp, out var otpInt)
+            || tempMember.OneTimePassword != otpInt)
         {
-            _logger.LogWarning("VerifyOtp: OTP mismatch for token {GlobalIdentity}", globalId);
+            _logger.LogWarning("VerifyOtp: OTP invalid or mismatch for token {GlobalIdentity}", globalId);
             return new SignupVerifyOtpResult.InvalidToken();
         }
 
@@ -139,13 +213,16 @@ public class SignupService : ISignupService
         }
 
         var tempMember = await _dbContext.TemporaryMembers
-            .FirstOrDefaultAsync(x => x.GlobalIdentity == globalId);
+            .FirstOrDefaultAsync(x => x.GlobalIdentity == globalId && !x.IsDeleted);
 
         if (tempMember == null || tempMember.OneTimePassword != 0)
         {
             _logger.LogWarning("SetPassword: temp member not found or OTP not verified for token {GlobalIdentity}", globalId);
             return new SignupSetPasswordResult.InvalidToken();
         }
+
+        if (!PasswordPolicy.IsValid(request.Password))
+            return new SignupSetPasswordResult.WeakPassword();
 
         var (hash, salt) = _passwordHasher.HashNewPassword(request.Password);
 
@@ -186,6 +263,6 @@ public class SignupService : ISignupService
         _logger.LogInformation("Member {MemberId} created via signup for {Email}", newMember.MemberId, tempMember.Email);
 
         var sessionToken = await _issuer.IssueAsync(newMember.MemberId, memberUser.UserName);
-        return new SignupSetPasswordResult.Success(sessionToken);
+        return new SignupSetPasswordResult.Success(sessionToken, "Member");
     }
 }

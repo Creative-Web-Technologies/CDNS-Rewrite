@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
+using Cdns.Domain.Enums;
 using Cdns.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
@@ -37,12 +38,23 @@ public class SessionCookieAuthHandler : AuthenticationHandler<AuthenticationSche
         if (session is null)
             return AuthenticateResult.Fail("Session not found.");
 
-        // No ExpiresAt column yet — add expiry check here once the column is added to the schema.
+        if (session.LoginDateTime.AddHours(8) < DateTimeOffset.UtcNow)
+            return AuthenticateResult.Fail("Session expired.");
+
+        // Load MemberUser for MemberType claim and live status re-check
+        var memberUser = await _db.MemberUsers
+            .FirstOrDefaultAsync(u => u.MemberId == session.MemberId);
+
+        if (memberUser is null || memberUser.UserStatusType != UserStatusType.Active)
+            return AuthenticateResult.Fail("Account is not active.");
+
+        var memberTypeValue = memberUser.MemberType.ToString();
 
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, session.MemberId.ToString()),
             new Claim(ClaimTypes.Name, session.UserName),
+            new Claim("MemberType", memberTypeValue),
         };
         var identity = new ClaimsIdentity(claims, Scheme.Name);
         var ticket = new AuthenticationTicket(new ClaimsPrincipal(identity), Scheme.Name);

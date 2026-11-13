@@ -1,38 +1,132 @@
-/* All colors explicit — not using global CSS vars so dark mode doesn't affect
-   the auth pages. */
+/* All colors explicit — dark-mode independent */
 
+/* ── Brand (SLC crest + name) ── */
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.auth-logo-crest {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: #1e40af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+
+.auth-brand-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin: 0;
+  letter-spacing: 0.3px;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ── Nav row ── */
+.login-nav-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* ── Segmented tabs ── */
+.login-tabs {
+  display: flex;
+  gap: 2px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.login-tab {
+  padding: 5px 11px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  font-size: 12.5px;
+  cursor: pointer;
+  color: #64748b;
+  font-weight: 500;
+  transition: all 0.15s;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  white-space: nowrap;
+}
+
+.login-tab--active {
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.login-tab--disabled {
+  opacity: 0.38;
+  cursor: not-allowed;
+}
+
+/* ── Panel wrapper ── */
+.login-panel {
+  flex: 1;
+}
+
+/* ── Title / subtitle ── */
 .login-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 4px;
   letter-spacing: -0.3px;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  text-align: left;
 }
 
 .login-subtitle {
-  font-size: 15px;
-  font-weight: 500;
-  /* FLAGGED: muted slate colour — pick from brand palette if available */
+  font-size: 14px;
   color: #64748b;
-  margin: 0 0 24px;
+  margin: 0 0 20px;
+  line-height: 1.55;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  text-align: left;
 }
 
+/* ── Error / success banners ── */
 .login-error {
   background: #fef2f2;
   border: 1px solid #fca5a5;
   color: #b91c1c;
-  border-radius: 6px;
-  padding: 10px 14px;
+  border-radius: 8px;
+  padding: 12px 16px;
   font-size: 14px;
+  line-height: 1.5;
   margin-bottom: 16px;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* ── Form layout ── */
+.login-success {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #166534;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ── Form ── */
 .login-form {
   display: flex;
   flex-direction: column;
@@ -46,58 +140,69 @@
 }
 
 .form-field label {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   color: #374151;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
 }
 
-.form-field input[type='email'],
-.form-field input[type='password'] {
+.form-field input:not([type='checkbox']) {
   padding: 10px 14px;
   border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 15px;
+  border-radius: 8px;
+  font-size: 14.5px;
   color: #111827;
   background: #ffffff;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
   width: 100%;
+  height: 44px;
   box-sizing: border-box;
 }
 
-.form-field input[type='email']:focus,
-.form-field input[type='password']:focus {
-  /* FLAGGED: focus ring uses the same #1e40af as the button — adjust if brand
-     colour changes */
+.form-field input:not([type='checkbox']):focus {
   border-color: #1e40af;
   box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.12);
 }
 
-/* ── Turnstile visual stand-in ── */
-.turnstile-placeholder {
+/* OTP input override — defined after base so it wins on equal specificity */
+.form-field .otp-centered {
+  text-align: center;
+  font-size: 20px;
+  letter-spacing: 8px;
+}
+
+/* ── Password show/hide ── */
+.pw-wrap {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  padding: 12px 14px;
-  color: #6b7280;
-  font-size: 14px;
-  background: #f9fafb;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  user-select: none;
+  width: 100%;
 }
 
-.turnstile-check {
-  color: #16a34a;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1;
+.pw-wrap input {
+  padding-right: 44px;
 }
 
-/* ── Remember me / forgot password row ── */
+.pw-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  line-height: 0;
+}
+
+.pw-toggle:hover {
+  color: #374151;
+}
+
+/* ── Remember me / forgot row ── */
 .login-row {
   display: flex;
   justify-content: space-between;
@@ -108,35 +213,37 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
+  font-size: 13.5px;
   color: #374151;
   cursor: pointer;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   user-select: none;
 }
 
+/* Works as both <Link> and <button> */
 .forgot-link {
-  font-size: 14px;
-  /* FLAGGED: same blue as button/focus — confirm with brand */
+  font-size: 13.5px;
   color: #1e40af;
   text-decoration: none;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
 }
 
 .forgot-link:hover {
   text-decoration: underline;
 }
 
-/* ── Submit button ── */
+/* ── Primary action button — pill shape ── */
 .login-btn {
   width: 100%;
-  padding: 11px;
-  /* FLAGGED: #1e40af is a standard deep blue chosen as a placeholder for the
-     real SL Customs brand primary colour. Update once confirmed. */
+  padding: 12px;
   background: #1e40af;
   color: #ffffff;
   border: none;
-  border-radius: 6px;
+  border-radius: 50px;
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -154,16 +261,34 @@
   cursor: not-allowed;
 }
 
-/* ── Footer links ── */
+/* ── Inline link-style button (resend code, back) ── */
+.login-link-btn {
+  background: none;
+  border: none;
+  padding: 2px 0;
+  font-size: 13.5px;
+  color: #1e40af;
+  cursor: pointer;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: -4px;
+}
+
+.login-link-btn:hover {
+  text-decoration: underline;
+}
+
+/* ── Account / help footer row ── */
 .login-footer {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  justify-content: center;
   margin-top: 24px;
-  font-size: 14px;
+  font-size: 13.5px;
   color: #6b7280;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  text-align: center;
 }
 
 .login-footer a {
@@ -175,7 +300,32 @@
   text-decoration: underline;
 }
 
-.help-link {
-  font-size: 13px;
-  color: #9ca3af !important;
+/* ── Copyright bar — pinned to bottom via margin-top: auto ── */
+.login-copyright {
+  margin-top: auto;
+  padding-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11.5px;
+  color: #9ca3af;
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  border-top: 1px solid #f1f5f9;
+}
+
+.login-copyright-links {
+  display: flex;
+  gap: 16px;
+}
+
+.login-copyright a {
+  color: #9ca3af;
+  text-decoration: none;
+}
+
+.login-copyright a:hover {
+  text-decoration: underline;
+  color: #6b7280;
 }

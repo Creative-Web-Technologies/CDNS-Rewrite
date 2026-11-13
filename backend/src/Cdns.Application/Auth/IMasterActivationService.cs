@@ -3,20 +3,22 @@ namespace Cdns.Application.Auth;
 public record CompleteProfileRequest(
     string FirstName,
     string LastName,
-    string? Mobile,
-    string? Nic,
-    string? Designation);
+    string Mobile,
+    string Nic,
+    string Designation);
 
 public abstract record CompleteProfileResult
 {
     public sealed record Success : CompleteProfileResult;
     public sealed record InvalidToken : CompleteProfileResult;
+    public sealed record ValidationError(string Code, string Field) : CompleteProfileResult;
 }
 
 public abstract record SetActivationPasswordResult
 {
-    public sealed record Success(string SessionToken) : SetActivationPasswordResult;
+    public sealed record Success(string SessionToken, string Portal) : SetActivationPasswordResult;
     public sealed record InvalidToken : SetActivationPasswordResult;
+    public sealed record WeakPassword : SetActivationPasswordResult;
 }
 
 public interface IMasterActivationService
