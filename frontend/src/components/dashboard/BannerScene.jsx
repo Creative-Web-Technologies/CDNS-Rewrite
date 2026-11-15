@@ -2,27 +2,33 @@ import { useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 
 /*
- * BannerScene — a decorative, animated harbour scene for the dashboard banner.
- * The ship and dock vectors from src/assets/svg are inlined (not redrawn) so
- * their named groups can be animated. Everything is transform/opacity only.
+ * BannerScene — a decorative harbour scene that is part of the whole banner.
  *
- * Coordinate space (viewBox 0 0 900 260):
- *   - waterline at y = 210, sea band below it.
- *   - dock placed at translate(570,60) scale(0.5): quay wall at x = 600,
- *     quay top on the waterline, building flush to the scene's right edge.
- *   - ship at scale 0.3 (= 0.6 × the dock's 0.5): docked at translate(340,122)
- *     with its bow a few px short of the quay wall, hull sitting into the sea.
- * The SVG uses preserveAspectRatio="xMaxYMax meet" so the dock stays anchored to
- * the right and the waterline to the bottom; the sea rect is drawn well past the
- * left of the viewBox so it fills the whole band regardless of banner width.
+ * Two layers:
+ *   1. Sea (full width): a pale band + drifting wave lines along the bottom,
+ *      edge to edge, behind the text. Clipped to the banner's rounded corners by
+ *      the banner's own overflow.
+ *   2. Stage (right only): the dock and ship, inlined from src/assets/svg (not
+ *      redrawn). Confined to the right of the text; all stage content lives
+ *      within viewBox x[0..900] so no straight edge ever clips it.
+ *
+ * Stage coordinate space (viewBox 0 0 900 260): waterline y=210; dock at
+ * translate(570,60) scale(0.5) — quay wall at x=600, building flush to x=900,
+ * quay/ground extended down to the bottom (y=260). Ship at scale 0.3 docked at
+ * translate(340,122), bow just short of the jetty; sails in from the left of the
+ * stage (its hull always within viewBox x≥0, so it is never clipped and never
+ * reaches the text).
  */
 
 const CYCLE = 50;                 // full ship loop, seconds
-const SHIP_START_X = -620;        // voyage start offset (off the left)
+// Voyage start offset: far enough left to read as "sailing in", but not so far
+// that the ship (or its wake, which reaches ~22px left of the hull) crosses
+// viewBox x=0 — so nothing is ever clipped by the stage edge or reaches the text.
+const SHIP_START_X = -315;
 const SHIP_TX = 340;
 const SHIP_TY = 122;
 
-// ── Ship voyage: sail in (linear, easing to a stop), wait, fade out, reset, fade in.
+// Ship voyage: sail in (linear, easing to a stop), wait, fade out, reset, fade in.
 const voyage = {
   x: {
     value: [SHIP_START_X, SHIP_START_X * 0.04, 0, 0, 0, SHIP_START_X, SHIP_START_X],
@@ -42,16 +48,18 @@ const wakeEnvelope = { value: [0, 0.9, 0.9, 0, 0], times: [0, 0.05, 0.76, 0.80, 
 // Crane lowers to the ship's top row, pauses, lifts — all inside the 7s wait.
 const hoist = { value: [1, 1, 2, 2, 1, 1], times: [0, 0.80, 0.85, 0.90, 0.94, 1] };
 
-function wavePath(y, amp) {
-  let d = `M -720 ${y} q 15 ${-amp} 30 0`;
-  for (let x = -690; x <= 620; x += 30) d += ' t 30 0';
+// Full-width sea waves (viewBox 0 0 1000 60, stretched): periodic over 100 units
+// so a -100 drift loops seamlessly; drawn past both edges so none ends abruptly.
+function seaWave(y, amp) {
+  let d = `M -200 ${y} q 25 ${-amp} 50 0`;
+  for (let x = -150; x < 1200; x += 50) d += ' t 50 0';
   return d;
 }
 const WAVES = [
-  { y: 224, amp: 3, opacity: 0.55 },
-  { y: 234, amp: 4, opacity: 0.7 },
-  { y: 245, amp: 3, opacity: 0.5 },
-  { y: 255, amp: 4, opacity: 0.4 },
+  { y: 24, amp: 4, phase: 0, opacity: 0.5 },
+  { y: 34, amp: 5, phase: 26, opacity: 0.7 },
+  { y: 44, amp: 3, phase: 60, opacity: 0.55 },
+  { y: 52, amp: 4, phase: 14, opacity: 0.4 },
 ];
 
 // Helper: loop when playing, otherwise snap to a resting value.
@@ -113,6 +121,26 @@ function ShipBody() {
 function DockArt({ playing }) {
   return (
     <g transform="translate(570 60) scale(0.5)">
+      {/* Solid quay + ground, carried down to the bottom (y=400 → banner bottom)
+          so nothing floats; the sea meets the quay's left face at x=60. */}
+      <g id="dock-ground">
+        <rect x="60" y="300" width="600" height="100" fill="#5E7C88" />
+        <rect x="60" y="352" width="600" height="48" fill="#44626E" opacity="0.3" />
+        <rect x="60" y="296" width="600" height="8" rx="2" fill="#44626E" />
+        <g stroke="#44626E" strokeWidth="3" opacity="0.5"><path d="M60 318h600M60 334h600" /></g>
+        <g fill="#23485A"><rect x="150" y="284" width="12" height="14" rx="3" /><rect x="360" y="284" width="12" height="14" rx="3" /></g>
+      </g>
+
+      {/* Wooden jetty stepping out towards the ship, on pilings into the water. */}
+      <g id="dock-jetty">
+        <g fill="#8B6F47">
+          <rect x="-26" y="302" width="7" height="54" rx="2" /><rect x="-6" y="302" width="7" height="54" rx="2" />
+          <rect x="16" y="302" width="7" height="54" rx="2" /><rect x="38" y="302" width="7" height="54" rx="2" />
+        </g>
+        <rect x="-34" y="292" width="100" height="12" rx="2" fill="#C9A77C" stroke="#A8865A" strokeWidth="2" />
+        <g fill="#44626E"><rect x="-24" y="283" width="9" height="12" rx="3" /><rect x="40" y="283" width="9" height="12" rx="3" /></g>
+      </g>
+
       <g id="dock-building">
         <rect x="446" y="96" width="194" height="204" rx="6" fill="#EEF4F6" stroke="#6B8794" strokeWidth="4" />
         <rect x="446" y="96" width="194" height="30" rx="6" fill="#1C4E5E" />
@@ -170,13 +198,6 @@ function DockArt({ playing }) {
           <rect x="-46" y="168" width="60" height="9" rx="3" fill="#23485A" />
         </motion.g>
       </g>
-
-      <g id="dock-quay">
-        <rect x="60" y="300" width="600" height="40" fill="#5E7C88" />
-        <rect x="60" y="296" width="600" height="8" rx="2" fill="#44626E" />
-        <g fill="#23485A"><rect x="72" y="284" width="12" height="14" rx="3" /><rect x="212" y="284" width="12" height="14" rx="3" /></g>
-        <g stroke="#44626E" strokeWidth="3" opacity="0.6"><path d="M60 316h600M60 328h600" /></g>
-      </g>
     </g>
   );
 }
@@ -231,26 +252,24 @@ function Ship({ playing }) {
 export default function BannerScene() {
   const ref = useRef(null);
   const reduce = useReducedMotion();
-  const [mode, setMode] = useState('full');     // 'full' | 'compact' | 'hidden'
+  const [mode, setMode] = useState('full');     // 'full' | 'compact' | 'sea'
   const [inView, setInView] = useState(true);
   const [tabVisible, setTabVisible] = useState(true);
 
-  // Responsive mode via matchMedia.
+  // Responsive mode from the banner's own content width, matching the
+  // @container thresholds in dashboard.css: <640 sea only, <1000 compact, else full.
   useEffect(() => {
-    const mqHide = window.matchMedia('(max-width: 600px)');
-    const mqCompact = window.matchMedia('(max-width: 900px)');
-    const update = () => setMode(mqHide.matches ? 'hidden' : mqCompact.matches ? 'compact' : 'full');
-    update();
-    mqHide.addEventListener('change', update);
-    mqCompact.addEventListener('change', update);
-    return () => {
-      mqHide.removeEventListener('change', update);
-      mqCompact.removeEventListener('change', update);
-    };
+    const banner = ref.current?.closest('.dash-banner');
+    if (!banner) return undefined;
+    const ro = new ResizeObserver(([entry]) => {
+      const w = entry.contentRect.width;
+      setMode(w < 640 ? 'sea' : w < 1000 ? 'compact' : 'full');
+    });
+    ro.observe(banner);
+    return () => ro.disconnect();
   }, []);
 
-  // Pause when off-screen or when the tab is hidden. Keyed to `mode` so the
-  // observer re-attaches to the node when the scene remounts across breakpoints.
+  // Pause when off-screen or when the tab is hidden.
   useEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
@@ -259,47 +278,60 @@ export default function BannerScene() {
     const onVis = () => setTabVisible(!document.hidden);
     document.addEventListener('visibilitychange', onVis);
     return () => { io.disconnect(); document.removeEventListener('visibilitychange', onVis); };
-  }, [mode]);
+  }, []);
 
-  if (mode === 'hidden') return null;
+  // The sea height and the stage size are set in dashboard.css from one shared
+  // value (--stage-h), so the waterline cannot drift. No JS sizing here.
 
-  const playing = mode === 'full' && inView && tabVisible && !reduce;
+  const visible = inView && tabVisible && !reduce;
+  const seaPlaying = visible;                          // water drifts in every mode
+  const playing = mode === 'full' && visible;          // ship + dock animate in full only
 
   return (
     <div className="dash-banner__scene" ref={ref} aria-hidden="true">
-      <svg className="dash-banner__svg" viewBox="0 0 900 260" preserveAspectRatio="xMaxYMax meet" focusable="false">
-        {/* Sea band (extends well left of the viewBox so it fills the band). */}
-        <rect x="-720" y="210" width="1320" height="60" fill="#D3E7EE" />
+      {/* Full-width sea + waves */}
+      <svg className="dash-banner__sea" viewBox="0 0 1000 60" preserveAspectRatio="none" focusable="false">
+        <rect x="0" y="0" width="1000" height="60" fill="#D3E7EE" />
         <motion.g
           initial={false}
-          {...anim(playing, { x: [0, -60] }, { duration: 7, ease: 'linear' }, { x: 0 })}
+          {...anim(seaPlaying, { x: [0, -100] }, { duration: 7, ease: 'linear' }, { x: 0 })}
           stroke="#9CC4D0" fill="none" strokeLinecap="round"
         >
           {WAVES.map((w) => (
-            <path key={w.y} d={wavePath(w.y, w.amp)} strokeWidth="2.5" opacity={w.opacity} />
+            <g key={w.y} transform={`translate(${w.phase} 0)`}>
+              <path d={seaWave(w.y, w.amp)} strokeWidth="2.5" opacity={w.opacity} />
+            </g>
           ))}
         </motion.g>
-
-        {mode === 'full' && <DockArt playing={playing} />}
-
-        {/* Ship: outer group runs the voyage (x + opacity), inner runs bob + rock. */}
-        <motion.g
-          initial={false}
-          animate={playing ? { x: voyage.x.value, opacity: voyage.opacity.value } : { x: 0, opacity: 1 }}
-          transition={playing ? {
-            x: { duration: CYCLE, times: voyage.x.times, ease: voyage.x.ease, repeat: Infinity },
-            opacity: { duration: CYCLE, times: voyage.opacity.times, ease: voyage.opacity.ease, repeat: Infinity },
-          } : { duration: 0 }}
-        >
-          <motion.g
-            style={{ transformBox: 'fill-box', transformOrigin: '50% 80%' }}
-            initial={false}
-            {...anim(playing, { y: [0, -2.5, 0], rotate: [-0.6, 0.6, -0.6] }, { duration: 4, ease: 'easeInOut' }, { y: 0, rotate: 0 })}
-          >
-            <Ship playing={playing} />
-          </motion.g>
-        </motion.g>
       </svg>
+
+      {/* Dock + ship stage (hidden on phone-width banners) */}
+      {mode !== 'sea' && (
+        <svg
+          className="dash-banner__stage"
+          viewBox="0 0 900 260"
+          preserveAspectRatio="xMaxYMax meet"
+          focusable="false"
+        >
+          {mode === 'full' && <DockArt playing={playing} />}
+          <motion.g
+            initial={false}
+            animate={playing ? { x: voyage.x.value, opacity: voyage.opacity.value } : { x: 0, opacity: 1 }}
+            transition={playing ? {
+              x: { duration: CYCLE, times: voyage.x.times, ease: voyage.x.ease, repeat: Infinity },
+              opacity: { duration: CYCLE, times: voyage.opacity.times, ease: voyage.opacity.ease, repeat: Infinity },
+            } : { duration: 0 }}
+          >
+            <motion.g
+              style={{ transformBox: 'fill-box', transformOrigin: '50% 80%' }}
+              initial={false}
+              {...anim(playing, { y: [0, -2.5, 0], rotate: [-0.6, 0.6, -0.6] }, { duration: 4, ease: 'easeInOut' }, { y: 0, rotate: 0 })}
+            >
+              <Ship playing={playing} />
+            </motion.g>
+          </motion.g>
+        </svg>
+      )}
     </div>
   );
 }

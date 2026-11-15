@@ -19,6 +19,8 @@
   border: 1px solid #D2E3F0;
   border-radius: var(--radius-lg);
   padding: 19px 28px;
+  /* Size container: the scene and text respond to the banner's own width. */
+  container-type: inline-size;
 }
 .dash-banner__eyebrow {
   font-size: 12px;
@@ -39,25 +41,77 @@
 .dash-banner__title span { color: var(--primary); }
 .dash-banner__text { margin: 8px 0 0; font-size: 14px; color: var(--muted); max-width: 560px; }
 
-/* Text sits above the scene; its layout/size is unchanged by the scene. */
-.dash-banner__content { position: relative; z-index: 1; }
+/* One shared size for the scene. The stage drawing is 260 units tall with its
+   waterline 50 units above the bottom, so the sea is always 50/260 of the stage
+   height and the two layers cannot drift apart. Set on the banner's children
+   because a container cannot be styled by its own container query. */
+.dash-banner__scene,
+.dash-banner__content {
+  --stage-h: 190px;
+  --banner-sea-h: calc(var(--stage-h) * 50 / 260);
+}
 
-/* Animated harbour scene: anchored to the right, always clear of the text
-   (its left edge never crosses the text's max extent) and behind it. */
+/* Text sits above the scene. Its max-width keeps it clear of the stage, its
+   bottom padding keeps it above the sea, and its min-height makes the banner
+   tall enough for the crane and flag. */
+.dash-banner__content {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  min-height: calc(var(--stage-h) - 22px);
+  max-width: calc(100% - (var(--stage-h) * 900 / 260) - 24px);
+  padding-bottom: calc(var(--banner-sea-h) + 12px);
+}
+
+/* Scene spans the whole banner, behind the text, clipped to the banner's
+   rounded corners by the banner's own overflow:hidden. */
 .dash-banner__scene {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  /* Left edge stays past the text's widest line (~588px incl. padding) so the
-     scene can never overlap it, while still claiming roughly the right half. */
-  left: max(620px, 48%);
+  inset: 0;
   z-index: 0;
   pointer-events: none;
-  overflow: hidden;
 }
-.dash-banner__svg { display: block; width: 100%; height: 100%; }
-@media (max-width: 600px) { .dash-banner__scene { display: none; } }
+/* Full-width sea band + waves, along the bottom from edge to edge.
+   width:100% is required: an <svg> is a replaced element, so left/right:0 alone
+   would collapse it to its intrinsic aspect-ratio width instead of stretching. */
+.dash-banner__sea {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: var(--banner-sea-h);
+  display: block;
+}
+/* Dock + ship stage, anchored bottom-right at a fixed height. An <svg> is a
+   replaced element, so it needs an explicit height and aspect-ratio; its scale
+   is then always --stage-h / 260. */
+.dash-banner__stage {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  height: var(--stage-h);
+  width: auto;
+  aspect-ratio: 900 / 260;
+  display: block;
+}
+
+/* Banner-width breakpoints (kept in step with BannerScene.jsx: 640 and 1000). */
+@container (max-width: 1199px) {
+  .dash-banner__scene,
+  .dash-banner__content { --stage-h: 150px; }
+}
+@container (max-width: 999px) {
+  /* Compact: ship only, no dock. */
+  .dash-banner__scene,
+  .dash-banner__content { --stage-h: 110px; }
+  .dash-banner__content { max-width: calc(100% - 250px); }
+}
+@container (max-width: 639px) {
+  /* Phone: sea band and waves only. */
+  .dash-banner__scene,
+  .dash-banner__content { --banner-sea-h: 22px; }
+  .dash-banner__content { max-width: 100%; min-height: 0; }
+}
 
 /* ── Section label (two stacked lines) ──────────────────────────────────────── */
 .dash-section {
