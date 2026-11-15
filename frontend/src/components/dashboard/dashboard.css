@@ -1,0 +1,213 @@
+/* Dashboard widgets. Depends on tokens.css and ui.css. */
+
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Banner ───────────────────────────────────────────────────────────────── */
+.dash-banner {
+  position: relative;
+  overflow: hidden;
+  /* White → pale blue surface so it reads as a distinct panel on the page bg. */
+  background: linear-gradient(135deg, #FFFFFF 0%, #E6F0FA 100%);
+  border: 1px solid #D2E3F0;
+  border-radius: var(--radius-lg);
+  padding: 19px 28px;
+}
+.dash-banner__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--chart);
+}
+.dash-banner__title {
+  margin: 8px 0 0;
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  max-width: 620px;
+}
+.dash-banner__title span { color: var(--primary); }
+.dash-banner__text { margin: 8px 0 0; font-size: 14px; color: var(--muted); max-width: 560px; }
+
+/* Text sits above the scene; its layout/size is unchanged by the scene. */
+.dash-banner__content { position: relative; z-index: 1; }
+
+/* Animated harbour scene: anchored to the right, always clear of the text
+   (its left edge never crosses the text's max extent) and behind it. */
+.dash-banner__scene {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  /* Left edge stays past the text's widest line (~588px incl. padding) so the
+     scene can never overlap it, while still claiming roughly the right half. */
+  left: max(620px, 48%);
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.dash-banner__svg { display: block; width: 100%; height: 100%; }
+@media (max-width: 600px) { .dash-banner__scene { display: none; } }
+
+/* ── Section label (two stacked lines) ──────────────────────────────────────── */
+.dash-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 4px 2px;
+}
+.dash-section__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dash-section__title { font-size: 16px; font-weight: 600; color: var(--ink); }
+
+/* ── Grid rows ────────────────────────────────────────────────────────────── */
+.dash-row {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 1080px) { .dash-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 680px)  { .dash-row { grid-template-columns: 1fr; } }
+
+.dash-stack { display: flex; flex-direction: column; gap: 18px; }
+
+/* ── Chart figure ─────────────────────────────────────────────────────────── */
+.dash-figure { margin: 0; }
+.dash-figure__chart { width: 100%; }
+.dash-figure__caption {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.dash-figure__caption strong { color: var(--ink); font-weight: 700; }
+
+/* Compact empty state used inside a chart card when every value is zero. */
+.dash-chart-empty { min-height: 180px; display: flex; align-items: center; justify-content: center; }
+.dash-chart-empty .ui-empty { padding: 16px; }
+
+.dash-legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
+.dash-legend__item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+.dash-legend__swatch { width: 12px; height: 3px; border-radius: 2px; display: inline-block; }
+.dash-legend__swatch--dash { background: repeating-linear-gradient(90deg, var(--muted) 0 4px, transparent 4px 7px); }
+
+/* ── Status card ──────────────────────────────────────────────────────────── */
+/* Rows evenly spaced and vertically centred; each row stacks an uppercase label
+   above a large number with the pill directly beside the number. */
+.dash-status {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  flex: 1;
+}
+.dash-status__row { display: flex; flex-direction: column; gap: 6px; }
+.dash-status__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.dash-status__value { display: flex; align-items: center; gap: 12px; }
+.dash-status__num { font-size: 30px; font-weight: 700; color: var(--ink); line-height: 1; }
+
+/* ── Total clearances ─────────────────────────────────────────────────────── */
+/* Content centred vertically so a stretched card does not look empty. */
+.dash-clear {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+}
+.dash-clear__num { font-size: 44px; font-weight: 700; color: var(--ink); line-height: 1; }
+.dash-clear__label { font-size: 13px; color: var(--muted); }
+.dash-clear__sub { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.dash-clear__sub strong { color: var(--ink); }
+
+/* ── Priority stream ──────────────────────────────────────────────────────── */
+.dash-stream { display: flex; flex-direction: column; }
+.dash-stream__item {
+  display: flex;
+  gap: 12px;
+  padding: 12px 4px;
+  border-bottom: 1px solid var(--line);
+}
+.dash-stream__item:last-child { border-bottom: none; }
+.dash-stream__item--unseen { background: var(--primary-soft); border-radius: var(--radius-sm); padding-left: 12px; padding-right: 12px; }
+.dash-stream__dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  margin-top: 6px; flex-shrink: 0;
+  background: var(--line);
+}
+.dash-stream__item--unseen .dash-stream__dot { background: var(--primary); }
+.dash-stream__body { min-width: 0; flex: 1; }
+.dash-stream__title { font-size: 13px; font-weight: 600; color: var(--ink); }
+.dash-stream__msg { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.dash-stream__time { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.dash-stream__footer { padding: 12px 4px 2px; }
+.dash-stream__link {
+  font-size: 13px; font-weight: 600; color: var(--primary);
+  text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+}
+.dash-stream__link:hover { text-decoration: underline; }
+
+/* ── Subscription quota ───────────────────────────────────────────────────── */
+.dash-quota__company { font-size: 14px; font-weight: 600; color: var(--ink); }
+.dash-quota__plan { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.dash-quota__barhead { display: flex; justify-content: space-between; align-items: center; margin: 16px 0 6px; }
+.dash-quota__remaining { font-size: 13px; font-weight: 600; color: var(--ink); }
+.dash-quota__bar { height: 8px; border-radius: 999px; background: var(--primary-soft); overflow: hidden; }
+.dash-quota__fill { height: 100%; border-radius: 999px; background: var(--primary); }
+.dash-quota__dates { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
+.dash-quota__tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+.dash-quota__tile {
+  text-align: center;
+  padding: 10px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.dash-quota__tile-num { font-size: 20px; font-weight: 700; color: var(--ink); }
+.dash-quota__tile-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* ── Payment summary ──────────────────────────────────────────────────────── */
+.dash-pay { display: flex; flex-direction: column; gap: 14px; }
+.dash-pay__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dash-pay__label { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--muted); }
+.dash-pay__icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--primary-soft); color: var(--primary); flex-shrink: 0;
+}
+.dash-pay__value { font-size: 17px; font-weight: 700; color: var(--ink); white-space: nowrap; }
+
+/* ── Skeletons ────────────────────────────────────────────────────────────── */
+.dash-skel {
+  background: linear-gradient(90deg, var(--primary-soft) 25%, #eef5f8 37%, var(--primary-soft) 63%);
+  background-size: 400% 100%;
+  animation: dash-shimmer 1.3s ease infinite;
+  border-radius: 6px;
+}
+@keyframes dash-shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+@media (prefers-reduced-motion: reduce) { .dash-skel { animation: none; } }
+
+/* ── Inline error ─────────────────────────────────────────────────────────── */
+.dash-error { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 8px; }
+.dash-error__title { font-size: 15px; font-weight: 600; color: var(--ink); }
+.dash-error__text { font-size: 13px; color: var(--muted); }

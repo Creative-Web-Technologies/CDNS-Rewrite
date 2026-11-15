@@ -87,9 +87,13 @@ function AppRoutes() {
       <Route path="/member" element={<PortalGuard portal="Member" />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard"     element={<MemberDashboard />} />
-        <Route path="cusdecs"       element={<ComingSoon title="My CusDecs" />} />
+        <Route path="cusdecs"       element={<ComingSoon title="CusDecs" />} />
+        <Route path="containers"    element={<ComingSoon title="Containers" />} />
         <Route path="subscriptions" element={<ComingSoon title="Subscriptions" />} />
+        <Route path="requests"      element={<ComingSoon title="Requests" />} />
+        <Route path="requests/new"  element={<ComingSoon title="New declaration subscription" />} />
         <Route path="notifications" element={<ComingSoon title="Notifications" />} />
+        <Route path="support"       element={<ComingSoon title="Support" />} />
         <Route path="profile"       element={<ComingSoon title="Profile" />} />
       </Route>
 
@@ -99,8 +103,10 @@ function AppRoutes() {
         <Route path="dashboard"     element={<CompanyDashboard />} />
         <Route path="cusdecs"       element={<ComingSoon title="Company CusDecs" />} />
         <Route path="members"       element={<ComingSoon title="Members & Subscriptions" />} />
+        <Route path="requests"      element={<ComingSoon title="Subscription Requests" />} />
         <Route path="payments"      element={<ComingSoon title="Payments" />} />
         <Route path="notifications" element={<ComingSoon title="Notifications" />} />
+        <Route path="support"       element={<ComingSoon title="Support" />} />
         <Route path="profile"       element={<ComingSoon title="Profile" />} />
       </Route>
 
