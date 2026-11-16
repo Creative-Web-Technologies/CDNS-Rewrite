@@ -1233,7 +1233,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("container");
 
-                    b.Property<int?>("ContainerKey")
+                    b.Property<int>("ContainerKey")
                         .HasColumnType("integer")
                         .HasColumnName("container_key");
 
@@ -1248,7 +1248,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("current_status");
 
-                    b.Property<long?>("CusDecExternalSystemNumber")
+                    b.Property<long>("CusDecExternalSystemNumber")
                         .HasColumnType("bigint")
                         .HasColumnName("cus_dec_external_system_number");
 
@@ -1322,7 +1322,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("container_number");
 
-                    b.Property<int?>("ContainerStatusNumber")
+                    b.Property<int>("ContainerStatusNumber")
                         .HasColumnType("integer")
                         .HasColumnName("container_status_number");
 
@@ -1338,7 +1338,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<long?>("ExternalSystemNumber")
+                    b.Property<long>("ExternalSystemNumber")
                         .HasColumnType("bigint")
                         .HasColumnName("external_system_number");
 
@@ -1379,7 +1379,7 @@ namespace Cdns.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecInspectStatusId"));
 
-                    b.Property<long?>("CusDecExternalSystemNumber")
+                    b.Property<long>("CusDecExternalSystemNumber")
                         .HasColumnType("bigint")
                         .HasColumnName("cus_dec_external_system_number");
 
@@ -1399,7 +1399,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<long?>("ExternalSystemNumber")
+                    b.Property<long>("ExternalSystemNumber")
                         .HasColumnType("bigint")
                         .HasColumnName("external_system_number");
 
@@ -1410,6 +1410,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Status")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("status");
@@ -1419,6 +1420,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("status_date_time");
 
                     b.Property<string>("TableName")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("table_name");
@@ -1445,7 +1447,7 @@ namespace Cdns.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecInspectionId"));
 
-                    b.Property<long?>("CusDecExternalSystemNumber")
+                    b.Property<long>("CusDecExternalSystemNumber")
                         .HasColumnType("bigint")
                         .HasColumnName("cus_dec_external_system_number");
 
@@ -1472,7 +1474,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("frd_uni");
 
-                    b.Property<long?>("InspectionInstanceId")
+                    b.Property<long>("InspectionInstanceId")
                         .HasColumnType("bigint")
                         .HasColumnName("inspection_instance_id");
 
@@ -1481,7 +1483,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("issue_code");
 
-                    b.Property<int?>("KeyFrdNumber")
+                    b.Property<int>("KeyFrdNumber")
                         .HasColumnType("integer")
                         .HasColumnName("key_frd_number");
 
@@ -1549,7 +1551,7 @@ namespace Cdns.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecInspectionSectionTabId"));
 
-                    b.Property<long?>("CusDecExternalSystemNumber")
+                    b.Property<long>("CusDecExternalSystemNumber")
                         .HasColumnType("bigint")
                         .HasColumnName("cus_dec_external_system_number");
 
@@ -1557,11 +1559,11 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("cus_dec_id");
 
-                    b.Property<long?>("InsTabExternalSystemNumber")
+                    b.Property<long>("InsTabExternalSystemNumber")
                         .HasColumnType("bigint")
                         .HasColumnName("ins_tab_external_system_number");
 
-                    b.Property<int?>("KeySecNumber")
+                    b.Property<int>("KeySecNumber")
                         .HasColumnType("integer")
                         .HasColumnName("key_sec_number");
 
@@ -1643,7 +1645,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("bl_number");
 
-                    b.Property<long?>("CusDecExternalSystemNumber")
+                    b.Property<long>("CusDecExternalSystemNumber")
                         .HasColumnType("bigint")
                         .HasColumnName("cus_dec_external_system_number");
 
@@ -1655,7 +1657,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("cus_dec_id");
 
-                    b.Property<int?>("CusDecItemNumber")
+                    b.Property<int>("CusDecItemNumber")
                         .HasColumnType("integer")
                         .HasColumnName("cus_dec_item_number");
 
@@ -1834,7 +1836,7 @@ namespace Cdns.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecStatusId"));
 
-                    b.Property<long?>("CusDecExternalSystemNumber")
+                    b.Property<long>("CusDecExternalSystemNumber")
                         .HasColumnType("bigint")
                         .HasColumnName("cus_dec_external_system_number");
 
@@ -1846,7 +1848,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("cus_dec_id");
 
-                    b.Property<int?>("CusDecStatusNumber")
+                    b.Property<int>("CusDecStatusNumber")
                         .HasColumnType("integer")
                         .HasColumnName("cus_dec_status_number");
 
@@ -1854,7 +1856,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
-                    b.Property<long?>("ExternalSystemNumber")
+                    b.Property<long>("ExternalSystemNumber")
                         .HasColumnType("bigint")
                         .HasColumnName("external_system_number");
 
@@ -1874,6 +1876,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("status_date_time");
 
                     b.Property<string>("TableName")
+                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("table_name");
@@ -1944,7 +1947,7 @@ namespace Cdns.Infrastructure.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("CusDecTaxId"));
 
-                    b.Property<long?>("CusDecExternalSystemNumber")
+                    b.Property<long>("CusDecExternalSystemNumber")
                         .HasColumnType("bigint")
                         .HasColumnName("cus_dec_external_system_number");
 
@@ -1952,7 +1955,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("cus_dec_id");
 
-                    b.Property<int?>("ItemNumber")
+                    b.Property<int>("ItemNumber")
                         .HasColumnType("integer")
                         .HasColumnName("item_number");
 
@@ -1974,7 +1977,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("character varying(50)")
                         .HasColumnName("tax_code");
 
-                    b.Property<int?>("TaxRank")
+                    b.Property<int>("TaxRank")
                         .HasColumnType("integer")
                         .HasColumnName("tax_rank");
 

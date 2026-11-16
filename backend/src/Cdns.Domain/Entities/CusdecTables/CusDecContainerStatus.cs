@@ -10,8 +10,8 @@ public class CusDecContainerStatus
     public DateTime LastSyncDate { get; set; }
     public long? CusDecExternalSystemNumber { get; set; }
     public string? ContainerNumber { get; set; }
-    public long? ExternalSystemNumber { get; set; }
-    public int? ContainerStatusNumber { get; set; }
+    public long ExternalSystemNumber { get; set; }
+    public int ContainerStatusNumber { get; set; }
 
     // Navigation
     public CusDecContainer? CusDecContainer { get; set; }

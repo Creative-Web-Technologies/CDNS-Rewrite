@@ -28,5 +28,8 @@ public class CusDecTaxConfiguration : IEntityTypeConfiguration<CusDecTax>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => new { x.CusDecExternalSystemNumber, x.ItemNumber, x.TaxRank }).IsUnique();
+        builder.Property(x => x.CusDecExternalSystemNumber).IsRequired();
+        builder.Property(x => x.ItemNumber).IsRequired();
+        builder.Property(x => x.TaxRank).IsRequired();
     }
 }

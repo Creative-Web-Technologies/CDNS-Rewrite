@@ -12,8 +12,8 @@ public class CusDecItem
     public string? Quantity { get; set; }
     public decimal? UnitPrice { get; set; }
     public decimal? TotalValue { get; set; }
-    public long? CusDecExternalSystemNumber { get; set; }
-    public int? CusDecItemNumber { get; set; }
+    public long CusDecExternalSystemNumber { get; set; }
+    public int CusDecItemNumber { get; set; }
     public string? BlNumber { get; set; }
 
     // Navigation

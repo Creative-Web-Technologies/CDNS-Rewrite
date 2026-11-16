@@ -34,5 +34,10 @@ public class CusDecContainerConfiguration : IEntityTypeConfiguration<CusDecConta
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => new { x.CusDecExternalSystemNumber, x.ContainerKey }).IsUnique();
+
+        builder.Property(x => x.CusDecExternalSystemNumber).IsRequired();
+        
+        builder.Property(x => x.ContainerKey).IsRequired();
+
     }
 }

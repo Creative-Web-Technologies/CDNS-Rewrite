@@ -9,10 +9,10 @@ public class CusDecStatus
     public string? Description { get; set; }
     public DateTime? StatusDateTime { get; set; }
     public DateTime LastSyncDateTime { get; set; }
-    public long? ExternalSystemNumber { get; set; }
-    public int? CusDecStatusNumber { get; set; }
-    public long? CusDecExternalSystemNumber { get; set; }
-    public string? TableName { get; set; }
+    public long ExternalSystemNumber { get; set; }
+    public int CusDecStatusNumber { get; set; }
+    public long CusDecExternalSystemNumber { get; set; }
+    public string TableName { get; set; } = null!;
 
     // Navigation
     public CusDec? CusDec { get; set; }

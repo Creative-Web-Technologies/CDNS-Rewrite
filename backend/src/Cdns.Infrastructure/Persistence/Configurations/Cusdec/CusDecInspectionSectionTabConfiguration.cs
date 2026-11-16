@@ -24,5 +24,9 @@ public class CusDecInspectionSectionTabConfiguration : IEntityTypeConfiguration<
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(x => new { x.CusDecExternalSystemNumber, x.InsTabExternalSystemNumber, x.KeySecNumber }).IsUnique();
+
+        builder.Property(x => x.CusDecExternalSystemNumber).IsRequired();
+        builder.Property(x => x.InsTabExternalSystemNumber).IsRequired();
+        builder.Property(x => x.KeySecNumber).IsRequired();
     }
 }

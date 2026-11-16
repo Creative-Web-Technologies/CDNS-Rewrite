@@ -17,12 +17,14 @@ public class CusDecInspectStatusConfiguration
 
         // Properties
         builder.Property(x => x.Status)
-            .HasMaxLength(500);
+            .HasMaxLength(500)
+            .IsRequired();
 
         builder.Property(x => x.Description);
 
         builder.Property(x => x.TableName)
-            .HasMaxLength(100);
+            .HasMaxLength(100)
+            .IsRequired();
 
         builder.Property(x => x.LastSyncDateTime)
             .IsRequired()
@@ -38,5 +40,8 @@ public class CusDecInspectStatusConfiguration
         // Natural key, matching SyncCusDecInspectStatus's own MERGE match condition
         builder.HasIndex(x => new { x.ExternalSystemNumber, x.CusDecExternalSystemNumber, x.TableName, x.Status })
             .IsUnique();
+
+        builder.Property(x => x.ExternalSystemNumber).IsRequired();
+        builder.Property(x => x.CusDecExternalSystemNumber).IsRequired();
     }
 }

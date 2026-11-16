@@ -15,8 +15,8 @@ public class CusDecContainer
     public DateTime? ArrivalDate { get; set; }
     public string? Voyage { get; set; }
     public string? Vessel { get; set; }
-    public long? CusDecExternalSystemNumber { get; set; }
-    public int? ContainerKey { get; set; }
+    public long CusDecExternalSystemNumber { get; set; }
+    public int ContainerKey { get; set; }
     public int ContainerPassNumber { get; set; }
 
     // Navigation
