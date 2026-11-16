@@ -16,6 +16,10 @@ import PortalLayout from './components/portal/PortalLayout';
 import MemberDashboard from './pages/member/MemberDashboard';
 import CompanyDashboard from './pages/company/CompanyDashboard';
 import ComingSoon from './pages/portal/ComingSoon';
+import SubscriptionsPage from './pages/member/subscriptions/SubscriptionsPage';
+import RequestsPage from './pages/member/requests/RequestsPage';
+import NewRequestPage from './pages/member/requests/NewRequestPage';
+import RequestDetailPage from './pages/member/requests/RequestDetailPage';
 
 // ── Loading screen ──────────────────────────────────────────────────────────
 function LoadingScreen() {
@@ -89,9 +93,12 @@ function AppRoutes() {
         <Route path="dashboard"     element={<MemberDashboard />} />
         <Route path="cusdecs"       element={<ComingSoon title="CusDecs" />} />
         <Route path="containers"    element={<ComingSoon title="Containers" />} />
-        <Route path="subscriptions" element={<ComingSoon title="Subscriptions" />} />
-        <Route path="requests"      element={<ComingSoon title="Requests" />} />
-        <Route path="requests/new"  element={<ComingSoon title="New declaration subscription" />} />
+        <Route path="subscriptions" element={<SubscriptionsPage />} />
+        <Route path="requests"      element={<RequestsPage />} />
+        <Route path="requests/new"  element={<NewRequestPage />} />
+        <Route path="requests/:id"  element={<RequestDetailPage />} />
+        <Route path="cusdec/:subscriptionId"     element={<ComingSoon title="CusDec workspace" />} />
+        <Route path="containers/:subscriptionId" element={<ComingSoon title="Containers" />} />
         <Route path="notifications" element={<ComingSoon title="Notifications" />} />
         <Route path="support"       element={<ComingSoon title="Support" />} />
         <Route path="profile"       element={<ComingSoon title="Profile" />} />
