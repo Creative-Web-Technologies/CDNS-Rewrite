@@ -1,5 +1,6 @@
 using Cdns.Api.Authentication;
 using Cdns.Api.Endpoints.Auth;
+using Cdns.Application.Interfaces;
 using Cdns.Infrastructure;
 using Cdns.Infrastructure.Persistence;
 using Cdns.Infrastructure.Persistence.Seed;
@@ -12,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddHealthChecks();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddMemoryCache();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
@@ -79,6 +81,7 @@ if (app.Environment.IsDevelopment())
     var db = scope.ServiceProvider.GetRequiredService<CdnsDbContext>();
     var hasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
     await AuthSeedData.SeedAsync(db, hasher);
+    await MemberPortalSeedData.SeedAsync(db);
 
     app.MapOpenApi();
 }

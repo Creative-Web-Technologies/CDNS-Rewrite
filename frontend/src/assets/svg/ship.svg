@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 340" width="860" height="340" fill="none">
+<title>Container ship</title>
+<g transform="translate(860,0) scale(-1,1)">
+<g id="ship-beacon">
+<circle cx="750" cy="46" r="20" stroke="#B9D3DB" stroke-width="2" stroke-dasharray="3 5"/>
+<circle cx="750" cy="46" r="12" stroke="#B9D3DB" stroke-width="2"/>
+<circle cx="750" cy="46" r="6" fill="#D9694F"/>
+</g>
+<g id="ship-smoke" fill="#C9DCE2">
+<circle cx="806" cy="82" r="8"/><circle cx="812" cy="60" r="11" opacity="0.7"/><circle cx="822" cy="36" r="14" opacity="0.4"/>
+</g>
+<g id="ship-body">
+<g stroke="#6B8794" stroke-width="5" stroke-linecap="round"><line x1="750" y1="100" x2="750" y2="54"/><line x1="736" y1="74" x2="764" y2="74"/></g>
+<path d="M796 104h18l-5 56h-13z" fill="#C4614B" stroke="#7A3526" stroke-width="3"/>
+<rect x="794" y="100" width="22" height="6" fill="#173642"/>
+<rect x="710" y="100" width="80" height="92" rx="7" fill="#EEF4F6" stroke="#6B8794" stroke-width="4"/>
+<g fill="#3F6B80"><rect x="719" y="113" width="14" height="12" rx="2"/><rect x="743" y="113" width="14" height="12" rx="2"/><rect x="767" y="113" width="14" height="12" rx="2"/></g>
+<g stroke="#6B8794" stroke-width="4" stroke-linecap="round"><line x1="50" y1="245" x2="50" y2="202"/><line x1="41" y1="218" x2="59" y2="218"/></g>
+<circle cx="50" cy="198" r="4" fill="#D9694F"/>
+<g id="ship-containers"><rect x="110" y="194" width="96" height="49" rx="4" fill="#3A6E82" stroke="#1F4A5B" stroke-width="3"/><g stroke="#1F4A5B" stroke-width="2" opacity="0.7"><line x1="134" y1="199" x2="134" y2="238"/><line x1="158" y1="199" x2="158" y2="238"/><line x1="182" y1="199" x2="182" y2="238"/></g><rect x="214" y="194" width="100" height="49" rx="4" fill="#D26E55" stroke="#9A4634" stroke-width="3"/><g stroke="#9A4634" stroke-width="2" opacity="0.7"><line x1="239" y1="199" x2="239" y2="238"/><line x1="264" y1="199" x2="264" y2="238"/><line x1="289" y1="199" x2="289" y2="238"/></g><rect x="322" y="194" width="104" height="49" rx="4" fill="#4E6675" stroke="#33495A" stroke-width="3"/><g stroke="#33495A" stroke-width="2" opacity="0.7"><line x1="348" y1="199" x2="348" y2="238"/><line x1="374" y1="199" x2="374" y2="238"/><line x1="400" y1="199" x2="400" y2="238"/></g><rect x="434" y="194" width="96" height="49" rx="4" fill="#D99A62" stroke="#A06A38" stroke-width="3"/><g stroke="#A06A38" stroke-width="2" opacity="0.7"><line x1="458" y1="199" x2="458" y2="238"/><line x1="482" y1="199" x2="482" y2="238"/><line x1="506" y1="199" x2="506" y2="238"/></g><rect x="538" y="194" width="104" height="49" rx="4" fill="#3F7489" stroke="#1F4A5B" stroke-width="3"/><g stroke="#1F4A5B" stroke-width="2" opacity="0.7"><line x1="564" y1="199" x2="564" y2="238"/><line x1="590" y1="199" x2="590" y2="238"/><line x1="616" y1="199" x2="616" y2="238"/></g><rect x="650" y="194" width="56" height="49" rx="4" fill="#D9B88E" stroke="#A0845C" stroke-width="3"/><g stroke="#A0845C" stroke-width="2" opacity="0.7"><line x1="664" y1="199" x2="664" y2="238"/><line x1="678" y1="199" x2="678" y2="238"/><line x1="692" y1="199" x2="692" y2="238"/></g><rect x="170" y="142" width="100" height="51" rx="4" fill="#D26E55" stroke="#9A4634" stroke-width="3"/><g stroke="#9A4634" stroke-width="2" opacity="0.7"><line x1="195" y1="147" x2="195" y2="188"/><line x1="220" y1="147" x2="220" y2="188"/><line x1="245" y1="147" x2="245" y2="188"/></g><rect x="278" y="142" width="100" height="51" rx="4" fill="#2B5A6C" stroke="#173C4A" stroke-width="3"/><g stroke="#173C4A" stroke-width="2" opacity="0.7"><line x1="303" y1="147" x2="303" y2="188"/><line x1="328" y1="147" x2="328" y2="188"/><line x1="353" y1="147" x2="353" y2="188"/></g><rect x="386" y="142" width="96" height="51" rx="4" fill="#577986" stroke="#3A5663" stroke-width="3"/><g stroke="#3A5663" stroke-width="2" opacity="0.7"><line x1="410" y1="147" x2="410" y2="188"/><line x1="434" y1="147" x2="434" y2="188"/><line x1="458" y1="147" x2="458" y2="188"/></g><rect x="490" y="142" width="108" height="51" rx="4" fill="#3C8196" stroke="#22566A" stroke-width="3"/><g stroke="#22566A" stroke-width="2" opacity="0.7"><line x1="517" y1="147" x2="517" y2="188"/><line x1="544" y1="147" x2="544" y2="188"/><line x1="571" y1="147" x2="571" y2="188"/></g><rect x="606" y="158" width="96" height="35" rx="4" fill="#E08266" stroke="#A4513C" stroke-width="3"/><g stroke="#A4513C" stroke-width="2" opacity="0.7"><line x1="630" y1="163" x2="630" y2="188"/><line x1="654" y1="163" x2="654" y2="188"/><line x1="678" y1="163" x2="678" y2="188"/></g></g>
+<rect x="60" y="243" width="772" height="9" fill="#173642"/>
+<path d="M15 250H845L812 312Q804 328 780 328H150Q70 322 15 250Z" fill="#23485A" stroke="#12303D" stroke-width="4" stroke-linejoin="round"/>
+<path d="M112 314H797L780 326H150Z" fill="#C4614B"/>
+</g>
+</g>
+</svg>

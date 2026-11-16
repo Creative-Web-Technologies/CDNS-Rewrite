@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 340" width="660" height="340" fill="none">
+<title>Customs dock</title>
+<g id="dock-building">
+<rect x="446" y="96" width="194" height="204" rx="6" fill="#EEF4F6" stroke="#6B8794" stroke-width="4"/>
+<rect x="446" y="96" width="194" height="30" rx="6" fill="#1C4E5E"/>
+<text x="543" y="117" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="3" fill="#FFFFFF">CUSTOMS</text>
+<g fill="#3F6B80"><rect x="462" y="138" width="22" height="26" rx="3"/><rect x="496" y="138" width="22" height="26" rx="3"/><rect x="530" y="138" width="22" height="26" rx="3"/><rect x="564" y="138" width="22" height="26" rx="3"/><rect x="598" y="138" width="22" height="26" rx="3"/><rect x="462" y="178" width="22" height="26" rx="3"/><rect x="496" y="178" width="22" height="26" rx="3"/><rect x="530" y="178" width="22" height="26" rx="3"/><rect x="564" y="178" width="22" height="26" rx="3"/><rect x="598" y="178" width="22" height="26" rx="3"/><rect x="462" y="218" width="22" height="26" rx="3"/><rect x="496" y="218" width="22" height="26" rx="3"/><rect x="530" y="218" width="22" height="26" rx="3"/><rect x="564" y="218" width="22" height="26" rx="3"/><rect x="598" y="218" width="22" height="26" rx="3"/></g>
+<rect x="526" y="258" width="34" height="42" rx="3" fill="#23485A"/>
+<rect x="436" y="88" width="214" height="10" rx="3" fill="#6B8794"/>
+</g>
+<g id="dock-flag">
+<line x1="543" y1="88" x2="543" y2="30" stroke="#6B8794" stroke-width="4" stroke-linecap="round"/>
+<path d="M545 32h44l-10 12 10 12h-44z" fill="#D9694F" stroke="#9A4634" stroke-width="2" stroke-linejoin="round"/>
+</g>
+<g id="dock-stack"><rect x="236" y="251" width="92" height="47" rx="4" fill="#3A6E82" stroke="#1F4A5B" stroke-width="3"/><g stroke="#1F4A5B" stroke-width="2" opacity="0.7"><line x1="259" y1="256" x2="259" y2="293"/><line x1="282" y1="256" x2="282" y2="293"/><line x1="305" y1="256" x2="305" y2="293"/></g><rect x="332" y="251" width="92" height="47" rx="4" fill="#D99A62" stroke="#A06A38" stroke-width="3"/><g stroke="#A06A38" stroke-width="2" opacity="0.7"><line x1="355" y1="256" x2="355" y2="293"/><line x1="378" y1="256" x2="378" y2="293"/><line x1="401" y1="256" x2="401" y2="293"/></g><rect x="236" y="202" width="92" height="47" rx="4" fill="#D26E55" stroke="#9A4634" stroke-width="3"/><g stroke="#9A4634" stroke-width="2" opacity="0.7"><line x1="259" y1="207" x2="259" y2="244"/><line x1="282" y1="207" x2="282" y2="244"/><line x1="305" y1="207" x2="305" y2="244"/></g><rect x="332" y="202" width="92" height="47" rx="4" fill="#4E6675" stroke="#33495A" stroke-width="3"/><g stroke="#33495A" stroke-width="2" opacity="0.7"><line x1="355" y1="207" x2="355" y2="244"/><line x1="378" y1="207" x2="378" y2="244"/><line x1="401" y1="207" x2="401" y2="244"/></g><rect x="284" y="153" width="92" height="47" rx="4" fill="#3C8196" stroke="#22566A" stroke-width="3"/><g stroke="#22566A" stroke-width="2" opacity="0.7"><line x1="307" y1="158" x2="307" y2="195"/><line x1="330" y1="158" x2="330" y2="195"/><line x1="353" y1="158" x2="353" y2="195"/></g></g>
+<g id="dock-crane">
+<g stroke="#C4614B" stroke-width="9" stroke-linecap="round" stroke-linejoin="round">
+<path d="M96 300V78M196 300V78"/><path d="M96 150h100M96 220h100"/>
+</g>
+<g stroke="#C4614B" stroke-width="5" stroke-linecap="round"><path d="M96 150l100 70M196 150l-100 70M146 78V40M146 40L-60 74M146 40L236 74"/></g>
+<rect x="-70" y="70" width="316" height="14" rx="4" fill="#C4614B" stroke="#7A3526" stroke-width="3"/>
+<rect x="150" y="50" width="42" height="24" rx="4" fill="#EEF4F6" stroke="#6B8794" stroke-width="3"/>
+</g>
+<g id="crane-trolley">
+<rect x="-34" y="82" width="36" height="12" rx="3" fill="#23485A"/>
+<g id="crane-hoist">
+<path d="M-26 94V168M-6 94V168" stroke="#44626E" stroke-width="3"/>
+<rect x="-46" y="168" width="60" height="9" rx="3" fill="#23485A"/>
+</g>
+</g>
+<g id="dock-quay">
+<rect x="60" y="300" width="600" height="40" fill="#5E7C88"/>
+<rect x="60" y="296" width="600" height="8" rx="2" fill="#44626E"/>
+<g fill="#23485A"><rect x="72" y="284" width="12" height="14" rx="3"/><rect x="212" y="284" width="12" height="14" rx="3"/></g>
+<g stroke="#44626E" stroke-width="3" opacity="0.6"><path d="M60 316h600M60 328h600"/></g>
+</g>
+</svg>

@@ -1,3 +1,4 @@
+using Cdns.Application.Feature.Dashboard;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,16 +9,18 @@ namespace Cdns.Api.Controllers;
 [Authorize(Policy = "MasterOnly")]
 public class CompanyController : ControllerBase
 {
-    [HttpGet("dashboard-summary")]
-    public IActionResult GetDashboardSummary()
+    private readonly ICompanyDashboardService _dashboard;
+
+    public CompanyController(ICompanyDashboardService dashboard)
     {
-        return Ok(new
-        {
-            companyMembers = 0,
-            pendingSubscriptionRequests = 0,
-            activeSubscriptions = 0,
-            paymentsDue = 0,
-            recentActivity = Array.Empty<object>()
-        });
+        _dashboard = dashboard;
     }
+
+    [HttpGet("dashboard-summary")]
+    public async Task<ActionResult<CompanyDashboardSummary>> GetDashboardSummary(CancellationToken ct)
+        => Ok(await _dashboard.GetSummaryAsync(ct));
+
+    [HttpGet("notifications/unread-count")]
+    public async Task<IActionResult> GetUnreadNotificationCount(CancellationToken ct)
+        => Ok(new { unread = await _dashboard.GetUnreadNotificationCountAsync(ct) });
 }
