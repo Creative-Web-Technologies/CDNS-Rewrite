@@ -15,18 +15,20 @@ public sealed class CompanyDashboardService : ICompanyDashboardService
 {
     private readonly CdnsDbContext _db;
     private readonly ICurrentUser _currentUser;
+    private readonly IBusinessClock _clock;
 
-    public CompanyDashboardService(CdnsDbContext db, ICurrentUser currentUser)
+    public CompanyDashboardService(CdnsDbContext db, ICurrentUser currentUser, IBusinessClock clock)
     {
         _db = db;
         _currentUser = currentUser;
+        _clock = clock;
     }
 
     public async Task<CompanyDashboardSummary> GetSummaryAsync(CancellationToken ct = default)
     {
         var masterId = _currentUser.MemberId;
-        var now = DateTimeOffset.UtcNow;
-        var today = new DateTimeOffset(now.UtcDateTime.Date, TimeSpan.Zero);
+        var now = _clock.Now();
+        var today = _clock.StartOfToday();
 
         // Companies this master administers.
         var companies = await _db.CompanyMemberMappings
