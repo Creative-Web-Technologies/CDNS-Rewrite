@@ -9,5 +9,6 @@
   <Folder Name="/tests/">
     <Project Path="tests/Cdns.Application.Tests/Cdns.Application.Tests.csproj" />
     <Project Path="tests/Cdns.Domain.Tests/Cdns.Domain.Tests.csproj" />
+    <Project Path="tests/Cdns.Infrastructure.Tests/Cdns.Infrastructure.Tests.csproj" />
   </Folder>
 </Solution>

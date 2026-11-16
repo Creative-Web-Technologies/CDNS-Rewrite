@@ -11,8 +11,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Cdns.Application.Features.Signup;
 using Cdns.Application.Feature.Dashboard;
+using Cdns.Application.Feature.Subscriptions;
 using Cdns.Infrastructure.Services;
 using Cdns.Infrastructure.Services.Dashboard;
+using Cdns.Infrastructure.Services.Subscriptions;
 
 namespace Cdns.Infrastructure;
 
@@ -44,6 +46,8 @@ public static class DependencyInjection
         services.AddScoped<IPasswordResetService, PasswordResetService>();
         services.AddScoped<IMemberDashboardService, MemberDashboardService>();
         services.AddScoped<ICompanyDashboardService, CompanyDashboardService>();
+        services.AddScoped<IMemberSubscriptionService, MemberSubscriptionService>();
+        services.AddScoped<IMemberSubscriptionRequestService, MemberSubscriptionRequestService>();
 
         return services;
     }
