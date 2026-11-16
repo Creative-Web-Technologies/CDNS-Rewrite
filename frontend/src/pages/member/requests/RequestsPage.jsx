@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Search, X, ClipboardList } from 'lucide-react';
+import { Plus, Search, X, ClipboardList, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button, Card, DataTable, EmptyState, PageTransition, Pill } from '../../../components/ui';
 import { usePortalChrome } from '../../../components/portal/portalChrome';
 import { apiGet } from '../../../lib/api';
@@ -37,6 +37,7 @@ export default function RequestsPage() {
   const pageSize = 20;
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   usePortalChrome({
     actions: (
@@ -48,6 +49,7 @@ export default function RequestsPage() {
 
   const load = useCallback(async (s, st, p) => {
     setLoading(true);
+    setError(false);
     try {
       const params = new URLSearchParams({ page: String(p), pageSize: String(pageSize) });
       if (s) params.set('search', s);
@@ -55,7 +57,7 @@ export default function RequestsPage() {
       const result = await apiGet(`/api/member/subscription-requests?${params}`);
       setData(result);
     } catch {
-      setData({ items: [], totalCount: 0, page: p, pageSize });
+      setError(true);
     } finally {
       setLoading(false);
     }
@@ -157,6 +159,17 @@ export default function RequestsPage() {
           <div className="req-table-wrap">
             {loading ? (
               <div className="req-loading" aria-busy="true">Loading…</div>
+            ) : error ? (
+              <EmptyState
+                icon={AlertCircle}
+                title="Couldn't load requests"
+                message="Something went wrong while fetching subscription requests."
+                action={
+                  <Button variant="secondary" icon={RefreshCw} onClick={() => load(appliedSearch, appliedStatus, page)}>
+                    Retry
+                  </Button>
+                }
+              />
             ) : (
               <DataTable
                 columns={columns}

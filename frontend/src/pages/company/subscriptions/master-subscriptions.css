@@ -1,0 +1,53 @@
+.ms-stack { display: flex; flex-direction: column; gap: 20px; }
+
+.ms-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.ms-page-title { margin: 0; font-size: 20px; font-weight: 700; color: var(--ink); }
+.ms-page-subtitle { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+
+.ms-filters { padding: 4px 0; }
+.ms-filter-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+.ms-filter-field { display: flex; flex-direction: column; gap: 6px; min-width: 160px; flex: 1; }
+.ms-label { font-size: 13px; font-weight: 500; color: var(--ink); }
+.ms-input, .ms-select {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--surface);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.ms-input:focus, .ms-select:focus { border-color: var(--primary); }
+.ms-filter-actions { display: flex; gap: 8px; align-items: flex-end; padding-bottom: 0; }
+
+.ms-count { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.ms-table-wrap { overflow-x: auto; }
+.ms-loading { padding: 40px; text-align: center; color: var(--muted); font-size: 14px; }
+
+.ms-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+}
+.ms-page-info { font-size: 14px; color: var(--muted); }
+
+.ms-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+}
+.ms-link:hover { text-decoration: underline; }

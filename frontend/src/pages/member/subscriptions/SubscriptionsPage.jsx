@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Info, ExternalLink, Container, BadgeCheck } from 'lucide-react';
+import { Plus, Info, ExternalLink, Container, BadgeCheck, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button, Card, EmptyState, PageTransition, Pill } from '../../../components/ui';
 import { usePortalChrome } from '../../../components/portal/portalChrome';
 import { apiGet } from '../../../lib/api';
@@ -33,6 +33,7 @@ export default function SubscriptionsPage() {
   const navigate = useNavigate();
   const [subs, setSubs] = useState(null);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   usePortalChrome({
     actions: (
@@ -44,11 +45,13 @@ export default function SubscriptionsPage() {
 
   useEffect(() => {
     let alive = true;
+    setSubs(null);
+    setError(null);
     apiGet('/api/member/subscriptions')
       .then((data) => { if (alive) setSubs(data ?? []); })
       .catch(() => { if (alive) setError(true); });
     return () => { alive = false; };
-  }, []);
+  }, [retryCount]);
 
   const loading = subs === null && !error;
 
@@ -72,7 +75,16 @@ export default function SubscriptionsPage() {
 
         {error ? (
           <Card>
-            <EmptyState title="Couldn't load subscriptions" message="Try refreshing the page." />
+            <EmptyState
+              icon={AlertCircle}
+              title="Couldn't load subscriptions"
+              message="Something went wrong while fetching your subscriptions."
+              action={
+                <Button variant="secondary" icon={RefreshCw} onClick={() => setRetryCount((c) => c + 1)}>
+                  Retry
+                </Button>
+              }
+            />
           </Card>
         ) : loading ? (
           <div className="sub-grid">
