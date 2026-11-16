@@ -26,6 +26,7 @@ public sealed class MemberDashboardService : IMemberDashboardService
     {
         var memberId = _currentUser.MemberId;
         var now = DateTimeOffset.UtcNow;
+        var today = new DateTimeOffset(now.UtcDateTime.Date, TimeSpan.Zero);
 
         // The member's subscriptions, carrying the company TIN/name needed for
         // visibility scopes and the nearest-expiry tile.
@@ -53,7 +54,7 @@ public sealed class MemberDashboardService : IMemberDashboardService
         // Active, unexpired subscriptions define which declarations are visible.
         var activeSubs = subs
             .Where(s => s.MemberSubscriptionStatusEnum == (int)MemberSubscriptionStatusEnum.Activate
-                        && s.ExpiryDate is not null && s.ExpiryDate >= now)
+                        && s.ExpiryDate is not null && s.ExpiryDate >= today)
             .ToList();
 
         var scopes = activeSubs
@@ -75,7 +76,7 @@ public sealed class MemberDashboardService : IMemberDashboardService
             Subscriptions: DashboardCalculator.SubscriptionCounts(
                 requestStatuses,
                 subs.Select(s => new SubscriptionView(s.MemberSubscriptionStatusEnum, s.ExpiryDate)),
-                now),
+                today),
             CusDecs: DashboardCalculator.CountCusDecs(visible),
             MonthlyCompleted: DashboardCalculator.MonthlyCompleted(visible, now.Year),
             Weekly: weekly,

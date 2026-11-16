@@ -44,8 +44,8 @@ public static class MemberPortalSeedData
             .Select(m => m.MemberId).FirstOrDefaultAsync();
 
         var nowOffset = DateTimeOffset.UtcNow;
-        var nowUtc = DateTime.UtcNow;                                      // timestamptz columns
-        var nowLocal = DateTime.SpecifyKind(nowUtc, DateTimeKind.Unspecified); // CusDec timestamp columns
+        var nowUtc = DateTime.UtcNow;
+        var nowLocal = DateTime.SpecifyKind(nowUtc, DateTimeKind.Unspecified);
 
         // ---- 1. Subscription plans (Declarant + Consignee) ----------------------
         var planDeclarantAnnual = new Subscription
@@ -54,9 +54,10 @@ public static class MemberPortalSeedData
             Description = "Annual declarant (CHA) subscription.",
             Amount = 25000m,
             NoOfActiveDuration = 12,
-            SubscriptionDurationTypeEnum = 1, // months
+            SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months,
             SubscriptionTypeEnum = (int)SubscriptionType.Declarant,
-            SubscriptionStatusEnum = 1,
+            SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General,
             CreatedDateTime = nowOffset,
         };
         var planConsigneeAnnual = new Subscription
@@ -65,9 +66,10 @@ public static class MemberPortalSeedData
             Description = "Annual consignee (importer) subscription.",
             Amount = 18000m,
             NoOfActiveDuration = 12,
-            SubscriptionDurationTypeEnum = 1,
+            SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months,
             SubscriptionTypeEnum = (int)SubscriptionType.Consignee,
-            SubscriptionStatusEnum = 1,
+            SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General,
             CreatedDateTime = nowOffset,
         };
         var planDeclarantMonthly = new Subscription
@@ -76,17 +78,16 @@ public static class MemberPortalSeedData
             Description = "Monthly declarant (CHA) subscription.",
             Amount = 3000m,
             NoOfActiveDuration = 1,
-            SubscriptionDurationTypeEnum = 1,
+            SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months,
             SubscriptionTypeEnum = (int)SubscriptionType.Declarant,
-            SubscriptionStatusEnum = 1,
+            SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General,
             CreatedDateTime = nowOffset,
         };
         db.Subscriptions.AddRange(planDeclarantAnnual, planConsigneeAnnual, planDeclarantMonthly);
         await db.SaveChangesAsync();
 
         // ---- 2. Subscription requests (all four statuses) -----------------------
-        // Three Approved requests back the three member subscriptions below; the
-        // remaining three exercise Pending / Rejected / Cancelled.
         var reqActiveDeclarant = NewRequest(member.MemberId, companyA.CompanyId, SubscriptionType.Declarant,
             SubscriptionRequestStatusEnum.Approved, nowOffset.AddDays(-200), masterA, "Approved — active declarant plan.");
         var reqActiveConsignee = NewRequest(member.MemberId, companyB.CompanyId, SubscriptionType.Consignee,
@@ -95,8 +96,6 @@ public static class MemberPortalSeedData
             SubscriptionRequestStatusEnum.Approved, nowOffset.AddDays(-480), masterA, "Approved — now expired.");
         var reqPending = NewRequest(member.MemberId, companyB.CompanyId, SubscriptionType.Consignee,
             SubscriptionRequestStatusEnum.Pending, nowOffset.AddDays(-3), responderId: null, comment: "Awaiting master approval.");
-        // A pending request on Company A from the member — visible to Master A
-        // (its own requests are excluded from the master's pending count).
         var reqPendingA = NewRequest(member.MemberId, companyA.CompanyId, SubscriptionType.Consignee,
             SubscriptionRequestStatusEnum.Pending, nowOffset.AddDays(-2), responderId: null, comment: "Awaiting Master A approval.");
         var reqRejected = NewRequest(member.MemberId, companyA.CompanyId, SubscriptionType.Declarant,
@@ -111,15 +110,15 @@ public static class MemberPortalSeedData
         // ---- 3. Member subscriptions (2 active, 1 expired) ----------------------
         var subActiveDeclarant = NewMemberSubscription(
             reqActiveDeclarant, planDeclarantAnnual, member.MemberId, companyA.CompanyId, masterA,
-            SubscriptionType.Declarant, MemberSubscriptionStatusEnum.Activate,
+            SubscriptionType.Declarant, SubscriptionActionTypeEnum.General, MemberSubscriptionStatusEnum.Activate,
             start: nowOffset.AddDays(-200), expiry: nowOffset.AddDays(165), number: "MS-A-0001");
         var subActiveConsignee = NewMemberSubscription(
             reqActiveConsignee, planConsigneeAnnual, member.MemberId, companyB.CompanyId, masterB,
-            SubscriptionType.Consignee, MemberSubscriptionStatusEnum.Activate,
+            SubscriptionType.Consignee, SubscriptionActionTypeEnum.General, MemberSubscriptionStatusEnum.Activate,
             start: nowOffset.AddDays(-150), expiry: nowOffset.AddDays(215), number: "MS-B-0001");
         var subExpired = NewMemberSubscription(
             reqExpired, planDeclarantAnnual, member.MemberId, companyA.CompanyId, masterA,
-            SubscriptionType.Declarant, MemberSubscriptionStatusEnum.Expired,
+            SubscriptionType.Declarant, SubscriptionActionTypeEnum.General, MemberSubscriptionStatusEnum.Expired,
             start: nowOffset.AddDays(-480), expiry: nowOffset.AddDays(-115), number: "MS-A-0000");
 
         db.MemberSubscriptions.AddRange(subActiveDeclarant, subActiveConsignee, subExpired);
@@ -146,7 +145,7 @@ public static class MemberPortalSeedData
             ("300", "Assessed"),
             ("400", "Released"),
             ("500", "Under Query"),
-            ("700", DashboardCalculator.ExitedStatus),  // the exit status the dashboard counts as "completed"
+            ("700", DashboardCalculator.ExitedStatus),
             ("900", DashboardCalculator.CancelledStatus),
         };
         foreach (var (asycuda, cdns) in cusDecStatusCodes)
@@ -162,9 +161,6 @@ public static class MemberPortalSeedData
         }
 
         // ---- 6. CusDecs (12: unacknowledged / claimed / disclaimed) -------------
-        // TIN match is on the first 9 characters, so the seeded 9-char TINs match
-        // directly. Each state group of four covers both sides (declarant/consignee)
-        // against both companies: [decl A, cons A, decl B, cons B].
         var states = new[] { "unacknowledged", "claimed", "disclaimed" };
         var containerStatusCodes = new (string Status, string Desc)[]
         {
@@ -204,13 +200,12 @@ public static class MemberPortalSeedData
                     SupplierCompanyName = "Overseas Supplier Co.",
                 };
 
-                // TIN / company linkage on the side whose TIN matches the company.
                 if (declarantSide)
                 {
                     cusDec.DeclarantTinNumber = company.TinNumber;
                     cusDec.DeclarantCompanyId = company.CompanyId;
                     cusDec.DeclarantCompanyName = company.CompanyName;
-                    cusDec.ConsigneeTinNumber = "700000000"; // unrelated importer
+                    cusDec.ConsigneeTinNumber = "700000000";
                     cusDec.ConsigneeCompanyName = "Unrelated Importer Pvt Ltd";
                 }
                 else
@@ -218,11 +213,10 @@ public static class MemberPortalSeedData
                     cusDec.ConsigneeTinNumber = company.TinNumber;
                     cusDec.ConsigneeCompanyId = company.CompanyId;
                     cusDec.ConsigneeCompanyName = company.CompanyName;
-                    cusDec.DeclarantTinNumber = "800000000"; // unrelated broker
+                    cusDec.DeclarantTinNumber = "800000000";
                     cusDec.DeclarantCompanyName = "Unrelated Clearing Agent";
                 }
 
-                // Acknowledgement state, tied to the matching side and the member.
                 switch (state)
                 {
                     case "claimed" when declarantSide:
@@ -241,67 +235,42 @@ public static class MemberPortalSeedData
                         cusDec.ConsigneeDisclaimedById = member.MemberId;
                         cusDec.ConsigneeDisclaimedDateTime = nowLocal.AddDays(-seq);
                         break;
-                        // "unacknowledged": leave all claim/disclaim fields null.
                 }
 
-                // Items (2 per declaration).
                 var items = new List<CusDecItem>
                 {
                     new()
                     {
-                        CusDec = cusDec,
-                        CusDecGlobalIdentity = cusDec.GlobalIdentity,
-                        GlobalIdentity = Guid.NewGuid(),
-                        CusDecItemNumber = 1,
-                        HsCode = "8471.30",
-                        Description = "Portable computers",
-                        Quantity = "10",
-                        UnitPrice = 500m,
-                        TotalValue = 5000m,
-                        BlNumber = cusDec.BlNumber,
-                        CusDecExternalSystemNumber = externalSeq,
-                        LastSyncDate = nowUtc,
+                        CusDec = cusDec, CusDecGlobalIdentity = cusDec.GlobalIdentity,
+                        GlobalIdentity = Guid.NewGuid(), CusDecItemNumber = 1,
+                        HsCode = "8471.30", Description = "Portable computers",
+                        Quantity = "10", UnitPrice = 500m, TotalValue = 5000m,
+                        BlNumber = cusDec.BlNumber, CusDecExternalSystemNumber = externalSeq, LastSyncDate = nowUtc,
                     },
                     new()
                     {
-                        CusDec = cusDec,
-                        CusDecGlobalIdentity = cusDec.GlobalIdentity,
-                        GlobalIdentity = Guid.NewGuid(),
-                        CusDecItemNumber = 2,
-                        HsCode = "8523.51",
-                        Description = "Solid-state storage devices",
-                        Quantity = "20",
-                        UnitPrice = 250m,
-                        TotalValue = 5000m,
-                        BlNumber = cusDec.BlNumber,
-                        CusDecExternalSystemNumber = externalSeq,
-                        LastSyncDate = nowUtc,
+                        CusDec = cusDec, CusDecGlobalIdentity = cusDec.GlobalIdentity,
+                        GlobalIdentity = Guid.NewGuid(), CusDecItemNumber = 2,
+                        HsCode = "8523.51", Description = "Solid-state storage devices",
+                        Quantity = "20", UnitPrice = 250m, TotalValue = 5000m,
+                        BlNumber = cusDec.BlNumber, CusDecExternalSystemNumber = externalSeq, LastSyncDate = nowUtc,
                     },
                 };
                 cusDec.NoOfItems = items.Count;
 
-                // Containers (1-2) with their own status history.
                 var containerCount = (seq % 2) + 1;
                 var containers = new List<CusDecContainer>();
                 for (var c = 0; c < containerCount; c++)
                 {
                     var container = new CusDecContainer
                     {
-                        CusDec = cusDec,
-                        CusDecGlobalIdentity = cusDec.GlobalIdentity,
-                        GlobalIdentity = Guid.NewGuid(),
-                        Container = $"CONT{externalSeq}{c}",
-                        Size = c == 0 ? "20" : "40",
-                        Type = "GP",
-                        Location = "Port of Colombo",
-                        CurrentStatus = containerStatusCodes[^1].Status,
-                        Vessel = "MV Test Carrier",
-                        Voyage = $"V{seq:D3}",
-                        ArrivalDate = nowUtc.AddDays(-seq),
-                        ContainerKey = c + 1,
-                        ContainerPassNumber = 0,
-                        CusDecExternalSystemNumber = externalSeq,
-                        LastSyncDate = nowUtc,
+                        CusDec = cusDec, CusDecGlobalIdentity = cusDec.GlobalIdentity,
+                        GlobalIdentity = Guid.NewGuid(), Container = $"CONT{externalSeq}{c}",
+                        Size = c == 0 ? "20" : "40", Type = "GP", Location = "Port of Colombo",
+                        CurrentStatus = containerStatusCodes[^1].Status, Vessel = "MV Test Carrier",
+                        Voyage = $"V{seq:D3}", ArrivalDate = nowUtc.AddDays(-seq),
+                        ContainerKey = c + 1, ContainerPassNumber = 0,
+                        CusDecExternalSystemNumber = externalSeq, LastSyncDate = nowUtc,
                     };
                     containers.Add(container);
 
@@ -311,20 +280,16 @@ public static class MemberPortalSeedData
                         step++;
                         db.CusDecContainerStatuses.Add(new CusDecContainerStatus
                         {
-                            CusDecContainer = container,
-                            ContainerNumber = container.Container,
-                            Status = status,
-                            Description = desc,
+                            CusDecContainer = container, ContainerNumber = container.Container,
+                            Status = status, Description = desc,
                             StatusDateTime = nowUtc.AddDays(-seq).AddHours(step),
-                            ContainerStatusNumber = step,
-                            CusDecExternalSystemNumber = externalSeq,
+                            ContainerStatusNumber = step, CusDecExternalSystemNumber = externalSeq,
                             LastSyncDate = nowUtc,
                         });
                     }
                 }
                 cusDec.NoOfContainers = containers.Count;
 
-                // CusDec status history (Registered -> Assessed, plus Released when claimed).
                 var historyCodes = state == "claimed"
                     ? new[] { cusDecStatusCodes[0], cusDecStatusCodes[1], cusDecStatusCodes[2] }
                     : new[] { cusDecStatusCodes[0], cusDecStatusCodes[1] };
@@ -334,15 +299,11 @@ public static class MemberPortalSeedData
                     statusStep++;
                     db.CusDecStatuses.Add(new CusDecStatus
                     {
-                        CusDec = cusDec,
-                        CusDecGlobalIdentity = cusDec.GlobalIdentity,
-                        Status = asycuda,
-                        Description = cdns,
+                        CusDec = cusDec, CusDecGlobalIdentity = cusDec.GlobalIdentity,
+                        Status = asycuda, Description = cdns,
                         StatusDateTime = nowUtc.AddDays(-seq).AddHours(statusStep),
-                        CusDecStatusNumber = statusStep,
-                        CusDecExternalSystemNumber = externalSeq,
-                        TableName = "cus_dec_statuses",
-                        LastSyncDateTime = nowUtc,
+                        CusDecStatusNumber = statusStep, CusDecExternalSystemNumber = externalSeq,
+                        TableName = "cus_dec_statuses", LastSyncDateTime = nowUtc,
                     });
                 }
 
@@ -355,11 +316,6 @@ public static class MemberPortalSeedData
         await db.SaveChangesAsync();
 
         // ---- 7. Completed (exited) & cancelled declarations --------------------
-        // These drive the "Performance annually", "Total clearances" and status
-        // widgets. They are spread across months of the current year and each
-        // carries a first (Registered) and final (Totally exited) status so the
-        // first→exit clearance time is derivable. Declarant-A rows are visible to
-        // both the member and Master A; consignee-B rows are visible to the member.
         var year = nowUtc.Year;
         long completedExternalSeq = 950_000_000;
 
@@ -370,7 +326,6 @@ public static class MemberPortalSeedData
             var exitUtc = DateTime.SpecifyKind(
                 new DateTime(year, month, Math.Min(day, DateTime.DaysInMonth(year, month)), 10, 0, 0),
                 DateTimeKind.Utc);
-            // Clamp to "now" so nothing exits in the future.
             if (exitUtc > nowUtc) exitUtc = nowUtc.AddHours(-1);
             var registeredUtc = exitUtc.AddHours(-clearanceHours);
             var assessedUtc = exitUtc.AddHours(-clearanceHours / 2);
@@ -384,18 +339,12 @@ public static class MemberPortalSeedData
                 CusDecDate = DateTime.SpecifyKind(registeredUtc, DateTimeKind.Unspecified),
                 RegistrationDate = DateTime.SpecifyKind(registeredUtc, DateTimeKind.Unspecified),
                 ReleaseDate = DateTime.SpecifyKind(exitUtc, DateTimeKind.Unspecified),
-                OfficeCode = "CBHQ1",
-                Origin = "CN",
-                Destination = "LK",
-                Channel = channel,
-                Incoterm = "CIF",
-                CusDecType = "IM4",
+                OfficeCode = "CBHQ1", Origin = "CN", Destination = "LK", Channel = channel,
+                Incoterm = "CIF", CusDecType = "IM4",
                 InvoiceValue = 20000m + completedExternalSeq % 1000 * 10m,
                 BlNumber = $"BL{completedExternalSeq}",
-                Exporter = "Overseas Supplier Co.",
-                SupplierCompanyName = "Overseas Supplier Co.",
-                NoOfItems = 0,
-                NoOfContainers = 0,
+                Exporter = "Overseas Supplier Co.", SupplierCompanyName = "Overseas Supplier Co.",
+                NoOfItems = 0, NoOfContainers = 0,
             };
             if (declarantSide)
             {
@@ -414,33 +363,26 @@ public static class MemberPortalSeedData
                 cusDec.DeclarantCompanyName = "Unrelated Clearing Agent";
             }
 
-            var steps = new (string Asycuda, string Cdns, DateTime At)[]
+            var n = 0;
+            foreach (var (asycuda, cdns, at) in new (string, string, DateTime)[]
             {
                 ("200", "Registered", registeredUtc),
                 ("300", "Assessed", assessedUtc),
                 (finalAsycuda, finalAsycuda == "900" ? DashboardCalculator.CancelledStatus : DashboardCalculator.ExitedStatus, exitUtc),
-            };
-            var n = 0;
-            foreach (var (asycuda, cdns, at) in steps)
+            })
             {
                 n++;
                 db.CusDecStatuses.Add(new CusDecStatus
                 {
-                    CusDec = cusDec,
-                    CusDecGlobalIdentity = cusDec.GlobalIdentity,
-                    Status = asycuda,
-                    Description = cdns,
-                    StatusDateTime = at,
-                    CusDecStatusNumber = n,
-                    CusDecExternalSystemNumber = completedExternalSeq,
-                    TableName = "cus_dec_statuses",
-                    LastSyncDateTime = nowUtc,
+                    CusDec = cusDec, CusDecGlobalIdentity = cusDec.GlobalIdentity,
+                    Status = asycuda, Description = cdns, StatusDateTime = at,
+                    CusDecStatusNumber = n, CusDecExternalSystemNumber = completedExternalSeq,
+                    TableName = "cus_dec_statuses", LastSyncDateTime = nowUtc,
                 });
             }
             db.CusDecs.Add(cusDec);
         }
 
-        // Declarant-A exits across the year (visible to member + Master A).
         var declAExits = new (int Month, int Day, double Hours)[]
         {
             (2, 12, 30), (4, 3, 18), (6, 21, 54), (8, 9, 12), (9, 27, 72), (10, 15, 24), (11, 6, 40),
@@ -448,7 +390,6 @@ public static class MemberPortalSeedData
         foreach (var (m, d, h) in declAExits)
             AddCompleted(companyA, declarantSide: true, m, d, h, "700", "Green");
 
-        // Consignee-B exits across the year (visible to the member).
         var consBExits = new (int Month, int Day, double Hours)[]
         {
             (3, 8, 20), (5, 19, 44), (7, 2, 16), (10, 28, 36),
@@ -456,10 +397,9 @@ public static class MemberPortalSeedData
         foreach (var (m, d, h) in consBExits)
             AddCompleted(companyB, declarantSide: false, m, d, h, "700", "Yellow");
 
-        // One cancelled declarant-A declaration (recent).
         AddCompleted(companyA, declarantSide: true, nowUtc.Month, Math.Max(1, nowUtc.Day - 4), 10, "900", "Red");
 
-        // ---- 8. Payment summaries by TIN (for the Master payment card) ---------
+        // ---- 8. Payment summaries by TIN ----------------------------------------
         db.CusDecPaymentSummaries.AddRange(
             new CusDecPaymentSummary
             {
@@ -469,8 +409,6 @@ public static class MemberPortalSeedData
             },
             new CusDecPaymentSummary
             {
-                // Distinct consignee TIN so the (declarant, consignee) unique index
-                // holds; still matches Company A on the declarant first-9 key.
                 DeclarantTinNumber = CompanyATin, ConsigneeTinNumber = "700000001",
                 TotalCif = 2_500_000m, TotalTaxPaid = 600_000m, InspectionRecoveries = 30_000m,
                 LastSyncDateTime = nowUtc,
@@ -515,7 +453,7 @@ public static class MemberPortalSeedData
 
     private static MemberSubscription NewMemberSubscription(
         SubscriptionRequest request, Subscription plan, long memberId, int companyId, long masterMemberId,
-        SubscriptionType type, MemberSubscriptionStatusEnum status,
+        SubscriptionType type, SubscriptionActionTypeEnum action, MemberSubscriptionStatusEnum status,
         DateTimeOffset start, DateTimeOffset expiry, string number)
     {
         return new MemberSubscription
@@ -537,7 +475,7 @@ public static class MemberPortalSeedData
             TransactionReferenceNumber = $"TXN-{number}",
             MemberSubscriptionStatusEnum = (int)status,
             SubscriptionTypeEnum = (int)type,
-            SubscriptionActionTypeEnum = 0,
+            SubscriptionActionTypeEnum = (int)action,
             GlobalIdentity = Guid.NewGuid(),
         };
     }

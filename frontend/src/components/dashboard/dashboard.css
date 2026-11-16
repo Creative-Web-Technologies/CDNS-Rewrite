@@ -134,9 +134,14 @@
   display: grid;
   gap: 18px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
 }
 @media (max-width: 1080px) { .dash-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 680px)  { .dash-row { grid-template-columns: 1fr; } }
+
+/* Compact consistent height; cards grow beyond this only when real data demands it. */
+.dash-row .ui-card { min-height: 300px; }
+@media (max-width: 680px) { .dash-row .ui-card { min-height: 240px; } }
 
 .dash-stack { display: flex; flex-direction: column; gap: 18px; }
 
@@ -150,9 +155,18 @@
 }
 .dash-figure__caption strong { color: var(--ink); font-weight: 700; }
 
-/* Compact empty state used inside a chart card when every value is zero. */
-.dash-chart-empty { min-height: 180px; display: flex; align-items: center; justify-content: center; }
-.dash-chart-empty .ui-empty { padding: 16px; }
+/* Flex-fill centering shell for empty states inside chart cards. */
+.dash-chart-empty { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+
+/* Flex-fill centering shell for empty states in non-chart card bodies. */
+.dash-card-empty { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+
+/* Compact empty-state variant for dashboard cards. */
+.dash-empty--compact { padding: 16px 12px; gap: 4px; }
+.dash-empty--compact .ui-empty__icon { width: 32px; height: 32px; border-radius: 10px; margin-bottom: 2px; }
+.dash-empty--compact .ui-empty__icon svg { width: 16px; height: 16px; }
+.dash-empty--compact .ui-empty__title { font-size: 14px; }
+.dash-empty--compact .ui-empty__text { font-size: 13px; text-wrap: balance; max-width: 32ch; }
 
 .dash-legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; }
 .dash-legend__item { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
@@ -181,13 +195,10 @@
 .dash-status__num { font-size: 30px; font-weight: 700; color: var(--ink); line-height: 1; }
 
 /* ── Total clearances ─────────────────────────────────────────────────────── */
-/* Content centred vertically so a stretched card does not look empty. */
 .dash-clear {
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 6px;
-  flex: 1;
 }
 .dash-clear__num { font-size: 44px; font-weight: 700; color: var(--ink); line-height: 1; }
 .dash-clear__label { font-size: 13px; color: var(--muted); }
@@ -222,14 +233,8 @@
 .dash-stream__link:hover { text-decoration: underline; }
 
 /* ── Subscription quota ───────────────────────────────────────────────────── */
-.dash-quota__company { font-size: 14px; font-weight: 600; color: var(--ink); }
-.dash-quota__plan { font-size: 12px; color: var(--muted); margin-top: 2px; }
-.dash-quota__barhead { display: flex; justify-content: space-between; align-items: center; margin: 16px 0 6px; }
-.dash-quota__remaining { font-size: 13px; font-weight: 600; color: var(--ink); }
-.dash-quota__bar { height: 8px; border-radius: 999px; background: var(--primary-soft); overflow: hidden; }
-.dash-quota__fill { height: 100%; border-radius: 999px; background: var(--primary); }
-.dash-quota__dates { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 6px; }
-.dash-quota__tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 18px; }
+/* Tiles sit at the top of the card body. */
+.dash-quota__tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
 .dash-quota__tile {
   text-align: center;
   padding: 10px 6px;
@@ -239,6 +244,32 @@
 }
 .dash-quota__tile-num { font-size: 20px; font-weight: 700; color: var(--ink); }
 .dash-quota__tile-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+/* Active subscription list (max 3 rows). */
+.dash-quota__sub-list { display: flex; flex-direction: column; gap: 6px; }
+.dash-quota__sub-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+.dash-quota__sub-company { font-size: 13px; font-weight: 600; color: var(--ink); }
+.dash-quota__sub-expiry { font-size: 12px; color: var(--muted); }
+.dash-quota__viewall { margin-top: 10px; }
+.dash-quota__link { font-size: 13px; font-weight: 600; color: var(--primary); text-decoration: none; }
+.dash-quota__link:hover { text-decoration: underline; }
+/* Pending-only message row. */
+.dash-quota__pending-msg {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--bg);
+  line-height: 1.5;
+}
 
 /* ── Payment summary ──────────────────────────────────────────────────────── */
 .dash-pay { display: flex; flex-direction: column; gap: 14px; }

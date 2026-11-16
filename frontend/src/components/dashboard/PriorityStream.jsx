@@ -17,11 +17,14 @@ export default function PriorityStream({ notifications, portal, loading }) {
           {[0, 1, 2].map((i) => <Skeleton key={i} h={40} radius={8} />)}
         </div>
       ) : items.length === 0 ? (
-        <EmptyState
-          icon={Bell}
-          title="No notifications yet"
-          message="Updates about your declarations and subscriptions will appear here."
-        />
+        <div className="dash-card-empty">
+          <EmptyState
+            icon={Bell}
+            title="No notifications yet"
+            message="Updates about your declarations and subscriptions will appear here."
+            className="dash-empty--compact"
+          />
+        </div>
       ) : (
         <div className="dash-stream" style={{ padding: '4px 16px 12px' }}>
           {items.map((n) => (

@@ -29,10 +29,11 @@ export function formatNumber(value) {
 }
 
 // Human clearance duration; returns null when not derivable.
+// e.g. 18 → "18 h", 18.5 → "18.5 h", 72 → "3 days", 57.6 → "2.4 days"
 export function formatHours(hours) {
   if (hours == null) return null;
-  if (hours < 48) return `${hours.toFixed(1)} hrs`;
-  return `${(hours / 24).toFixed(1)} days`;
+  if (hours < 48) return `${parseFloat(hours.toFixed(1))} h`;
+  return `${parseFloat((hours / 24).toFixed(1))} days`;
 }
 
 // "19 Oct" for a yyyy-mm-dd week-start string.
@@ -40,6 +41,13 @@ export function formatWeekStart(dateStr) {
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return dateStr;
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+}
+
+// "15 Nov 2026" for an ISO date/timestamp.
+export function formatDate(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 // "15 Nov 2026, 14:30" for an ISO timestamp.
