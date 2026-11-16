@@ -19,6 +19,7 @@ export default function PerformanceAnnually({ data, loading }) {
           <EmptyState
             title="No completed declarations yet"
             message="Completed declarations will appear here once they exit."
+            className="dash-empty--compact"
           />
         </div>
       ) : (

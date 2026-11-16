@@ -20,6 +20,7 @@ export default function WeeklyComparison({ data, average, loading }) {
           <EmptyState
             title="No declarations registered in the last 4 weeks"
             message="Weekly registrations will appear here as declarations come in."
+            className="dash-empty--compact"
           />
         </div>
       ) : (

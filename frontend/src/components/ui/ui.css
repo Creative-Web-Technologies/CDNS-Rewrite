@@ -187,5 +187,5 @@
 }
 .ui-empty__icon svg { width: 24px; height: 24px; }
 .ui-empty__title { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink); }
-.ui-empty__text { margin: 0; font-size: 13px; color: var(--muted); max-width: 560px; }
+.ui-empty__text { margin: 0; font-size: 13px; color: var(--muted); max-width: 560px; text-wrap: balance; }
 .ui-empty__action { margin-top: 12px; }
