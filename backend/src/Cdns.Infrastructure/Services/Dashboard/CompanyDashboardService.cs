@@ -26,6 +26,7 @@ public sealed class CompanyDashboardService : ICompanyDashboardService
     {
         var masterId = _currentUser.MemberId;
         var now = DateTimeOffset.UtcNow;
+        var today = new DateTimeOffset(now.UtcDateTime.Date, TimeSpan.Zero);
 
         // Companies this master administers.
         var companies = await _db.CompanyMemberMappings
@@ -62,7 +63,7 @@ public sealed class CompanyDashboardService : ICompanyDashboardService
 
         var activeSubs = subs
             .Where(s => s.MemberSubscriptionStatusEnum == (int)MemberSubscriptionStatusEnum.Activate
-                        && s.ExpiryDate is not null && s.ExpiryDate >= now)
+                        && s.ExpiryDate is not null && s.ExpiryDate >= today)
             .ToList();
 
         var scopes = activeSubs
@@ -78,7 +79,7 @@ public sealed class CompanyDashboardService : ICompanyDashboardService
             Subscriptions: DashboardCalculator.SubscriptionCounts(
                 requestStatuses,
                 subs.Select(s => new SubscriptionView(s.MemberSubscriptionStatusEnum, s.ExpiryDate)),
-                now),
+                today),
             CusDecs: DashboardCalculator.CountCusDecs(visible),
             MonthlyCompleted: DashboardCalculator.MonthlyCompleted(visible, now.Year),
             Weekly: weekly,

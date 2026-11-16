@@ -18,11 +18,11 @@ public class MemberSubscriptionConfiguration : IEntityTypeConfiguration<MemberSu
         builder.Property(x => x.PaidAmount).HasPrecision(18, 2).HasDefaultValue(0);
         builder.Property(x => x.SubscriptionAmount).HasPrecision(18, 2).IsRequired();
         builder.Property(x => x.MemberSubscriptionStatusEnum).HasDefaultValue(0);
-        
+
         builder.Property(x => x.MemberSubscriptionNumber).HasMaxLength(200);
         builder.Property(x => x.SubscriptionName).HasMaxLength(200).IsRequired();
         builder.Property(x => x.TransactionReferenceNumber).HasMaxLength(200);
-        
+
         builder.Property(x => x.GlobalIdentity).IsRequired();
 
         // Foreign Key: Member (Cascade Delete)

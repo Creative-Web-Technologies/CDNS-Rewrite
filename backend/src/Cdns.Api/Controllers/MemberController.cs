@@ -1,5 +1,6 @@
 using Cdns.Application.Feature.Dashboard;
 using Cdns.Application.Feature.Subscriptions;
+using Cdns.Domain.Entities.Company;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -71,7 +72,7 @@ public class MemberController : ControllerBase
     {
         if (body.CompanyId <= 0)
             return BadRequest(new { code = "InvalidCompanyId", field = "companyId" });
-        if (body.SubscriptionType != 1 && body.SubscriptionType != 2)
+        if (body.SubscriptionType != (int)SubscriptionTypeEnum.Declarant && body.SubscriptionType != (int)SubscriptionTypeEnum.Consignee)
             return BadRequest(new { code = "InvalidSubscriptionType", field = "subscriptionType" });
 
         var result = await _requests.CreateRequestAsync(body.CompanyId, body.SubscriptionType, body.Note, ct);

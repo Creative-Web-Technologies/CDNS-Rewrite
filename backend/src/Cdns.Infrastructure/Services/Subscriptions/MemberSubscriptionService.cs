@@ -8,8 +8,6 @@ namespace Cdns.Infrastructure.Services.Subscriptions;
 
 public sealed class MemberSubscriptionService : IMemberSubscriptionService
 {
-    private const int AcknowledgementOnlyAction = 2;
-
     private readonly CdnsDbContext _db;
     private readonly ICurrentUser _currentUser;
 
@@ -22,13 +20,13 @@ public sealed class MemberSubscriptionService : IMemberSubscriptionService
     public async Task<List<ActiveSubscriptionDto>> GetActiveSubscriptionsAsync(CancellationToken ct = default)
     {
         var memberId = _currentUser.MemberId;
-        var now = DateTimeOffset.UtcNow;
+        var today = new DateTimeOffset(DateTimeOffset.UtcNow.Date, TimeSpan.Zero);
 
         var rows = await (
             from s in _db.MemberSubscriptions
             where s.MemberId == memberId
                   && s.MemberSubscriptionStatusEnum == (int)MemberSubscriptionStatusEnum.Activate
-                  && s.ExpiryDate != null && s.ExpiryDate >= now
+                  && s.ExpiryDate != null && s.ExpiryDate >= today
             join c in _db.Companies on s.CompanyId equals c.CompanyId
             where !c.IsDeleted
             select new
@@ -49,11 +47,11 @@ public sealed class MemberSubscriptionService : IMemberSubscriptionService
             r.MemberSubscriptionId,
             r.CompanyName,
             r.TinNumber,
-            r.SubscriptionTypeEnum == 1 ? "Declarant" : "Consignee",
+            r.SubscriptionTypeEnum == (int)SubscriptionTypeEnum.Declarant ? "Declarant" : "Consignee",
             r.SubscriptionName,
             FormatDuration(r.NoOfActiveDuration, r.SubscriptionDurationTypeEnum),
             r.ExpiryDate!.Value,
-            r.SubscriptionActionTypeEnum == AcknowledgementOnlyAction
+            r.SubscriptionActionTypeEnum == (int)SubscriptionActionTypeEnum.OnlyForAcknowledgement
         )).ToList();
     }
 
@@ -61,10 +59,9 @@ public sealed class MemberSubscriptionService : IMemberSubscriptionService
     {
         return typeEnum switch
         {
-            0 => "Lifetime",
-            1 => $"{count} {(count == 1 ? "day" : "days")}",
-            2 => $"{count} {(count == 1 ? "month" : "months")}",
-            3 => $"{count} {(count == 1 ? "year" : "years")}",
+            (int)SubscriptionDurationTypeEnum.Days   => $"{count} {(count == 1 ? "day" : "days")}",
+            (int)SubscriptionDurationTypeEnum.Months => $"{count} {(count == 1 ? "month" : "months")}",
+            (int)SubscriptionDurationTypeEnum.Years  => $"{count} {(count == 1 ? "year" : "years")}",
             _ => $"{count} {(count == 1 ? "day" : "days")}",
         };
     }

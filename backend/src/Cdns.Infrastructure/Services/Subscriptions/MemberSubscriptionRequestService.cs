@@ -57,7 +57,7 @@ public sealed class MemberSubscriptionRequestService : IMemberSubscriptionReques
                 x.r.RequestedDateTime,
                 x.c != null ? x.c.CompanyName : "—",
                 x.c != null ? x.c.TinNumber : null,
-                x.r.SubscriptionTypeEnum == 1 ? "Declarant" : "Consignee",
+                x.r.SubscriptionTypeEnum == (int)SubscriptionTypeEnum.Declarant ? "Declarant" : "Consignee",
                 StatusLabel(x.r.SubscriptionRequestStatusEnum ?? 0)
             ))
             .ToListAsync(ct);
@@ -96,7 +96,7 @@ public sealed class MemberSubscriptionRequestService : IMemberSubscriptionReques
             row.r.RequestedDateTime,
             row.c != null ? row.c.CompanyName : "—",
             row.c?.TinNumber,
-            row.r.SubscriptionTypeEnum == 1 ? "Declarant" : "Consignee",
+            row.r.SubscriptionTypeEnum == (int)SubscriptionTypeEnum.Declarant ? "Declarant" : "Consignee",
             StatusLabel(row.r.SubscriptionRequestStatusEnum ?? 0),
             string.IsNullOrWhiteSpace(responderName) ? null : responderName.Trim(),
             row.r.ResponderComment,
@@ -214,10 +214,10 @@ public sealed class MemberSubscriptionRequestService : IMemberSubscriptionReques
 
     private static string StatusLabel(int status) => status switch
     {
-        0 => "Pending",
-        1 => "Approved",
-        2 => "Rejected",
-        3 => "Cancelled",
+        (int)SubscriptionRequestStatusEnum.Pending   => "Pending",
+        (int)SubscriptionRequestStatusEnum.Approved  => "Approved",
+        (int)SubscriptionRequestStatusEnum.Rejected  => "Rejected",
+        (int)SubscriptionRequestStatusEnum.Cancelled => "Cancelled",
         _ => "Unknown",
     };
 }
