@@ -98,6 +98,14 @@ public class MemberController : ControllerBase
             _ => StatusCode(500)
         };
     }
+
+    [HttpGet("dashboard-summary")]
+    public async Task<ActionResult<MemberDashboardSummary>> GetDashboardSummary(CancellationToken ct)
+        => Ok(await _dashboard.GetSummaryAsync(ct));
+
+    [HttpGet("notifications/unread-count")]
+    public async Task<IActionResult> GetUnreadNotificationCount(CancellationToken ct)
+        => Ok(new { unread = await _dashboard.GetUnreadNotificationCountAsync(ct) });
 }
 
 public record CreateSubscriptionRequestBody(int CompanyId, int SubscriptionType, string? Note);
