@@ -46,15 +46,17 @@ internal sealed class FakeMasterUser(long memberId) : ICurrentUser
 }
 
 /// <summary>
-/// Deterministic clock for tests. <see cref="StartOfToday"/> returns the
-/// Colombo midnight of the date supplied at construction.
+/// Deterministic clock for tests. Both <see cref="Now"/> and
+/// <see cref="StartOfToday"/> return UTC (Offset == TimeSpan.Zero) so the
+/// values are safe as Npgsql query parameters, matching the production clock
+/// contract.
 /// </summary>
 internal sealed class FakeBusinessClock(DateTimeOffset fixedNow) : IBusinessClock
 {
     private static readonly TimeZoneInfo Colombo =
         TimeZoneInfo.FindSystemTimeZoneById("Asia/Colombo");
 
-    public DateTimeOffset Now() => fixedNow;
+    public DateTimeOffset Now() => fixedNow.ToUniversalTime();
 
     public DateTimeOffset StartOfToday()
     {
@@ -62,7 +64,7 @@ internal sealed class FakeBusinessClock(DateTimeOffset fixedNow) : IBusinessCloc
         var midnight = new DateTime(
             colomboNow.Year, colomboNow.Month, colomboNow.Day,
             0, 0, 0, DateTimeKind.Unspecified);
-        return new DateTimeOffset(midnight, Colombo.GetUtcOffset(midnight));
+        return new DateTimeOffset(midnight, Colombo.GetUtcOffset(midnight)).ToUniversalTime();
     }
 }
 

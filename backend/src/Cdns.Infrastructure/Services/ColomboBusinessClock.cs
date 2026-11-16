@@ -19,6 +19,8 @@ public sealed class ColomboBusinessClock : IBusinessClock
         var midnight = new DateTime(
             colomboNow.Year, colomboNow.Month, colomboNow.Day,
             0, 0, 0, DateTimeKind.Unspecified);
-        return new DateTimeOffset(midnight, Colombo.GetUtcOffset(midnight));
+        // Convert Colombo midnight to UTC so the value is safe as a Npgsql
+        // query parameter (timestamp with time zone requires Offset == 0).
+        return new DateTimeOffset(midnight, Colombo.GetUtcOffset(midnight)).ToUniversalTime();
     }
 }

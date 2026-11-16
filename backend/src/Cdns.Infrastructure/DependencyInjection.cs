@@ -28,10 +28,13 @@ public static class DependencyInjection
                 "ConnectionStrings:Default is not configured.");
 
         services.AddSingleton<UtcDateTimeOffsetInterceptor>();
+        services.AddSingleton<UtcDateTimeOffsetCommandInterceptor>();
         services.AddDbContext<CdnsDbContext>((sp, options) =>
             options.UseNpgsql(connectionString)
                    .UseSnakeCaseNamingConvention()
-                   .AddInterceptors(sp.GetRequiredService<UtcDateTimeOffsetInterceptor>()));
+                   .AddInterceptors(
+                       sp.GetRequiredService<UtcDateTimeOffsetInterceptor>(),
+                       sp.GetRequiredService<UtcDateTimeOffsetCommandInterceptor>()));
 
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddScoped<ISignupService, SignupService>();

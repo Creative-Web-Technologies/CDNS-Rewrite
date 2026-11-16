@@ -1,5 +1,6 @@
 using Cdns.Domain.Entities.CompanySubscriptionManagement;
 using Cdns.Infrastructure.Persistence;
+using Npgsql;
 
 namespace Cdns.Infrastructure.Tests;
 
@@ -98,5 +99,40 @@ public class UtcDateTimeOffsetInterceptorTests
 
         // Tampered: paidAmount changed from 100 to 999
         Assert.False(keySvc.Verify(1L, 2, 3L, expiryUtc, 999m, 0, 0, key));
+    }
+
+    // ── Command interceptor: normalizes DateTimeOffset query parameters ───────
+
+    [Fact]
+    public void CommandInterceptor_NormalizesColomboParam_ToUtc()
+    {
+        // Simulate a LINQ query that passes StartOfToday() (now fixed to UTC, but
+        // this tests the safety-net interceptor directly).
+        var localDt = new DateTime(2026, 11, 16, 0, 0, 0, DateTimeKind.Unspecified);
+        var colomboParam = new DateTimeOffset(localDt, Colombo.GetUtcOffset(localDt)); // +05:30
+
+        using var cmd = new NpgsqlCommand("SELECT 1 WHERE @today <= expiry_date");
+        cmd.Parameters.AddWithValue("today", colomboParam);
+
+        UtcDateTimeOffsetCommandInterceptor.NormalizeParameters(cmd);
+
+        var normalized = (DateTimeOffset)cmd.Parameters[0].Value!;
+        Assert.Equal(TimeSpan.Zero, normalized.Offset);
+        Assert.Equal(colomboParam.ToUniversalTime(), normalized);
+    }
+
+    [Fact]
+    public void CommandInterceptor_LeavesUtcParamUnchanged()
+    {
+        var utcParam = new DateTimeOffset(2026, 11, 15, 18, 30, 0, TimeSpan.Zero);
+
+        using var cmd = new NpgsqlCommand("SELECT 1 WHERE @today <= expiry_date");
+        cmd.Parameters.AddWithValue("today", utcParam);
+
+        UtcDateTimeOffsetCommandInterceptor.NormalizeParameters(cmd);
+
+        var value = (DateTimeOffset)cmd.Parameters[0].Value!;
+        Assert.Equal(TimeSpan.Zero, value.Offset);
+        Assert.Equal(utcParam, value);
     }
 }
