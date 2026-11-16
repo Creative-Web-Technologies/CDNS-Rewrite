@@ -1,12 +1,46 @@
-import { useNavigate } from 'react-router-dom';
-import { ClipboardCheck } from 'lucide-react';
-import { Button, PageTransition } from '../../components/ui';
+import { useNavigate, Link } from 'react-router-dom';
+import { ClipboardCheck, Clock, BadgeCheck, AlertCircle } from 'lucide-react';
+import { Button, Card, PageTransition, StatTile } from '../../components/ui';
 import {
   Banner, WorkspaceActivity, TotalClearances, PriorityStream,
-  PaymentSummaryCard, DashboardError, useDashboardSummary,
+  PaymentSummaryCard, DashboardError, useDashboardSummary, Skeleton,
 } from '../../components/dashboard';
 import { usePortalChrome } from '../../components/portal/portalChrome';
 import '../../components/dashboard/dashboard.css';
+
+function SubscriptionStatusWidget({ subscriptions, loading }) {
+  const pending = subscriptions?.pending ?? 0;
+  const active  = subscriptions?.active  ?? 0;
+  const expired = subscriptions?.expired ?? 0;
+
+  if (loading) {
+    return (
+      <Card title="Subscription overview">
+        <div style={{ display: 'flex', gap: 16 }}>
+          <Skeleton style={{ flex: 1, height: 72 }} />
+          <Skeleton style={{ flex: 1, height: 72 }} />
+          <Skeleton style={{ flex: 1, height: 72 }} />
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <Card title="Subscription overview">
+      <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <Link to="/company/requests?status=0" style={{ flex: 1, minWidth: 120, textDecoration: 'none' }}>
+          <StatTile icon={Clock}       value={pending} label="Pending requests" tone="amber" />
+        </Link>
+        <Link to="/company/subscriptions?status=1" style={{ flex: 1, minWidth: 120, textDecoration: 'none' }}>
+          <StatTile icon={BadgeCheck}  value={active}  label="Active"           tone="success" />
+        </Link>
+        <Link to="/company/subscriptions?status=4" style={{ flex: 1, minWidth: 120, textDecoration: 'none' }}>
+          <StatTile icon={AlertCircle} value={expired} label="Expired"          tone="danger" />
+        </Link>
+      </div>
+    </Card>
+  );
+}
 
 export default function CompanyDashboard() {
   const navigate = useNavigate();
@@ -30,6 +64,7 @@ export default function CompanyDashboard() {
           <DashboardError onRetry={reload} />
         ) : (
           <>
+            <SubscriptionStatusWidget subscriptions={summary?.subscriptions} loading={loading} />
             <WorkspaceActivity summary={summary} loading={loading} />
             <div className="dash-row">
               <TotalClearances clearances={summary?.clearances} loading={loading} />

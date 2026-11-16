@@ -15,18 +15,20 @@ public sealed class MemberDashboardService : IMemberDashboardService
 {
     private readonly CdnsDbContext _db;
     private readonly ICurrentUser _currentUser;
+    private readonly IBusinessClock _clock;
 
-    public MemberDashboardService(CdnsDbContext db, ICurrentUser currentUser)
+    public MemberDashboardService(CdnsDbContext db, ICurrentUser currentUser, IBusinessClock clock)
     {
         _db = db;
         _currentUser = currentUser;
+        _clock = clock;
     }
 
     public async Task<MemberDashboardSummary> GetSummaryAsync(CancellationToken ct = default)
     {
         var memberId = _currentUser.MemberId;
-        var now = DateTimeOffset.UtcNow;
-        var today = new DateTimeOffset(now.UtcDateTime.Date, TimeSpan.Zero);
+        var now = _clock.Now();
+        var today = _clock.StartOfToday();
 
         // The member's subscriptions, carrying the company TIN/name needed for
         // visibility scopes and the nearest-expiry tile.

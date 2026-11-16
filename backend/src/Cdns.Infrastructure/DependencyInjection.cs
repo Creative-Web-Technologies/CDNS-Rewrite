@@ -27,9 +27,14 @@ public static class DependencyInjection
             ?? throw new InvalidOperationException(
                 "ConnectionStrings:Default is not configured.");
 
-        services.AddDbContext<CdnsDbContext>(options =>
+        services.AddSingleton<UtcDateTimeOffsetInterceptor>();
+        services.AddSingleton<UtcDateTimeOffsetCommandInterceptor>();
+        services.AddDbContext<CdnsDbContext>((sp, options) =>
             options.UseNpgsql(connectionString)
-            .UseSnakeCaseNamingConvention());
+                   .UseSnakeCaseNamingConvention()
+                   .AddInterceptors(
+                       sp.GetRequiredService<UtcDateTimeOffsetInterceptor>(),
+                       sp.GetRequiredService<UtcDateTimeOffsetCommandInterceptor>()));
 
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddScoped<ISignupService, SignupService>();
@@ -48,6 +53,11 @@ public static class DependencyInjection
         services.AddScoped<ICompanyDashboardService, CompanyDashboardService>();
         services.AddScoped<IMemberSubscriptionService, MemberSubscriptionService>();
         services.AddScoped<IMemberSubscriptionRequestService, MemberSubscriptionRequestService>();
+
+        services.AddSingleton<IBusinessClock, ColomboBusinessClock>();
+        services.AddScoped<IMemberSubscriptionKeyService, MemberSubscriptionKeyService>();
+        services.AddScoped<IMasterSubscriptionRequestService, MasterSubscriptionRequestService>();
+        services.AddScoped<IMasterSubscriptionService, MasterSubscriptionService>();
 
         return services;
     }

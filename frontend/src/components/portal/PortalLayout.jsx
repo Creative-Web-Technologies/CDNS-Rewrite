@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutGrid, FileText, Container, BadgeCheck, ClipboardList, Bell,
-  LifeBuoy, UserRound, CreditCard, Users, LogOut, Search, Settings,
+  LifeBuoy, UserRound, CreditCard, Users, LogOut, Search, Settings, ClipboardCheck,
 } from 'lucide-react';
 import { apiGet } from '../../lib/api';
 import { useAuth } from '../../contexts/useAuth';
@@ -33,11 +33,13 @@ const MEMBER_NAV = {
 
 const COMPANY_NAV = {
   primary: [
-    { to: '/company/dashboard',     label: 'Dashboard',       Icon: LayoutGrid, subtitle: 'Company administrator overview.' },
-    { to: '/company/cusdecs',       label: 'Company CusDecs', Icon: FileText,   subtitle: 'Declarations for your company.' },
-    { to: '/company/members',       label: 'Members',         Icon: Users,      subtitle: 'Members and subscriptions.' },
-    { to: '/company/payments',      label: 'Payments',        Icon: CreditCard, subtitle: 'Subscription payments.' },
-    { to: '/company/notifications', label: 'Notifications',   Icon: Bell,       subtitle: 'Updates about your company.' },
+    { to: '/company/dashboard',     label: 'Dashboard',       Icon: LayoutGrid,     subtitle: 'Company administrator overview.' },
+    { to: '/company/cusdecs',       label: 'Company CusDecs', Icon: FileText,       subtitle: 'Declarations for your company.' },
+    { to: '/company/members',       label: 'Members',         Icon: Users,          subtitle: 'Members and subscriptions.' },
+    { to: '/company/requests',      label: 'Requests',        Icon: ClipboardList,  subtitle: 'Subscription requests from members.' },
+    { to: '/company/subscriptions', label: 'Subscriptions',   Icon: ClipboardCheck, subtitle: 'Subscriptions you have issued.' },
+    { to: '/company/payments',      label: 'Payments',        Icon: CreditCard,     subtitle: 'Subscription payments.' },
+    { to: '/company/notifications', label: 'Notifications',   Icon: Bell,           subtitle: 'Updates about your company.' },
   ],
   bottom: [
     { to: '/company/support', label: 'Support',  Icon: LifeBuoy, subtitle: 'Get help with CDNS.' },

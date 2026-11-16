@@ -10,17 +10,19 @@ public sealed class MemberSubscriptionService : IMemberSubscriptionService
 {
     private readonly CdnsDbContext _db;
     private readonly ICurrentUser _currentUser;
+    private readonly IBusinessClock _clock;
 
-    public MemberSubscriptionService(CdnsDbContext db, ICurrentUser currentUser)
+    public MemberSubscriptionService(CdnsDbContext db, ICurrentUser currentUser, IBusinessClock clock)
     {
         _db = db;
         _currentUser = currentUser;
+        _clock = clock;
     }
 
     public async Task<List<ActiveSubscriptionDto>> GetActiveSubscriptionsAsync(CancellationToken ct = default)
     {
         var memberId = _currentUser.MemberId;
-        var today = new DateTimeOffset(DateTimeOffset.UtcNow.Date, TimeSpan.Zero);
+        var today = _clock.StartOfToday();
 
         var rows = await (
             from s in _db.MemberSubscriptions

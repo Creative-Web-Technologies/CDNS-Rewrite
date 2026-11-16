@@ -20,12 +20,15 @@ public class DiTests
         var config = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["ConnectionStrings:Default"] = "Host=localhost;Database=ditest_throwaway;Username=x;Password=x"
+                ["ConnectionStrings:Default"] = "Host=localhost;Database=ditest_throwaway;Username=x;Password=x",
+                ["Cdns:MemberSubscriptionSecret"] = "test-secret-for-di-test",
             })
             .Build();
 
         var services = new ServiceCollection();
 
+        // Register IConfiguration so services that inject it (e.g. MemberSubscriptionKeyService) can resolve it.
+        services.AddSingleton<IConfiguration>(config);
         services.AddLogging();
         var env = new TestHostEnvironment();
         services.AddSingleton<IHostEnvironment>(env);
@@ -49,6 +52,7 @@ public class DiTests
         var _ = ActivatorUtilities.CreateInstance<MemberController>(sp);
         var __ = ActivatorUtilities.CreateInstance<CompanyController>(sp);
         var ___ = ActivatorUtilities.CreateInstance<SignupController>(sp);
+        var ____ = ActivatorUtilities.CreateInstance<MasterController>(sp);
     }
 
     private sealed class TestHostEnvironment : IHostEnvironment

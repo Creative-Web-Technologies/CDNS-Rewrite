@@ -20,6 +20,11 @@ import SubscriptionsPage from './pages/member/subscriptions/SubscriptionsPage';
 import RequestsPage from './pages/member/requests/RequestsPage';
 import NewRequestPage from './pages/member/requests/NewRequestPage';
 import RequestDetailPage from './pages/member/requests/RequestDetailPage';
+import MasterRequestsPage from './pages/company/requests/MasterRequestsPage';
+import MasterRequestDetailPage from './pages/company/requests/MasterRequestDetailPage';
+import MasterNewRequestPage from './pages/company/requests/MasterNewRequestPage';
+import MasterSubscriptionsPage from './pages/company/subscriptions/MasterSubscriptionsPage';
+import MasterSubscriptionDetailPage from './pages/company/subscriptions/MasterSubscriptionDetailPage';
 
 // ── Loading screen ──────────────────────────────────────────────────────────
 function LoadingScreen() {
@@ -107,14 +112,18 @@ function AppRoutes() {
       {/* Company Portal */}
       <Route path="/company" element={<PortalGuard portal="Company" />}>
         <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard"     element={<CompanyDashboard />} />
-        <Route path="cusdecs"       element={<ComingSoon title="Company CusDecs" />} />
-        <Route path="members"       element={<ComingSoon title="Members & Subscriptions" />} />
-        <Route path="requests"      element={<ComingSoon title="Subscription Requests" />} />
-        <Route path="payments"      element={<ComingSoon title="Payments" />} />
-        <Route path="notifications" element={<ComingSoon title="Notifications" />} />
-        <Route path="support"       element={<ComingSoon title="Support" />} />
-        <Route path="profile"       element={<ComingSoon title="Profile" />} />
+        <Route path="dashboard"           element={<CompanyDashboard />} />
+        <Route path="cusdecs"             element={<ComingSoon title="Company CusDecs" />} />
+        <Route path="members"             element={<ComingSoon title="Members & Subscriptions" />} />
+        <Route path="requests"            element={<MasterRequestsPage />} />
+        <Route path="requests/new"        element={<MasterNewRequestPage />} />
+        <Route path="requests/:id"        element={<MasterRequestDetailPage />} />
+        <Route path="subscriptions"       element={<MasterSubscriptionsPage />} />
+        <Route path="subscriptions/:id"   element={<MasterSubscriptionDetailPage />} />
+        <Route path="payments"            element={<ComingSoon title="Payments" />} />
+        <Route path="notifications"       element={<ComingSoon title="Notifications" />} />
+        <Route path="support"             element={<ComingSoon title="Support" />} />
+        <Route path="profile"             element={<ComingSoon title="Profile" />} />
       </Route>
 
       {/* Catch-all */}

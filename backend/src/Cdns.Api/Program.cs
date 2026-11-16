@@ -39,6 +39,13 @@ builder.Services.AddAuthorization(options =>
 });
 builder.Services.AddControllers();
 
+// Fail fast if required secrets are absent — a missing secret means every subscription endpoint returns 500.
+if (string.IsNullOrWhiteSpace(builder.Configuration["Cdns:MemberSubscriptionSecret"]))
+    throw new InvalidOperationException(
+        "Configuration key 'Cdns:MemberSubscriptionSecret' is required. " +
+        "Add it to appsettings.Development.json locally (see appsettings.Development.example.json) " +
+        "or supply it as the 'Cdns__MemberSubscriptionSecret' environment variable in staging/production.");
+
 var app = builder.Build();
 
 // ForwardedHeaders — must run before all middleware that reads IsHttps / RemoteIpAddress.
