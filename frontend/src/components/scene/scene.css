@@ -1,0 +1,176 @@
+/*
+ * scene.css — single home for every cd-* harbour scene keyframe and class.
+ * Imported by HarbourScene and BannerScene. No duplicates anywhere else.
+ *
+ * SVG components (Sun, Cloud, etc.) are nested <svg> elements inside a parent
+ * SVG. CSS transforms on a nested <svg> element move it within the parent
+ * coordinate system. Wave animations target the <path> inside each wave SVG.
+ */
+
+/* ── Keyframes ── */
+
+@keyframes cd-sail {
+  0%   { transform: translateX(-420px); opacity: 0; }
+  6%   { opacity: 1; }
+  66%  { transform: translateX(0); opacity: 1; }
+  93%  { transform: translateX(0); opacity: 1; }
+  100% { transform: translateX(0); opacity: 0; }
+}
+
+@keyframes cd-bob {
+  0%, 100% { transform: translateY(0) rotate(-0.6deg); }
+  50%       { transform: translateY(3px) rotate(0.6deg); }
+}
+
+/* Overlay ship bob — plain vertical, no rotation (renamed to avoid conflict) */
+@keyframes cd-bob-load {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(3px); }
+}
+
+@keyframes cd-wave {
+  to { transform: translateX(-120px); }
+}
+
+@keyframes cd-cloud-drift {
+  to { transform: translateX(46px); }
+}
+
+@keyframes cd-smoke {
+  0%   { transform: translate(0,0) scale(0.6); opacity: 0.7; }
+  100% { transform: translate(-18px,-30px) scale(1.5); opacity: 0; }
+}
+
+@keyframes cd-gull-drift {
+  0%, 100% { transform: translate(0,0); }
+  50%       { transform: translate(14px,-8px); }
+}
+
+@keyframes cd-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes cd-sun-drift {
+  0%   { transform: translate(0, 34px); }
+  50%  { transform: translate(220px, -26px); }
+  100% { transform: translate(440px, 24px); }
+}
+
+@keyframes cd-sun-x {
+  to { transform: translateX(440px); }
+}
+
+@keyframes cd-glare-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.25; }
+  50%       { transform: scale(1.18); opacity: 0.5; }
+}
+
+@keyframes cd-shimmer-fade {
+  0%, 100% { opacity: 0.25; }
+  50%       { opacity: 0.7; }
+}
+
+/* ── Sail-in and bob (applied to wrappers in HarbourScene) ── */
+.cd-ship { animation: cd-sail 24s ease-in-out infinite; }
+.cd-bob  { animation: cd-bob 4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+
+/* ── Sea waves — animate the path element inside each wave SVG ── */
+/* The parent SVG element is positioned via its x/y/width/height props.
+   The path inside moves left; the SVG viewport clips naturally. */
+.cd-wave-a path { animation: cd-wave 9s linear infinite;         fill: #5E97A8; }
+.cd-wave-b path { animation: cd-wave 6s linear infinite reverse; fill: #2A6577; }
+.cd-wave-c path { animation: cd-wave 7.5s linear infinite;       fill: #1C4E5E; }
+
+/* ── Clouds (whole nested SVG drifts) ── */
+.cd-cloud   { animation: cd-cloud-drift 14s ease-in-out infinite alternate; }
+.cd-cloud-b { animation-duration: 20s; }
+
+/* ── Gulls (whole nested SVG arcs) ── */
+.cd-gull { animation: cd-gull-drift 7s ease-in-out infinite; }
+
+/* ── Sun (whole nested SVG drifts; inner elements animate via classes in svg) ── */
+.cd-sun { animation: cd-sun-drift 80s linear infinite alternate; }
+
+/* Inner sun elements (class attrs set directly in sun.svg) */
+.cd-glare   { animation: cd-glare-pulse 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.cd-glare-b { animation-delay: 1.2s; }
+.cd-rays    { animation: cd-spin 60s linear infinite; transform-box: fill-box; transform-origin: center; }
+
+/* ── Shimmer (whole nested SVG fades; parent g tracks sun x) ── */
+.cd-sun-x   { animation: cd-sun-x 80s linear infinite alternate; }
+.cd-shimmer { animation: cd-shimmer-fade 3s ease-in-out infinite; }
+
+/* ── Dashboard banner: dock and ship detail animations ── */
+/* IDs preserved via SVGO cleanupIds:false in vite.config. */
+
+@keyframes cd-beacon-pulse {
+  0%, 100% { transform: scale(1);   opacity: 1;   }
+  50%       { transform: scale(1.3); opacity: 0.4; }
+}
+@keyframes cd-smoke-rise {
+  0%   { transform: translateY(0);     opacity: 0.85; }
+  50%  { transform: translateY(-14px); opacity: 0.5;  }
+  100% { transform: translateY(-24px); opacity: 0;    }
+}
+@keyframes cd-flag-wave {
+  0%, 100% { transform: rotate(-3deg); }
+  50%       { transform: rotate(5deg); }
+}
+@keyframes cd-hoist {
+  0%, 80%   { transform: scaleY(1); }
+  85%, 90%  { transform: scaleY(2); }
+  94%, 100% { transform: scaleY(1); }
+}
+
+#ship-beacon {
+  animation: cd-beacon-pulse 2.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+#ship-smoke {
+  animation: cd-smoke-rise 3s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+#dock-flag path {
+  animation: cd-flag-wave 2.6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 0% 50%;
+}
+#crane-hoist {
+  animation: cd-hoist 50s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+}
+
+/* Pause all CSS scene animations when .scene-paused is on the container */
+.scene-paused #ship-beacon,
+.scene-paused #ship-smoke,
+.scene-paused #dock-flag path,
+.scene-paused #crane-hoist,
+.scene-paused .cd-ship,
+.scene-paused .cd-bob,
+.scene-paused .cd-wave-a path,
+.scene-paused .cd-wave-b path,
+.scene-paused .cd-wave-c path,
+.scene-paused .cd-cloud,
+.scene-paused .cd-gull,
+.scene-paused .cd-sun,
+.scene-paused .cd-glare,
+.scene-paused .cd-rays,
+.scene-paused .cd-sun-x,
+.scene-paused .cd-shimmer {
+  animation-play-state: paused;
+}
+
+/* ── Reduced motion — stop every scene animation ── */
+@media (prefers-reduced-motion: reduce) {
+  .cd-ship, .cd-bob,
+  .cd-wave-a path, .cd-wave-b path, .cd-wave-c path,
+  .cd-cloud, .cd-gull, .cd-sun,
+  .cd-glare, .cd-rays, .cd-sun-x, .cd-shimmer,
+  #ship-beacon, #ship-smoke, #dock-flag path, #crane-hoist {
+    animation: none;
+  }
+  #ship-smoke { opacity: 0; }
+}

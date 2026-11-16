@@ -1,30 +1,25 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import AuthLayout from '../AuthLayout';
+import { motion } from 'motion/react';
+import { Eye, EyeOff } from 'lucide-react';
+import AuthShell, { AuthLogoRow } from '../AuthShell';
 import { apiPost } from '../../../lib/api';
 import { useAuth } from '../../../contexts/useAuth';
-import '../Login/LoginPage.css';
 import { checkPassword } from '../../../utils/passwordPolicy';
 import PasswordRequirements from '../../../components/auth/PasswordRequirements';
 
-function EyeIcon() {
+function Rise({ delay = 0, children }) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-  );
-}
-function EyeOffIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
-      <line x1="1" y1="1" x2="23" y2="23"/>
-    </svg>
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, ease: [0.2, 0.7, 0.2, 1], delay }}
+    >
+      {children}
+    </motion.div>
   );
 }
 
-// Field validation mirroring server ProfileValidator rules
 const PROFILE_FIELD_MESSAGES = {
   InvalidName:        'Valid name required (letters, spaces, hyphens, apostrophes, dots; max 50 chars).',
   InvalidMobile:      'Valid mobile required (8–15 digits, optional leading +).',
@@ -70,33 +65,47 @@ export default function MasterActivationPage() {
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
 
-  // Profile form
   const [profile, setProfile] = useState({
     firstName: '', lastName: '', mobile: '', nic: '', designation: '',
   });
 
-  // Password form
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [confirmPw, setConfirmPw] = useState('');
   const [showConfirmPw, setShowConfirmPw] = useState(false);
 
+  const leftTop = (
+    <>
+      <Rise delay={0}><AuthLogoRow /></Rise>
+      <div className="auth-left-copy">
+        <Rise delay={0.08}>
+          <h1>Company administrator activation.</h1>
+        </Rise>
+        <Rise delay={0.16}>
+          <p>
+            Complete your profile and set your password to activate your CDNS
+            Master account.
+          </p>
+        </Rise>
+      </div>
+    </>
+  );
+
   if (!activationToken) {
     return (
-      <AuthLayout>
-        <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: '0 0 8px' }}>
-          Invalid Activation Link
-        </h1>
-        <p style={{ color: '#6b7280', fontSize: 14 }}>
-          No activation token found. Please log in again to restart the activation flow.
-        </p>
-      </AuthLayout>
+      <AuthShell leftTop={leftTop}>
+        <Rise delay={0}>
+          <div className="auth-heading-block">
+            <h2>Invalid Activation Link</h2>
+            <p>No activation token found. Please log in again to restart the activation flow.</p>
+          </div>
+        </Rise>
+      </AuthShell>
     );
   }
 
   async function handleProfile(e) {
     e.preventDefault();
-    // Client-side validation first
     const profileFields = ['firstName', 'lastName', 'mobile', 'nic', 'designation'];
     const errors = {};
     profileFields.forEach(f => {
@@ -122,6 +131,8 @@ export default function MasterActivationPage() {
       } else if (err.field) {
         const msg = PROFILE_FIELD_MESSAGES[err.code] || 'Invalid value.';
         setFieldErrors({ [err.field]: msg });
+      } else if (!err.status || err.status >= 500) {
+        setError('Something went wrong. Check your connection and try again.');
       } else {
         setError('Could not save profile. Please try again.');
       }
@@ -155,7 +166,9 @@ export default function MasterActivationPage() {
           ? 'This activation link is invalid or has already been used.'
           : err.code === 'WeakPassword'
           ? 'Password does not meet the requirements. Please choose a stronger password.'
-          : 'Could not set password. The activation link may have expired.'
+          : !err.status || err.status >= 500
+          ? 'Something went wrong. Check your connection and try again.'
+          : 'Could not set password. The activation link may have expired.',
       );
     } finally {
       setLoading(false);
@@ -166,176 +179,167 @@ export default function MasterActivationPage() {
     const { name, value } = e.target;
     setProfile(p => ({ ...p, [name]: value }));
     if (fieldErrors[name]) setFieldErrors(prev => ({ ...prev, [name]: null }));
+    if (error) setError('');
   }
 
-  return (
-    <AuthLayout>
-      {/* Step indicator */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-        {['Complete Profile', 'Set Password'].map((label, i) => {
-          const n = i + 1;
-          const stepNum = step === 'profile' ? 1 : 2;
-          const done = n < stepNum;
-          const active = n === stepNum;
-          return (
-            <span
-              key={label}
-              style={{
-                fontSize: 12,
-                fontWeight: active || done ? 600 : 400,
-                color: active ? '#1e40af' : done ? '#166534' : '#9ca3af',
-                fontFamily: 'system-ui, sans-serif',
-              }}
-            >
-              {n}. {label}{i < 1 ? ' →' : ''}
-            </span>
-          );
-        })}
-      </div>
+  // ── Step indicator ──
+  const stepNum = step === 'profile' ? 1 : 2;
+  const stepIndicator = (
+    <div className="ma-steps">
+      {['Complete Profile', 'Set Password'].map((label, i) => {
+        const n = i + 1;
+        const done = n < stepNum;
+        const active = n === stepNum;
+        return (
+          <span
+            key={label}
+            className={`ma-step${active ? ' ma-step--active' : done ? ' ma-step--done' : ''}`}
+          >
+            {n}. {label}{i < 1 ? ' →' : ''}
+          </span>
+        );
+      })}
+    </div>
+  );
 
-      <h1 style={{ fontSize: 20, fontWeight: 700, color: '#0f172a', margin: '0 0 4px', fontFamily: 'system-ui, sans-serif' }}>
-        {step === 'profile' ? 'Complete Your Profile' : 'Set Your Password'}
-      </h1>
-      <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 24, fontFamily: 'system-ui, sans-serif' }}>
-        {step === 'profile'
-          ? 'Enter your personal details to activate your company administrator account.'
-          : 'Create a secure password to finish activation.'}
-      </p>
+  return (
+    <AuthShell leftTop={leftTop}>
+      <Rise delay={0}>
+        {stepIndicator}
+      </Rise>
+
+      <Rise delay={0.06}>
+        <div className="auth-heading-block">
+          <h2>{step === 'profile' ? 'Complete Your Profile' : 'Set Your Password'}</h2>
+          <p>
+            {step === 'profile'
+              ? 'Enter your personal details to activate your company administrator account.'
+              : 'Create a secure password to finish activation.'}
+          </p>
+        </div>
+      </Rise>
 
       {error && (
-        <div role="alert" style={{
-          background: '#fef2f2', border: '1px solid #fca5a5', color: '#b91c1c',
-          borderRadius: 8, padding: '12px 16px', fontSize: 14, marginBottom: 16,
-          fontFamily: 'system-ui, sans-serif',
-        }}>
-          {error}
-        </div>
+        <Rise delay={0}>
+          <div className="auth-banner auth-banner--error cd-shake" role="alert">
+            <span>{error}</span>
+          </div>
+        </Rise>
       )}
 
       {step === 'profile' && (
-        <form onSubmit={handleProfile} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-            <Field id="ma-firstName" label="First Name *" error={fieldErrors.firstName}>
-              <input id="ma-firstName" name="firstName" type="text" value={profile.firstName}
-                onChange={handleProfileChange} required autoComplete="given-name"
-                aria-invalid={fieldErrors.firstName ? 'true' : 'false'} />
-            </Field>
-            <Field id="ma-lastName" label="Last Name *" error={fieldErrors.lastName}>
-              <input id="ma-lastName" name="lastName" type="text" value={profile.lastName}
-                onChange={handleProfileChange} required autoComplete="family-name"
-                aria-invalid={fieldErrors.lastName ? 'true' : 'false'} />
-            </Field>
-            <Field id="ma-mobile" label="Mobile *" error={fieldErrors.mobile}>
-              <input id="ma-mobile" name="mobile" type="tel" value={profile.mobile}
-                onChange={handleProfileChange} autoComplete="tel"
-                aria-invalid={fieldErrors.mobile ? 'true' : 'false'} />
-            </Field>
-            <Field id="ma-nic" label="NIC *" error={fieldErrors.nic}>
-              <input id="ma-nic" name="nic" type="text" value={profile.nic}
-                onChange={handleProfileChange}
-                aria-invalid={fieldErrors.nic ? 'true' : 'false'} />
-            </Field>
+        <form onSubmit={handleProfile} noValidate style={{ display: 'contents' }}>
+          <div className="ma-profile-grid">
+            <MaField id="ma-firstName" label="First name" error={fieldErrors.firstName}>
+              <input
+                id="ma-firstName" name="firstName" type="text"
+                className={`auth-input${fieldErrors.firstName ? ' auth-input--error' : ''}`}
+                value={profile.firstName} onChange={handleProfileChange}
+                autoComplete="given-name" aria-invalid={!!fieldErrors.firstName}
+              />
+            </MaField>
+            <MaField id="ma-lastName" label="Last name" error={fieldErrors.lastName}>
+              <input
+                id="ma-lastName" name="lastName" type="text"
+                className={`auth-input${fieldErrors.lastName ? ' auth-input--error' : ''}`}
+                value={profile.lastName} onChange={handleProfileChange}
+                autoComplete="family-name" aria-invalid={!!fieldErrors.lastName}
+              />
+            </MaField>
+            <MaField id="ma-mobile" label="Mobile" error={fieldErrors.mobile}>
+              <input
+                id="ma-mobile" name="mobile" type="tel"
+                className={`auth-input${fieldErrors.mobile ? ' auth-input--error' : ''}`}
+                value={profile.mobile} onChange={handleProfileChange}
+                autoComplete="tel" aria-invalid={!!fieldErrors.mobile}
+              />
+            </MaField>
+            <MaField id="ma-nic" label="NIC" error={fieldErrors.nic}>
+              <input
+                id="ma-nic" name="nic" type="text"
+                className={`auth-input${fieldErrors.nic ? ' auth-input--error' : ''}`}
+                value={profile.nic} onChange={handleProfileChange}
+                aria-invalid={!!fieldErrors.nic}
+              />
+            </MaField>
           </div>
-          <Field id="ma-designation" label="Designation *" error={fieldErrors.designation}>
-            <input id="ma-designation" name="designation" type="text" value={profile.designation}
-              onChange={handleProfileChange}
-              aria-invalid={fieldErrors.designation ? 'true' : 'false'} />
-          </Field>
-          <SubmitBtn loading={loading} label="Save & Continue" loadingLabel="Saving…" />
+          <MaField id="ma-designation" label="Designation" error={fieldErrors.designation}>
+            <input
+              id="ma-designation" name="designation" type="text"
+              className={`auth-input${fieldErrors.designation ? ' auth-input--error' : ''}`}
+              value={profile.designation} onChange={handleProfileChange}
+              aria-invalid={!!fieldErrors.designation}
+            />
+          </MaField>
+          <button type="submit" className="auth-btn" disabled={loading}>
+            {loading && <span className="auth-btn-spinner" />}
+            {loading ? 'Saving…' : 'Save & Continue'}
+          </button>
         </form>
       )}
 
       {step === 'password' && (
-        <form onSubmit={handlePassword} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <Field id="ma-password" label="New Password *">
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+        <form onSubmit={handlePassword} noValidate style={{ display: 'contents' }}>
+          <MaField id="ma-password" label="New password">
+            <div className="auth-pw-wrap">
               <input
                 id="ma-password"
+                className="auth-input"
                 type={showPw ? 'text' : 'password'}
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={e => { setPassword(e.target.value); if (error) setError(''); }}
                 placeholder="At least 8 characters"
                 autoComplete="new-password"
-                style={{ paddingRight: 44 }}
-                required
               />
               <button
-                type="button"
+                type="button" className="auth-pw-toggle"
                 onClick={() => setShowPw(v => !v)}
                 aria-label={showPw ? 'Hide password' : 'Show password'}
-                style={{
-                  position: 'absolute', right: 12, background: 'none', border: 'none',
-                  cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center',
-                }}
               >
-                {showPw ? <EyeOffIcon /> : <EyeIcon />}
+                {showPw ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             <PasswordRequirements value={password} />
-          </Field>
-          <Field id="ma-confirm-password" label="Confirm Password *">
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+          </MaField>
+          <MaField id="ma-confirm-password" label="Confirm password">
+            <div className="auth-pw-wrap">
               <input
                 id="ma-confirm-password"
+                className="auth-input"
                 type={showConfirmPw ? 'text' : 'password'}
                 value={confirmPw}
                 onChange={e => setConfirmPw(e.target.value)}
                 placeholder="Re-enter your password"
                 autoComplete="new-password"
-                style={{ paddingRight: 44 }}
               />
               <button
-                type="button"
+                type="button" className="auth-pw-toggle"
                 onClick={() => setShowConfirmPw(v => !v)}
                 aria-label={showConfirmPw ? 'Hide password' : 'Show password'}
-                style={{
-                  position: 'absolute', right: 12, background: 'none', border: 'none',
-                  cursor: 'pointer', color: '#9ca3af', display: 'flex', alignItems: 'center',
-                }}
               >
-                {showConfirmPw ? <EyeOffIcon /> : <EyeIcon />}
+                {showConfirmPw ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
             {confirmPw.length > 0 && confirmPw !== password && (
-              <p className="field-error">Passwords do not match.</p>
+              <p className="auth-field-error" role="alert">Passwords do not match.</p>
             )}
-          </Field>
-          <SubmitBtn loading={loading} label="Activate Account" loadingLabel="Activating…" />
+          </MaField>
+          <button type="submit" className="auth-btn" disabled={loading}>
+            {loading && <span className="auth-btn-spinner" />}
+            {loading ? 'Activating…' : 'Activate Account'}
+          </button>
         </form>
       )}
-    </AuthLayout>
+    </AuthShell>
   );
 }
 
-function Field({ id, label, error, children }) {
+function MaField({ id, label, error, children }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <label htmlFor={id} style={{ fontSize: 13.5, fontWeight: 500, color: '#374151', fontFamily: 'system-ui, sans-serif' }}>
-        {label}
-      </label>
+    <div>
+      <label className="auth-label" htmlFor={id}>{label}</label>
       {children}
-      {error && (
-        <p role="alert" style={{ color: '#b91c1c', fontSize: 12, margin: 0, fontFamily: 'system-ui, sans-serif' }}>
-          {error}
-        </p>
-      )}
+      {error && <p className="auth-field-error" role="alert">{error}</p>}
     </div>
-  );
-}
-
-function SubmitBtn({ loading, label, loadingLabel }) {
-  return (
-    <button
-      type="submit"
-      disabled={loading}
-      style={{
-        width: '100%', padding: '12px 14px', background: '#1e40af', color: '#ffffff',
-        border: 'none', borderRadius: 50, fontSize: 15, fontWeight: 600,
-        cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.65 : 1,
-        fontFamily: 'system-ui, sans-serif', marginTop: 4,
-      }}
-    >
-      {loading ? loadingLabel : label}
-    </button>
   );
 }

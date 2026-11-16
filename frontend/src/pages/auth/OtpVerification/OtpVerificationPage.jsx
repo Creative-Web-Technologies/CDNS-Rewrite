@@ -1,13 +1,14 @@
-import AuthLayout from '../AuthLayout';
+import AuthShell, { AuthLogoRow } from '../AuthShell';
 
-// Stub — Chirath to implement. Wrap content with <AuthLayout> as shown.
+// Stub — to be implemented. Layout uses AuthShell to match the rest of the auth UI.
 export default function OtpVerificationPage() {
+  const leftTop = <AuthLogoRow />;
   return (
-    <AuthLayout>
-      <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 8px', color: '#0f172a' }}>
-        Verify OTP
-      </h1>
-      <p style={{ color: '#64748b', fontSize: '14px' }}>OTP verification form — coming soon.</p>
-    </AuthLayout>
+    <AuthShell leftTop={leftTop}>
+      <div className="auth-heading-block">
+        <h2>Verify OTP</h2>
+        <p>OTP verification form — coming soon.</p>
+      </div>
+    </AuthShell>
   );
 }

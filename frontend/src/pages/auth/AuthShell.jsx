@@ -1,25 +1,32 @@
+import HarbourScene from './HarbourScene';
 import './AuthShell.css';
 
-export default function AuthShell({ children }) {
+export function AuthLogoRow() {
   return (
-    <div className="portal-shell">
-      <div className="portal-header-bar">
-        <span className="portal-header-left">
-          <span className="portal-status-dot" aria-hidden="true" />
-          ASYCUDA World Gateway | v4.8.2-PROD [LK-CMB]
-        </span>
-        <span className="portal-header-right">
-          Official Customs Operational Portal • Democratic Socialist Republic of Sri Lanka
-        </span>
-      </div>
-      <div className="portal-body">
-        <div className="portal-left" aria-hidden="true" />
-        <div className="portal-right">
-          <div className="portal-right-inner">
-            {children}
-          </div>
+    <div className="auth-logo-row">
+      <img src="/Customslogo.png" alt="Sri Lanka Customs" className="auth-logo-img" />
+    </div>
+  );
+}
+
+export default function AuthShell({ leftTop, compact = false, wideForm = false, children }) {
+  return (
+    <div className="auth-shell">
+      <section className="auth-left">
+        <div className={`auth-left-top${compact ? ' auth-left-top--compact' : ''}`}>
+          {leftTop}
         </div>
-      </div>
+        <HarbourScene />
+      </section>
+
+      <main className="auth-right">
+        <div className={`auth-right-inner${wideForm ? ' auth-right-inner--wide' : ''}`}>
+          {children}
+        </div>
+        <p className="auth-panel-footer">
+          Customs Declaration Notification System · Sri Lanka Customs
+        </p>
+      </main>
     </div>
   );
 }

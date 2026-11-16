@@ -1,0 +1,12 @@
+/*
+ * HarbourScene.css — layout only.
+ * All cd-* animation keyframes and classes live in scene.css.
+ */
+
+.harbour-scene {
+  display: block;
+  width: 100%;
+  /* Fill remaining left-panel height; min-height prevents total collapse */
+  min-height: 220px;
+  flex: 1 1 0;
+}

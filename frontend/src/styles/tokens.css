@@ -1,5 +1,5 @@
 /* Design tokens for the CDNS portals. Imported once from main.jsx. */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Core palette */
@@ -26,6 +26,23 @@
 
   /* Typography */
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Auth screen tokens */
+  --auth-ink: #0F2A35;
+  --auth-primary: #1C4E5E;
+  --auth-primary-mid: #2A6577;
+  --auth-sea-light: #5E97A8;
+  --auth-steel: #8FB8C8;
+  --auth-text-2: #3D5360;
+  --auth-muted: #536974;
+  --auth-border: #C9D6DD;
+  --auth-track: #E1EAEF;
+  --auth-surface-2: #F3F7FA;
+  --auth-panel: #E3F2FD;
+  --auth-orange: #E0862F;
+  --auth-sand: #F2C48D;
+  --auth-sun: #FFD98A;
+  --auth-glare: #FFE2A6;
 
   /* Shared radii / shadows used by the shell and shared components */
   --radius-sm: 8px;
