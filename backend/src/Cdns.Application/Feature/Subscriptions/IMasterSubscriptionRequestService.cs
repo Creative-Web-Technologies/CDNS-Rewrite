@@ -31,12 +31,12 @@ public interface IMasterSubscriptionRequestService
     /// <summary>L4 – Reject a pending request.</summary>
     Task<RejectRequestResult> RejectRequestAsync(long requestId, string comment, CancellationToken ct = default);
 
-    /// <summary>L5 – Plans compatible with the request's subscription type.</summary>
+    /// <summary>L5 – Plans for plan picker: all active plans for own request; type-filtered for a member's request.</summary>
     Task<IReadOnlyList<SubscriptionPlanDto>?> GetPlansForRequestAsync(long requestId, CancellationToken ct = default);
 
     /// <summary>L6 – Approve (atomic): creates subscription, updates request, sends notification.</summary>
     Task<ApproveRequestResult> ApproveRequestAsync(long requestId, int planId, CancellationToken ct = default);
 
-    /// <summary>L7 – Master self-creates a Consignee Pending request for one of their companies.</summary>
-    Task<CreateMasterRequestResult> CreateMasterRequestAsync(int companyId, string? note, CancellationToken ct = default);
+    /// <summary>L7 – Master self-creates a Consignee Pending request using their own (first) company; no body needed.</summary>
+    Task<CreateMasterRequestResult> CreateSelfRequestAsync(CancellationToken ct = default);
 }

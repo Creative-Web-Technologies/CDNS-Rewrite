@@ -51,15 +51,11 @@ public class MasterController : ControllerBase
         => Ok(await _requests.GetPendingRequestsAsync(
             requestNumber, memberEmail, search, fromDate, toDate, page, pageSize, ct));
 
-    // POST /api/master/subscription-requests  (L7 self-create)
+    // POST /api/master/subscription-requests  (L7 self-create; no body required)
     [HttpPost("subscription-requests")]
-    public async Task<IActionResult> CreateMasterRequest(
-        [FromBody] CreateMasterRequestBody body, CancellationToken ct)
+    public async Task<IActionResult> CreateSelfRequest(CancellationToken ct)
     {
-        if (body.CompanyId <= 0)
-            return BadRequest(new { code = "InvalidCompanyId", field = "companyId" });
-
-        var result = await _requests.CreateMasterRequestAsync(body.CompanyId, body.Note, ct);
+        var result = await _requests.CreateSelfRequestAsync(ct);
         return result switch
         {
             CreateMasterRequestResult.Success s =>
@@ -67,7 +63,7 @@ public class MasterController : ControllerBase
                     $"/api/master/subscription-requests/{s.RequestId}",
                     new { requestId = s.RequestId, requestNumber = s.RequestNumber }),
             CreateMasterRequestResult.CompanyNotMapped =>
-                NotFound(new { code = "CompanyNotMapped" }),
+                BadRequest(new { code = "NoCompanyMapped" }),
             _ => StatusCode(500),
         };
     }
@@ -120,9 +116,10 @@ public class MasterController : ControllerBase
         {
             ApproveRequestResult.Success s =>
                 Ok(new { memberSubscriptionId = s.MemberSubscriptionId, number = s.Number }),
-            ApproveRequestResult.NotFound   => NotFound(new { code = "NotFound" }),
-            ApproveRequestResult.NotPending => Conflict(new { code = "NotPending" }),
+            ApproveRequestResult.NotFound     => NotFound(new { code = "NotFound" }),
+            ApproveRequestResult.NotPending   => Conflict(new { code = "NotPending" }),
             ApproveRequestResult.PlanNotFound => NotFound(new { code = "PlanNotFound" }),
+            ApproveRequestResult.TypeMismatch => Conflict(new { code = "TypeMismatch" }),
             _ => StatusCode(500),
         };
     }
@@ -171,7 +168,6 @@ public class MasterController : ControllerBase
     }
 }
 
-public record CreateMasterRequestBody(int CompanyId, string? Note);
 public record RejectRequestBody(string Comment);
 public record ApproveRequestBody(int PlanId);
 public record DeactivateBody(string Comment);

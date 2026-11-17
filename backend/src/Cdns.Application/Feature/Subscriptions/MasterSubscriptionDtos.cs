@@ -96,6 +96,8 @@ public abstract record ApproveRequestResult
     public sealed record NotFound : ApproveRequestResult;
     public sealed record NotPending : ApproveRequestResult;
     public sealed record PlanNotFound : ApproveRequestResult;
+    /// <summary>Member request: selected plan type does not match request type.</summary>
+    public sealed record TypeMismatch : ApproveRequestResult;
 }
 
 public abstract record DeactivateResult

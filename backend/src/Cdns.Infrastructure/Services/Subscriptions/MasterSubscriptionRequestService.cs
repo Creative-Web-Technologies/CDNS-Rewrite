@@ -150,7 +150,9 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
         return new RejectRequestResult.Success();
     }
 
-    // ── L5: Plans for assignment ──────────────────────────────────────────────
+    // ── L5: Plans for plan picker ─────────────────────────────────────────────
+    // Own request (MemberId == masterId): all active plans, both types.
+    // Member's request: plans filtered to request's subscription type.
 
     public async Task<IReadOnlyList<SubscriptionPlanDto>?> GetPlansForRequestAsync(
         long requestId, CancellationToken ct = default)
@@ -164,20 +166,22 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
                 r.SubscriptionRequestId == requestId
                 && r.IsDeleted != true
                 && r.CompanyId != null
-                && companyIds.Contains(r.CompanyId.Value)
-                && r.MemberId != masterId, ct);
+                && companyIds.Contains(r.CompanyId.Value), ct);
 
         if (request is null) return null;
 
-        // If the request is not pending return an empty list
         if (request.SubscriptionRequestStatusEnum != (int)SubscriptionRequestStatusEnum.Pending)
             return [];
 
-        var plans = await _db.Subscriptions
-            .Where(s =>
-                !s.IsDeleted
-                && s.SubscriptionStatusEnum == (int)SubscriptionStatusEnum.Active
-                && s.SubscriptionTypeEnum == request.SubscriptionTypeEnum)
+        bool isSelf = request.MemberId == masterId;
+
+        var plansQuery = _db.Subscriptions
+            .Where(s => !s.IsDeleted && s.SubscriptionStatusEnum == (int)SubscriptionStatusEnum.Active);
+
+        if (!isSelf)
+            plansQuery = plansQuery.Where(s => s.SubscriptionTypeEnum == request.SubscriptionTypeEnum);
+
+        var plans = await plansQuery
             .Select(s => new SubscriptionPlanDto(
                 s.SubscriptionId,
                 s.SubscriptionName,
@@ -195,6 +199,8 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
     }
 
     // ── L6: Approve ───────────────────────────────────────────────────────────
+    // Own request: any plan type allowed; request type updated to match plan.
+    // Member's request: plan type must match request type (TypeMismatch otherwise).
 
     public async Task<ApproveRequestResult> ApproveRequestAsync(
         long requestId, int planId, CancellationToken ct = default)
@@ -210,22 +216,25 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
                 r.SubscriptionRequestId == requestId
                 && r.IsDeleted != true
                 && r.CompanyId != null
-                && companyIds.Contains(r.CompanyId.Value)
-                && r.MemberId != masterId, ct);
+                && companyIds.Contains(r.CompanyId.Value), ct);
 
         if (request is null) return new ApproveRequestResult.NotFound();
 
         if (request.SubscriptionRequestStatusEnum != (int)SubscriptionRequestStatusEnum.Pending)
             return new ApproveRequestResult.NotPending();
 
+        bool isSelf = request.MemberId == masterId;
+
         var plan = await _db.Subscriptions
             .FirstOrDefaultAsync(s =>
                 s.SubscriptionId == planId
                 && !s.IsDeleted
-                && s.SubscriptionStatusEnum == (int)SubscriptionStatusEnum.Active
-                && s.SubscriptionTypeEnum == request.SubscriptionTypeEnum, ct);
+                && s.SubscriptionStatusEnum == (int)SubscriptionStatusEnum.Active, ct);
 
         if (plan is null) return new ApproveRequestResult.PlanNotFound();
+
+        if (!isSelf && plan.SubscriptionTypeEnum != request.SubscriptionTypeEnum)
+            return new ApproveRequestResult.TypeMismatch();
 
         var now = _clock.Now();
         // ComputeExpiryDate returns a Colombo-offset value; convert to UTC for storage.
@@ -270,7 +279,9 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
             subscription.SubscriptionActionTypeEnum,
             subscription.SubscriptionTypeEnum);
 
-        // Approve the request
+        // Approve the request; for own request sync the type to match the chosen plan.
+        if (isSelf)
+            request.SubscriptionTypeEnum = plan.SubscriptionTypeEnum;
         request.SubscriptionRequestStatusEnum = (int)SubscriptionRequestStatusEnum.Approved;
         request.RespondDateTime = now;
         request.ResponderId = masterId;
@@ -295,16 +306,20 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
             subscription.MemberSubscriptionNumber);
     }
 
-    // ── L7: Master self-create ────────────────────────────────────────────────
+    // ── L7: Master self-create (no body) ─────────────────────────────────────
+    // Picks the master's first mapped company (ordered by ID). Type defaults to
+    // Consignee so the plan picker pre-selects that tab; it is updated to the
+    // chosen plan's type on approve.
 
-    public async Task<CreateMasterRequestResult> CreateMasterRequestAsync(
-        int companyId, string? note, CancellationToken ct = default)
+    public async Task<CreateMasterRequestResult> CreateSelfRequestAsync(
+        CancellationToken ct = default)
     {
         var masterId = _currentUser.MemberId;
         var companyIds = await MasterCompanyIdsAsync(masterId, ct);
-
-        if (!companyIds.Contains(companyId))
+        if (companyIds.Count == 0)
             return new CreateMasterRequestResult.CompanyNotMapped();
+
+        var companyId = companyIds.OrderBy(id => id).First();
 
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
@@ -315,7 +330,6 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
             SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
             SubscriptionRequestStatusEnum = (int)SubscriptionRequestStatusEnum.Pending,
             RequestedDateTime = _clock.Now(),
-            Comment = note,
             IsDeleted = false,
             GlobalIdentity = Guid.NewGuid(),
         };
