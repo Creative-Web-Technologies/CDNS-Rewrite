@@ -49,14 +49,21 @@ export default function CompanyDashboard() {
   const { summary, status, reload } = useDashboardSummary('/api/company/dashboard-summary');
   const loading = status === 'loading';
   const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState(null);
 
   async function handleNewSubscription() {
     setCreating(true);
+    setCreateError(null);
     try {
       const result = await apiPost('/api/master/subscription-requests', {});
       navigate(`/company/requests/${result.requestId}/plans`, { state: { type: 'Consignee' } });
-    } catch {
+    } catch (err) {
       setCreating(false);
+      if (err.code === 'NoCompanyMapped') {
+        setCreateError('Your account is not linked to a company yet. Please contact support.');
+      } else {
+        setCreateError('Could not create subscription request. Please try again.');
+      }
     }
   }
 
@@ -77,6 +84,18 @@ export default function CompanyDashboard() {
     <PageTransition>
       <div className="dash-stack">
         <Banner text="Monitor declarations, subscriptions and payments across every company you administer." />
+
+        {createError && (
+          <div role="alert" style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '12px 16px', borderRadius: 'var(--radius-sm)',
+            background: 'var(--pill-red-bg)', color: 'var(--pill-red-fg)',
+            fontSize: 14,
+          }}>
+            <AlertCircle size={16} aria-hidden="true" />
+            {createError}
+          </div>
+        )}
 
         {status === 'error' ? (
           <DashboardError onRetry={reload} />

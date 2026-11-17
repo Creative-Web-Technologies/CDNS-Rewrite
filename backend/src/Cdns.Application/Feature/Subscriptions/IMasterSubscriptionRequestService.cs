@@ -31,8 +31,8 @@ public interface IMasterSubscriptionRequestService
     /// <summary>L4 – Reject a pending request.</summary>
     Task<RejectRequestResult> RejectRequestAsync(long requestId, string comment, CancellationToken ct = default);
 
-    /// <summary>L5 – Plans for plan picker: all active plans for own request; type-filtered for a member's request.</summary>
-    Task<IReadOnlyList<SubscriptionPlanDto>?> GetPlansForRequestAsync(long requestId, CancellationToken ct = default);
+    /// <summary>L5 – Plans for plan picker; response includes RequestType for tab selection. Null = not found / not owned.</summary>
+    Task<SubscriptionPlansResponseDto?> GetPlansForRequestAsync(long requestId, CancellationToken ct = default);
 
     /// <summary>L6 – Approve (atomic): creates subscription, updates request, sends notification.</summary>
     Task<ApproveRequestResult> ApproveRequestAsync(long requestId, int planId, CancellationToken ct = default);

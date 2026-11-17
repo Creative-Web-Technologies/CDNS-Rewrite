@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button, Card, PageTransition, Pill } from '../../../components/ui';
 import { apiGet, apiPost } from '../../../lib/api';
+import { useNumericIdParam } from '../../../lib/useNumericIdParam';
 import './request-detail.css';
 
 function formatDate(iso) {
@@ -28,7 +29,7 @@ function DetailRow({ label, value }) {
 }
 
 export default function RequestDetailPage() {
-  const { id } = useParams();
+  const id = useNumericIdParam();
   const navigate = useNavigate();
   const [req, setReq] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -38,6 +39,7 @@ export default function RequestDetailPage() {
   const [cancelError, setCancelError] = useState(null);
 
   useEffect(() => {
+    if (id === null) return;
     let alive = true;
     setLoading(true);
     apiGet(`/api/member/subscription-requests/${id}`)
@@ -61,6 +63,8 @@ export default function RequestDetailPage() {
       setCancelling(false);
     }
   }
+
+  if (id === null) return <Navigate to="/member/requests" replace />;
 
   if (loading) {
     return (

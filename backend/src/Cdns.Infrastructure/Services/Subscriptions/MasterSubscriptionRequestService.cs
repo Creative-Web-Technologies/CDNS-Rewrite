@@ -154,7 +154,7 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
     // Own request (MemberId == masterId): all active plans, both types.
     // Member's request: plans filtered to request's subscription type.
 
-    public async Task<IReadOnlyList<SubscriptionPlanDto>?> GetPlansForRequestAsync(
+    public async Task<SubscriptionPlansResponseDto?> GetPlansForRequestAsync(
         long requestId, CancellationToken ct = default)
     {
         var masterId = _currentUser.MemberId;
@@ -170,10 +170,13 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
 
         if (request is null) return null;
 
-        if (request.SubscriptionRequestStatusEnum != (int)SubscriptionRequestStatusEnum.Pending)
-            return [];
+        var requestType = request.SubscriptionTypeEnum == (int)SubscriptionTypeEnum.Declarant
+            ? "Declarant" : "Consignee";
 
         bool isSelf = request.MemberId == masterId;
+
+        if (request.SubscriptionRequestStatusEnum != (int)SubscriptionRequestStatusEnum.Pending)
+            return new SubscriptionPlansResponseDto(requestType, isSelf, []);
 
         var plansQuery = _db.Subscriptions
             .Where(s => !s.IsDeleted && s.SubscriptionStatusEnum == (int)SubscriptionStatusEnum.Active);
@@ -195,7 +198,7 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
             ))
             .ToListAsync(ct);
 
-        return plans;
+        return new SubscriptionPlansResponseDto(requestType, isSelf, plans);
     }
 
     // ── L6: Approve ───────────────────────────────────────────────────────────

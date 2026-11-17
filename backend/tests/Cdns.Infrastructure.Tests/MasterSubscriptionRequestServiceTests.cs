@@ -257,10 +257,12 @@ public class MasterSubscriptionRequestServiceTests
         await db.SaveChangesAsync();
 
         var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
-        var plans = await svc.GetPlansForRequestAsync(1);
-        Assert.NotNull(plans);
-        Assert.Single(plans!);
-        Assert.Equal(1, plans![0].SubscriptionId);
+        var response = await svc.GetPlansForRequestAsync(1);
+        Assert.NotNull(response);
+        Assert.Equal("Declarant", response!.RequestType);
+        Assert.False(response.IsSelf);
+        Assert.Single(response.Plans);
+        Assert.Equal(1, response.Plans[0].SubscriptionId);
     }
 
     // ── L1: List excludes master's own requests ───────────────────────────────
@@ -592,11 +594,73 @@ public class MasterSubscriptionRequestServiceTests
         await db.SaveChangesAsync();
 
         var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
-        var plans = await svc.GetPlansForRequestAsync(1);
-        Assert.NotNull(plans);
-        Assert.Equal(2, plans!.Count);
-        Assert.Contains(plans, p => p.SubscriptionType == "Consignee");
-        Assert.Contains(plans, p => p.SubscriptionType == "Declarant");
+        var response = await svc.GetPlansForRequestAsync(1);
+        Assert.NotNull(response);
+        Assert.Equal("Consignee", response!.RequestType);
+        Assert.True(response.IsSelf);
+        Assert.Equal(2, response.Plans.Count);
+        Assert.Contains(response.Plans, p => p.SubscriptionType == "Consignee");
+        Assert.Contains(response.Plans, p => p.SubscriptionType == "Declarant");
+    }
+
+    // ── L5: IsSelf on non-pending path ───────────────────────────────────────
+
+    [Fact]
+    public async Task GetPlansForRequest_IsSelf_True_AndEmptyPlans_ForOwnNonPendingRequest()
+    {
+        await using var db = TestHelpers.CreateDb(nameof(GetPlansForRequest_IsSelf_True_AndEmptyPlans_ForOwnNonPendingRequest));
+        var master = new FakeMasterUser(10);
+        var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keySvc = FakeKeyServiceFactory.Create();
+
+        SeedMasterMapping(db, masterId: 10, companyId: 5);
+        db.Members.Add(new Member { MemberId = 10, FirstName = "Master", Email = "master@test.cdns", MemberType = MemberType.CompanyMasterMember });
+        db.SubscriptionRequests.Add(new SubscriptionRequest
+        {
+            SubscriptionRequestId = 1,
+            MemberId = 10,  // own request
+            CompanyId = 5,
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            SubscriptionRequestStatusEnum = (int)SubscriptionRequestStatusEnum.Approved,
+            RequestedDateTime = DateTimeOffset.UtcNow,
+            IsDeleted = false,
+        });
+        await db.SaveChangesAsync();
+
+        var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
+        var response = await svc.GetPlansForRequestAsync(1);
+        Assert.NotNull(response);
+        Assert.True(response!.IsSelf);
+        Assert.Empty(response.Plans);
+    }
+
+    [Fact]
+    public async Task GetPlansForRequest_IsSelf_False_AndEmptyPlans_ForMemberNonPendingRequest()
+    {
+        await using var db = TestHelpers.CreateDb(nameof(GetPlansForRequest_IsSelf_False_AndEmptyPlans_ForMemberNonPendingRequest));
+        var master = new FakeMasterUser(10);
+        var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keySvc = FakeKeyServiceFactory.Create();
+
+        SeedMasterMapping(db, masterId: 10, companyId: 5);
+        db.Members.Add(new Member { MemberId = 1, FirstName = "Alice", Email = "alice@test.cdns", MemberType = MemberType.Member });
+        db.SubscriptionRequests.Add(new SubscriptionRequest
+        {
+            SubscriptionRequestId = 1,
+            MemberId = 1,  // member request
+            CompanyId = 5,
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            SubscriptionRequestStatusEnum = (int)SubscriptionRequestStatusEnum.Rejected,
+            RequestedDateTime = DateTimeOffset.UtcNow,
+            IsDeleted = false,
+        });
+        await db.SaveChangesAsync();
+
+        var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
+        var response = await svc.GetPlansForRequestAsync(1);
+        Assert.NotNull(response);
+        Assert.False(response!.IsSelf);
+        Assert.Empty(response.Plans);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

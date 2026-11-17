@@ -98,9 +98,9 @@ public class MasterController : ControllerBase
     [HttpGet("subscription-requests/{id:long}/plans")]
     public async Task<IActionResult> GetPlans(long id, CancellationToken ct)
     {
-        var plans = await _requests.GetPlansForRequestAsync(id, ct);
-        if (plans is null) return NotFound(new { code = "NotFound" });
-        return Ok(plans);
+        var response = await _requests.GetPlansForRequestAsync(id, ct);
+        if (response is null) return NotFound(new { code = "NotFound" });
+        return Ok(response);
     }
 
     // POST /api/master/subscription-requests/{id}/approve

@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Plus, Search, X, ClipboardList, AlertCircle, RefreshCw } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Search, X, ClipboardList, AlertCircle, RefreshCw } from 'lucide-react';
 import { Button, Card, DataTable, EmptyState, PageTransition, Pill } from '../../../components/ui';
-import { usePortalChrome } from '../../../components/portal/portalChrome';
 import { apiGet } from '../../../lib/api';
 import './master-requests.css';
 
@@ -28,7 +27,6 @@ function formatDate(iso) {
 }
 
 export default function MasterRequestsPage() {
-  const navigate = useNavigate();
   const [status, setStatus] = useState('');
   const [requestNumber, setRequestNumber] = useState('');
   const [memberEmail, setMemberEmail] = useState('');
@@ -44,14 +42,6 @@ export default function MasterRequestsPage() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-
-  usePortalChrome({
-    actions: (
-      <Button icon={Plus} onClick={() => navigate('/company/requests/new')}>
-        New request
-      </Button>
-    ),
-  });
 
   const load = useCallback(async (filters, p) => {
     setLoading(true);
@@ -129,9 +119,6 @@ export default function MasterRequestsPage() {
             <h1 className="mr-page-title">Subscription requests</h1>
             <p className="mr-page-subtitle">Requests from members of companies you administer.</p>
           </div>
-          <Button icon={Plus} onClick={() => navigate('/company/requests/new')}>
-            New request
-          </Button>
         </div>
 
         <Card title="Filter">
@@ -238,8 +225,8 @@ export default function MasterRequestsPage() {
                 empty={
                   <EmptyState
                     icon={ClipboardList}
-                    title="No requests found"
-                    message="No subscription requests have been received yet, or none match your filters."
+                    title="No requests yet"
+                    message="No subscription requests have been received from your members. Requests appear here when a member submits one."
                   />
                 }
               />

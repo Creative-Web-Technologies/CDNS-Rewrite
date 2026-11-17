@@ -41,6 +41,14 @@ public record SubscriptionPlanDto(
     string ActionType
 );
 
+// ── Plans response (wraps plan list with the request's type for the picker tab) ──
+
+public record SubscriptionPlansResponseDto(
+    string RequestType,
+    bool IsSelf,
+    IReadOnlyList<SubscriptionPlanDto> Plans
+);
+
 // ── Subscription list / detail DTOs ──────────────────────────────────────────
 
 public record MasterSubscriptionSummaryDto(

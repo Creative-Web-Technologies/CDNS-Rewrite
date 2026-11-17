@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button, Card, PageTransition } from '../../../components/ui';
+import { usePortalChrome } from '../../../components/portal/portalChrome';
+import { PlanCard } from './PlanCard';
+import { formatAmount, formatDuration } from './planUtils';
 import { apiGet, apiPost } from '../../../lib/api';
+import { useNumericIdParam } from '../../../lib/useNumericIdParam';
 import './master-plan-picker.css';
 
 const TABS = [
@@ -10,30 +14,11 @@ const TABS = [
   { key: 'Declarant', label: 'CHA Agent (Declarant)' },
 ];
 
-function formatAmount(amount) {
-  if (amount === 0) return 'FREE';
-  return new Intl.NumberFormat('en-LK', { style: 'currency', currency: 'LKR', maximumFractionDigits: 2 }).format(amount);
-}
-
-function PlanCard({ plan, onSelect }) {
-  const isFree = plan.amount === 0;
+function DetailRow({ label, value }) {
   return (
-    <div className="mpp-card">
-      <p className="mpp-card-name">{plan.subscriptionName}</p>
-      <div className="mpp-card-meta">
-        <span>Active {plan.noOfActiveDuration} {plan.durationType}</span>
-        <span>{plan.subscriptionType}</span>
-      </div>
-      {plan.description && <p className="mpp-card-desc">{plan.description}</p>}
-      <div className={`mpp-card-amount${isFree ? ' is-free' : ''}`}>
-        {isFree ? 'FREE' : formatAmount(plan.amount)}
-      </div>
-      <div className="mpp-card-footer">
-        <span className="mpp-applicable">
-          {plan.actionType === 'AcknowledgementOnly' ? 'Only For Acknowledgement' : 'General'}
-        </span>
-        <Button onClick={() => onSelect(plan)}>Select</Button>
-      </div>
+    <div className="mpp-detail-row">
+      <span className="mpp-detail-label">{label}</span>
+      <span className="mpp-detail-value">{value ?? '—'}</span>
     </div>
   );
 }
@@ -52,15 +37,6 @@ function ConfirmDialog({ plan, onConfirm, onCancel }) {
           <Button variant="secondary" onClick={onCancel}>Cancel</Button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function DetailRow({ label, value }) {
-  return (
-    <div className="mpp-detail-row">
-      <span className="mpp-detail-label">{label}</span>
-      <span className="mpp-detail-value">{value ?? '—'}</span>
     </div>
   );
 }
@@ -100,11 +76,11 @@ function ConfirmationScreen({ plan, requestId, onBack }) {
     <div className="mpp-confirm-layout">
       <Card title="Subscription details">
         <div className="mpp-plan-detail">
-          <DetailRow label="Plan name"       value={plan.subscriptionName} />
-          <DetailRow label="Type"            value={plan.subscriptionType} />
-          <DetailRow label="Duration"        value={`${plan.noOfActiveDuration} ${plan.durationType}`} />
-          <DetailRow label="Amount"          value={isFree ? 'FREE' : formatAmount(plan.amount)} />
-          <DetailRow label="Applicable for"  value={plan.actionType === 'AcknowledgementOnly' ? 'Only For Acknowledgement' : 'General'} />
+          <DetailRow label="Plan name"      value={plan.subscriptionName} />
+          <DetailRow label="Type"           value={plan.subscriptionType} />
+          <DetailRow label="Duration"       value={formatDuration(plan.noOfActiveDuration, plan.durationType)} />
+          <DetailRow label="Amount"         value={isFree ? 'FREE' : formatAmount(plan.amount)} />
+          <DetailRow label="Applicable for" value={plan.actionType === 'AcknowledgementOnly' ? 'Only For Acknowledgement' : 'General'} />
         </div>
       </Card>
 
@@ -131,25 +107,41 @@ function ConfirmationScreen({ plan, requestId, onBack }) {
 }
 
 export default function MasterPlanPickerPage() {
-  const { id } = useParams();
+  const id = useNumericIdParam();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const initialType = location.state?.type ?? 'Consignee';
-  const [activeTab, setActiveTab] = useState(initialType === 'Declarant' ? 'Declarant' : 'Consignee');
+  usePortalChrome({
+    title: 'New subscription',
+    subtitle: 'Choose a plan for your company.',
+  });
+
+  // Seed the tab from router state so it feels instant on normal navigation;
+  // the useEffect below corrects it from the API once the response arrives.
+  const stateType = location.state?.type ?? 'Consignee';
+  const [activeTab, setActiveTab] = useState(stateType === 'Declarant' ? 'Declarant' : 'Consignee');
 
   const [plans, setPlans] = useState(null);
+  const [isSelf, setIsSelf] = useState(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
-  const [pendingPlan, setPendingPlan] = useState(null); // plan awaiting confirm dialog
-  const [confirmedPlan, setConfirmedPlan] = useState(null); // plan in confirmation screen
+  const [pendingPlan, setPendingPlan] = useState(null);
+  const [confirmedPlan, setConfirmedPlan] = useState(null);
 
   useEffect(() => {
+    if (id === null) return;
     let alive = true;
     setLoading(true);
     apiGet(`/api/master/subscription-requests/${id}/plans`)
-      .then((data) => { if (alive) { setPlans(data); setLoading(false); } })
+      .then((data) => {
+        if (alive) {
+          setPlans(data.plans);
+          setIsSelf(data.isSelf);
+          setActiveTab(data.requestType === 'Declarant' ? 'Declarant' : 'Consignee');
+          setLoading(false);
+        }
+      })
       .catch(() => { if (alive) { setLoadError(true); setLoading(false); } });
     return () => { alive = false; };
   }, [id]);
@@ -161,6 +153,14 @@ export default function MasterPlanPickerPage() {
   function handleDialogConfirm() {
     setConfirmedPlan(pendingPlan);
     setPendingPlan(null);
+  }
+
+  if (id === null) return <Navigate to="/company/requests" replace />;
+
+  // Redirect member requests to the detail page once the response confirms !isSelf.
+  // While still loading, show the loading state so there is no flash of the picker.
+  if (!loading && !loadError && isSelf === false) {
+    return <Navigate replace to={`/company/requests/${id}`} />;
   }
 
   const tabPlans = plans?.filter((p) => p.subscriptionType === activeTab) ?? [];
@@ -199,11 +199,6 @@ export default function MasterPlanPickerPage() {
           </button>
         </div>
 
-        <div className="mpp-header">
-          <h1 className="mpp-title">Subscriptions</h1>
-          <p className="mpp-subtitle">Select a subscription plan for this request.</p>
-        </div>
-
         {confirmedPlan ? (
           <ConfirmationScreen
             plan={confirmedPlan}
@@ -228,7 +223,7 @@ export default function MasterPlanPickerPage() {
             {tabPlans.length === 0 ? (
               <div className="mpp-empty">No plans available for this type.</div>
             ) : (
-              <div className="mpp-grid">
+              <div className="pc-grid mpp-grid-margin">
                 {tabPlans.map((plan) => (
                   <PlanCard key={plan.subscriptionId} plan={plan} onSelect={handleSelect} />
                 ))}
