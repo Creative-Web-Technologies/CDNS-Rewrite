@@ -5,6 +5,7 @@ import { Button, Card, PageTransition, Pill } from '../../../components/ui';
 import { apiGet, apiPost } from '../../../lib/api';
 import './master-request-detail.css';
 
+
 function formatDate(iso) {
   if (!iso) return '—';
   return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -40,14 +41,6 @@ export default function MasterRequestDetailPage() {
   const [rejecting, setRejecting] = useState(false);
   const [rejectError, setRejectError] = useState(null);
 
-  // Approve
-  const [plans, setPlans] = useState(null);
-  const [plansLoading, setPlansLoading] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState(null);
-  const [approving, setApproving] = useState(false);
-  const [approveError, setApproveError] = useState(null);
-  const [approveConflict, setApproveConflict] = useState(false);
-
   useEffect(() => {
     let alive = true;
     setLoading(true);
@@ -56,18 +49,6 @@ export default function MasterRequestDetailPage() {
       .catch((err) => { if (alive) { setLoadError(err.status === 404 ? 'not_found' : 'error'); setLoading(false); } });
     return () => { alive = false; };
   }, [id]);
-
-  async function loadPlans() {
-    setPlansLoading(true);
-    try {
-      const result = await apiGet(`/api/master/subscription-requests/${id}/plans`);
-      setPlans(result);
-    } catch {
-      setPlans([]);
-    } finally {
-      setPlansLoading(false);
-    }
-  }
 
   async function handleReject() {
     if (!rejectComment.trim()) return;
@@ -89,30 +70,6 @@ export default function MasterRequestDetailPage() {
       }
     } finally {
       setRejecting(false);
-    }
-  }
-
-  async function handleApprove() {
-    if (!selectedPlan) return;
-    setApproving(true);
-    setApproveError(null);
-    setApproveConflict(false);
-    try {
-      const result = await apiPost(`/api/master/subscription-requests/${id}/approve`, { planId: selectedPlan });
-      navigate(`/company/subscriptions/${result.memberSubscriptionId}`);
-    } catch (err) {
-      if (err.status === 409) {
-        setApproveConflict(true);
-        setApproveError('This request is no longer pending.');
-      } else if (err.status === 404 && err.code === 'PlanNotFound') {
-        setApproveError('The selected plan is no longer available.');
-      } else if (err.status === 404) {
-        setApproveError('Request not found.');
-      } else {
-        setApproveError('Something went wrong. Please try again.');
-      }
-    } finally {
-      setApproving(false);
     }
   }
 
@@ -242,60 +199,15 @@ export default function MasterRequestDetailPage() {
                 <p className="mrd-action-info">
                   Assign a subscription plan to approve this request.
                 </p>
-
-                {approveConflict && (
-                  <div className="mrd-conflict-msg" role="alert">
-                    This request is no longer pending and cannot be approved.
-                  </div>
-                )}
-
-                {!plans && !plansLoading && (
-                  <Button variant="secondary" onClick={loadPlans}>Load plans</Button>
-                )}
-
-                {plansLoading && <p style={{ fontSize: 14, color: 'var(--muted)' }}>Loading plans…</p>}
-
-                {plans && plans.length === 0 && (
-                  <p style={{ fontSize: 14, color: 'var(--muted)' }}>No matching plans found.</p>
-                )}
-
-                {plans && plans.length > 0 && (
-                  <div>
-                    <div className="mrd-plans">
-                      {plans.map((plan) => (
-                        <div
-                          key={plan.subscriptionId}
-                          className={`mrd-plan-card${selectedPlan === plan.subscriptionId ? ' is-selected' : ''}`}
-                          onClick={() => setSelectedPlan(plan.subscriptionId)}
-                          role="radio"
-                          aria-checked={selectedPlan === plan.subscriptionId}
-                          tabIndex={0}
-                          onKeyDown={(e) => { if (e.key === ' ' || e.key === 'Enter') setSelectedPlan(plan.subscriptionId); }}
-                        >
-                          <p className="mrd-plan-name">{plan.subscriptionName}</p>
-                          <p className="mrd-plan-meta">
-                            {plan.noOfActiveDuration} {plan.durationType} · {plan.subscriptionType} · {plan.actionType === 'AcknowledgementOnly' ? 'Acknowledgement only' : 'General'}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-
-                    {approveError && (
-                      <div className="mrd-error" role="alert">
-                        <AlertCircle size={14} aria-hidden="true" /> {approveError}
-                      </div>
-                    )}
-
-                    <div className="mrd-actions">
-                      <Button
-                        disabled={!selectedPlan || approving || approveConflict}
-                        onClick={handleApprove}
-                      >
-                        {approving ? 'Approving…' : 'Approve with selected plan'}
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <Button
+                  onClick={() =>
+                    navigate(`/company/requests/${id}/plans`, {
+                      state: { type: req.subscriptionType },
+                    })
+                  }
+                >
+                  Pick a plan…
+                </Button>
               </Card>
             </aside>
           )}
