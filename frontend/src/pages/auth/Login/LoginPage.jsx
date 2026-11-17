@@ -298,7 +298,7 @@ export default function LoginPage() {
         </Rise>
         <Rise delay={0.16}>
           <p>
-            The Customs Declaration Notification System keeps your company up to
+            The Customer Document Notification System keeps your company up to
             date on every CusDec and container as it moves through Customs.
           </p>
         </Rise>

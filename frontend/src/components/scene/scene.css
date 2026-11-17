@@ -116,10 +116,60 @@
   0%, 100% { transform: rotate(-3deg); }
   50%       { transform: rotate(5deg); }
 }
-@keyframes cd-hoist {
+/* HarbourScene crane (24s): ship arrives 66%, docked 66-93%, departs 93% */
+@keyframes cd-hoist-h {
+  0%, 71%   { transform: scaleY(1); }
+  78%, 81%  { transform: scaleY(2); }
+  88%, 100% { transform: scaleY(1); }
+}
+@keyframes cd-trolley-h {
+  0%, 66%   { transform: translateX(154px); }
+  71%       { transform: translateX(0); }
+  88%       { transform: translateX(0); }
+  93%, 100% { transform: translateX(154px); }
+}
+@keyframes cd-container-h {
+  0%, 66%  { transform: translate(154px, 0);  opacity: 0; }
+  71%      { transform: translate(0, 0);       opacity: 0; }
+  78%      { transform: translate(0, 83px);    opacity: 0; animation-timing-function: steps(1, end); }
+  81%      { transform: translate(0, 83px);    opacity: 1; }
+  88%      { transform: translate(0, 0);       opacity: 1; }
+  93%      { transform: translate(154px, 0);   opacity: 1; animation-timing-function: steps(1, end); }
+  96%      { transform: translate(154px, 0);   opacity: 0; }
+  100%     { transform: translate(154px, 0);   opacity: 0; }
+}
+@keyframes cd-ship-crate-h {
+  0%        { opacity: 1; }
+  78%       { opacity: 1; animation-timing-function: steps(1, end); }
+  81%, 100% { opacity: 0; }
+}
+
+/* BannerScene crane (50s): ship arrives 76-80%, docked 80-94%, departs 94% */
+@keyframes cd-hoist-b {
   0%, 80%   { transform: scaleY(1); }
-  85%, 90%  { transform: scaleY(2); }
-  94%, 100% { transform: scaleY(1); }
+  86%, 88%  { transform: scaleY(2); }
+  93%, 100% { transform: scaleY(1); }
+}
+@keyframes cd-trolley-b {
+  0%, 76%   { transform: translateX(154px); }
+  80%       { transform: translateX(0); }
+  93%       { transform: translateX(0); }
+  96%, 100% { transform: translateX(154px); }
+}
+@keyframes cd-container-b {
+  0%, 76%  { transform: translate(154px, 0);  opacity: 0; }
+  80%      { transform: translate(0, 0);       opacity: 0; }
+  86%      { transform: translate(0, 83px);    opacity: 0; animation-timing-function: steps(1, end); }
+  88%      { transform: translate(0, 83px);    opacity: 1; }
+  93%      { transform: translate(0, 0);       opacity: 1; }
+  96%      { transform: translate(154px, 0);   opacity: 1; animation-timing-function: steps(1, end); }
+  98%      { transform: translate(154px, 0);   opacity: 0; }
+  100%     { transform: translate(154px, 0);   opacity: 0; }
+}
+@keyframes cd-ship-crate-b {
+  0%        { opacity: 1; }
+  86%       { opacity: 1; animation-timing-function: steps(1, end); }
+  88%, 100% { opacity: 0; }
 }
 
 #ship-beacon {
@@ -137,17 +187,28 @@
   transform-box: fill-box;
   transform-origin: 0% 50%;
 }
-#crane-hoist {
-  animation: cd-hoist 50s ease-in-out infinite;
-  transform-box: fill-box;
-  transform-origin: 50% 0%;
-}
+/* Transform setup shared; animation driven per-scene below */
+#crane-hoist { transform-box: fill-box; transform-origin: 50% 0%; }
+
+/* Per-scene crane cycle; duration from --crane-cycle set on the scene container */
+.harbour-scene #crane-hoist     { animation: cd-hoist-h var(--crane-cycle, 24s) linear infinite; }
+.harbour-scene #crane-trolley   { animation: cd-trolley-h var(--crane-cycle, 24s) linear infinite; }
+.harbour-scene #crane-container { animation: cd-container-h var(--crane-cycle, 24s) linear infinite; }
+.harbour-scene #ship-deck-crate { animation: cd-ship-crate-h var(--crane-cycle, 24s) linear infinite; }
+
+.dash-banner__stage #crane-hoist     { animation: cd-hoist-b var(--crane-cycle, 50s) linear infinite; }
+.dash-banner__stage #crane-trolley   { animation: cd-trolley-b var(--crane-cycle, 50s) linear infinite; }
+.dash-banner__stage #crane-container { animation: cd-container-b var(--crane-cycle, 50s) linear infinite; }
+.dash-banner__stage #ship-deck-crate { animation: cd-ship-crate-b var(--crane-cycle, 50s) linear infinite; }
 
 /* Pause all CSS scene animations when .scene-paused is on the container */
 .scene-paused #ship-beacon,
 .scene-paused #ship-smoke,
 .scene-paused #dock-flag path,
 .scene-paused #crane-hoist,
+.scene-paused #crane-trolley,
+.scene-paused #crane-container,
+.scene-paused #ship-deck-crate,
 .scene-paused .cd-ship,
 .scene-paused .cd-bob,
 .scene-paused .cd-wave-a path,
@@ -169,8 +230,11 @@
   .cd-wave-a path, .cd-wave-b path, .cd-wave-c path,
   .cd-cloud, .cd-gull, .cd-sun,
   .cd-glare, .cd-rays, .cd-sun-x, .cd-shimmer,
-  #ship-beacon, #ship-smoke, #dock-flag path, #crane-hoist {
+  #ship-beacon, #ship-smoke, #dock-flag path,
+  #crane-hoist, #crane-trolley, #crane-container, #ship-deck-crate {
     animation: none;
   }
-  #ship-smoke { opacity: 0; }
+  #ship-smoke    { opacity: 0; }
+  #crane-trolley { transform: translateX(154px); }
+  #crane-container { opacity: 0; }
 }

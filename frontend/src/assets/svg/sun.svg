@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 192" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 192" fill="none" overflow="visible">
   <title>Sun</title>
   <circle class="cd-glare" cx="120" cy="96" r="84" fill="#FFE2A6" opacity="0.25"/>
   <circle class="cd-glare cd-glare-b" cx="120" cy="96" r="62" fill="#FFE2A6" opacity="0.4"/>

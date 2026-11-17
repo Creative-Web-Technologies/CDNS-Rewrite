@@ -20,6 +20,10 @@ import Dock from '../../components/scene/Dock';
 import '../../components/scene/scene.css';
 import './HarbourScene.css';
 
+// Wave vertical start positions — nudge these to raise/lower the sea
+const WAVE_MID_Y  = 293;
+const WAVE_FORE_Y = 308;
+
 export default function HarbourScene() {
   return (
     <svg
@@ -76,12 +80,12 @@ export default function HarbourScene() {
         <Dock width={660} height={340} />
       </g>
 
-      {/* Mid and fore wave layers — in front of dock quay */}
-      <WaveMid  y={306} />
-      <WaveFore y={322} />
+      {/* Mid and fore wave layers */}
+      <WaveMid  y={WAVE_MID_Y} />
+      <WaveFore y={WAVE_FORE_Y} />
 
       {/* Shimmer: sun-glare reflection. shimmer.svg: 72×48. Wrapped in cd-sun-x. */}
-      <Shimmer x={84} y={332} width={72} height={48} />
+      <Shimmer x={84} y={345} width={72} height={48} />
     </svg>
   );
 }

@@ -24,7 +24,7 @@ export default function AuthShell({ leftTop, compact = false, wideForm = false, 
           {children}
         </div>
         <p className="auth-panel-footer">
-          Customs Declaration Notification System · Sri Lanka Customs
+          Customer Document Notification System · Sri Lanka Customs
         </p>
       </main>
     </div>

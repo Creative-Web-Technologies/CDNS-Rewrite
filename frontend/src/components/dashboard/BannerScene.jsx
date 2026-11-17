@@ -85,6 +85,7 @@ export default function BannerScene() {
   return (
     <div
       className={`dash-banner__scene${seaPlaying ? '' : ' scene-paused'}`}
+      style={{ '--crane-cycle': `${CYCLE}s` }}
       ref={ref}
       aria-hidden="true"
     >

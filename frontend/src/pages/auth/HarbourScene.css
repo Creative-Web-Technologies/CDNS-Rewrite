@@ -4,6 +4,7 @@
  */
 
 .harbour-scene {
+  --crane-cycle: 24s;
   display: block;
   width: 100%;
   /* Fill remaining left-panel height; min-height prevents total collapse */
