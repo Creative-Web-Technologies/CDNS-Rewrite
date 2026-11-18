@@ -257,10 +257,12 @@ public class MasterSubscriptionRequestServiceTests
         await db.SaveChangesAsync();
 
         var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
-        var plans = await svc.GetPlansForRequestAsync(1);
-        Assert.NotNull(plans);
-        Assert.Single(plans!);
-        Assert.Equal(1, plans![0].SubscriptionId);
+        var response = await svc.GetPlansForRequestAsync(1);
+        Assert.NotNull(response);
+        Assert.Equal("Declarant", response!.RequestType);
+        Assert.False(response.IsSelf);
+        Assert.Single(response.Plans);
+        Assert.Equal(1, response.Plans[0].SubscriptionId);
     }
 
     // ── L1: List excludes master's own requests ───────────────────────────────
@@ -426,9 +428,9 @@ public class MasterSubscriptionRequestServiceTests
     // ── L7: Self-create ───────────────────────────────────────────────────────
 
     [Fact]
-    public async Task CreateMasterRequest_CreatesPendingConsigneeRequest_ForMappedCompany()
+    public async Task CreateSelfRequest_CreatesPendingConsigneeRequest_UsingMastersOwnCompany()
     {
-        await using var db = TestHelpers.CreateDb(nameof(CreateMasterRequest_CreatesPendingConsigneeRequest_ForMappedCompany));
+        await using var db = TestHelpers.CreateDb(nameof(CreateSelfRequest_CreatesPendingConsigneeRequest_UsingMastersOwnCompany));
         var master = new FakeMasterUser(10);
         var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
         var keySvc = FakeKeyServiceFactory.Create();
@@ -439,32 +441,226 @@ public class MasterSubscriptionRequestServiceTests
         await db.SaveChangesAsync();
 
         var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
-        var result = await svc.CreateMasterRequestAsync(5, "self request note");
+        var result = await svc.CreateSelfRequestAsync();
 
         var success = Assert.IsType<CreateMasterRequestResult.Success>(result);
         Assert.Matches(@"^SR-\d{6}$", success.RequestNumber);
 
         var req = db.SubscriptionRequests.Single();
-        Assert.Equal(10L, req.MemberId);
-        Assert.Equal(5, req.CompanyId);
+        Assert.Equal(10L, req.MemberId);    // Master's own MemberId
+        Assert.Equal(5, req.CompanyId);     // Master's own company
         Assert.Equal((int)SubscriptionTypeEnum.Consignee, req.SubscriptionTypeEnum);
         Assert.Equal((int)SubscriptionRequestStatusEnum.Pending, req.SubscriptionRequestStatusEnum);
     }
 
     [Fact]
-    public async Task CreateMasterRequest_ReturnsCompanyNotMapped_WhenNotMapped()
+    public async Task CreateSelfRequest_ReturnsCompanyNotMapped_WhenMasterHasNoCompanies()
     {
-        await using var db = TestHelpers.CreateDb(nameof(CreateMasterRequest_ReturnsCompanyNotMapped_WhenNotMapped));
+        await using var db = TestHelpers.CreateDb(nameof(CreateSelfRequest_ReturnsCompanyNotMapped_WhenMasterHasNoCompanies));
         var master = new FakeMasterUser(10);
         var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
         var keySvc = FakeKeyServiceFactory.Create();
 
-        db.Companies.Add(new Company { CompanyId = 5, CompanyName = "Other Corp", TinNumber = "123456789", IsDeleted = false });
+        // No company mapping for master 10
         await db.SaveChangesAsync();
 
         var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
-        var result = await svc.CreateMasterRequestAsync(5, null);
+        var result = await svc.CreateSelfRequestAsync();
         Assert.IsType<CreateMasterRequestResult.CompanyNotMapped>(result);
+    }
+
+    // ── L6: Type-mismatch and own-request rules ────────────────────────────────
+
+    [Fact]
+    public async Task ApproveRequest_ReturnsTypeMismatch_WhenMemberRequestAndPlanTypeDiffers()
+    {
+        await using var db = TestHelpers.CreateDb(nameof(ApproveRequest_ReturnsTypeMismatch_WhenMemberRequestAndPlanTypeDiffers));
+        var master = new FakeMasterUser(10);
+        var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keySvc = FakeKeyServiceFactory.Create();
+
+        SeedMasterMapping(db, masterId: 10, companyId: 5);
+        db.Members.Add(new Member { MemberId = 1, FirstName = "Alice", Email = "alice@test.cdns", MemberType = MemberType.Member });
+        // Member requests Consignee
+        db.SubscriptionRequests.Add(new SubscriptionRequest
+        {
+            SubscriptionRequestId = 1,
+            MemberId = 1,
+            CompanyId = 5,
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            SubscriptionRequestStatusEnum = (int)SubscriptionRequestStatusEnum.Pending,
+            RequestedDateTime = DateTimeOffset.UtcNow,
+            IsDeleted = false,
+        });
+        // Plan is Declarant — mismatched
+        db.Subscriptions.Add(new Subscription { SubscriptionId = 1, SubscriptionName = "Declarant Plan", Description = "ok",
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = false,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
+        await db.SaveChangesAsync();
+
+        var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
+        var result = await svc.ApproveRequestAsync(1, 1);
+        Assert.IsType<ApproveRequestResult.TypeMismatch>(result);
+        // Request must remain Pending
+        var req = db.SubscriptionRequests.Single(r => r.SubscriptionRequestId == 1);
+        Assert.Equal((int)SubscriptionRequestStatusEnum.Pending, req.SubscriptionRequestStatusEnum);
+    }
+
+    [Fact]
+    public async Task ApproveRequest_AllowsEitherType_ForOwnRequest_AndUpdatesRequestType()
+    {
+        await using var db = TestHelpers.CreateDb(nameof(ApproveRequest_AllowsEitherType_ForOwnRequest_AndUpdatesRequestType));
+        var master = new FakeMasterUser(10);
+        var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keySvc = FakeKeyServiceFactory.Create();
+
+        SeedMasterMapping(db, masterId: 10, companyId: 5);
+        db.Members.Add(new Member { MemberId = 10, FirstName = "Master", Email = "master@test.cdns", MemberType = MemberType.CompanyMasterMember });
+        // Own request defaults to Consignee
+        db.SubscriptionRequests.Add(new SubscriptionRequest
+        {
+            SubscriptionRequestId = 1,
+            MemberId = 10,  // same as masterId — own request
+            CompanyId = 5,
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            SubscriptionRequestStatusEnum = (int)SubscriptionRequestStatusEnum.Pending,
+            RequestedDateTime = DateTimeOffset.UtcNow,
+            IsDeleted = false,
+        });
+        // Plan is Declarant — different from request's Consignee default
+        db.Subscriptions.Add(new Subscription { SubscriptionId = 1, SubscriptionName = "Declarant Plan", Description = "ok",
+            Amount = 500, NoOfActiveDuration = 1, SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months,
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = false,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
+        await db.SaveChangesAsync();
+
+        var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
+        var result = await svc.ApproveRequestAsync(1, 1);
+
+        Assert.IsType<ApproveRequestResult.Success>(result);
+        var req = db.SubscriptionRequests.Single(r => r.SubscriptionRequestId == 1);
+        // Request type must be updated to match the plan
+        Assert.Equal((int)SubscriptionTypeEnum.Declarant, req.SubscriptionTypeEnum);
+        var sub = db.MemberSubscriptions.Single();
+        Assert.Equal((int)SubscriptionTypeEnum.Declarant, sub.SubscriptionTypeEnum);
+    }
+
+    // ── L5: Plan list for own request returns all types ───────────────────────
+
+    [Fact]
+    public async Task GetPlansForRequest_ReturnsAllTypes_ForOwnRequest_ExcludesInactiveAndDeleted()
+    {
+        await using var db = TestHelpers.CreateDb(nameof(GetPlansForRequest_ReturnsAllTypes_ForOwnRequest_ExcludesInactiveAndDeleted));
+        var master = new FakeMasterUser(10);
+        var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keySvc = FakeKeyServiceFactory.Create();
+
+        SeedMasterMapping(db, masterId: 10, companyId: 5);
+        db.Members.Add(new Member { MemberId = 10, FirstName = "Master", Email = "master@test.cdns", MemberType = MemberType.CompanyMasterMember });
+        db.SubscriptionRequests.Add(new SubscriptionRequest
+        {
+            SubscriptionRequestId = 1,
+            MemberId = 10,  // own request
+            CompanyId = 5,
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            SubscriptionRequestStatusEnum = (int)SubscriptionRequestStatusEnum.Pending,
+            RequestedDateTime = DateTimeOffset.UtcNow,
+            IsDeleted = false,
+        });
+
+        // Both types returned
+        db.Subscriptions.Add(new Subscription { SubscriptionId = 1, SubscriptionName = "Consignee Plan", Description = "ok",
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = false,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
+        db.Subscriptions.Add(new Subscription { SubscriptionId = 2, SubscriptionName = "Declarant Plan", Description = "ok",
+            Amount = 200, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = false,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
+
+        // Excluded: Inactive
+        db.Subscriptions.Add(new Subscription { SubscriptionId = 3, SubscriptionName = "Inactive Plan", Description = "ok",
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Inactive, IsDeleted = false,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
+
+        // Excluded: Deleted
+        db.Subscriptions.Add(new Subscription { SubscriptionId = 4, SubscriptionName = "Deleted Plan", Description = "ok",
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = true,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
+        await db.SaveChangesAsync();
+
+        var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
+        var response = await svc.GetPlansForRequestAsync(1);
+        Assert.NotNull(response);
+        Assert.Equal("Consignee", response!.RequestType);
+        Assert.True(response.IsSelf);
+        Assert.Equal(2, response.Plans.Count);
+        Assert.Contains(response.Plans, p => p.SubscriptionType == "Consignee");
+        Assert.Contains(response.Plans, p => p.SubscriptionType == "Declarant");
+    }
+
+    // ── L5: IsSelf on non-pending path ───────────────────────────────────────
+
+    [Fact]
+    public async Task GetPlansForRequest_IsSelf_True_AndEmptyPlans_ForOwnNonPendingRequest()
+    {
+        await using var db = TestHelpers.CreateDb(nameof(GetPlansForRequest_IsSelf_True_AndEmptyPlans_ForOwnNonPendingRequest));
+        var master = new FakeMasterUser(10);
+        var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keySvc = FakeKeyServiceFactory.Create();
+
+        SeedMasterMapping(db, masterId: 10, companyId: 5);
+        db.Members.Add(new Member { MemberId = 10, FirstName = "Master", Email = "master@test.cdns", MemberType = MemberType.CompanyMasterMember });
+        db.SubscriptionRequests.Add(new SubscriptionRequest
+        {
+            SubscriptionRequestId = 1,
+            MemberId = 10,  // own request
+            CompanyId = 5,
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            SubscriptionRequestStatusEnum = (int)SubscriptionRequestStatusEnum.Approved,
+            RequestedDateTime = DateTimeOffset.UtcNow,
+            IsDeleted = false,
+        });
+        await db.SaveChangesAsync();
+
+        var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
+        var response = await svc.GetPlansForRequestAsync(1);
+        Assert.NotNull(response);
+        Assert.True(response!.IsSelf);
+        Assert.Empty(response.Plans);
+    }
+
+    [Fact]
+    public async Task GetPlansForRequest_IsSelf_False_AndEmptyPlans_ForMemberNonPendingRequest()
+    {
+        await using var db = TestHelpers.CreateDb(nameof(GetPlansForRequest_IsSelf_False_AndEmptyPlans_ForMemberNonPendingRequest));
+        var master = new FakeMasterUser(10);
+        var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keySvc = FakeKeyServiceFactory.Create();
+
+        SeedMasterMapping(db, masterId: 10, companyId: 5);
+        db.Members.Add(new Member { MemberId = 1, FirstName = "Alice", Email = "alice@test.cdns", MemberType = MemberType.Member });
+        db.SubscriptionRequests.Add(new SubscriptionRequest
+        {
+            SubscriptionRequestId = 1,
+            MemberId = 1,  // member request
+            CompanyId = 5,
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            SubscriptionRequestStatusEnum = (int)SubscriptionRequestStatusEnum.Rejected,
+            RequestedDateTime = DateTimeOffset.UtcNow,
+            IsDeleted = false,
+        });
+        await db.SaveChangesAsync();
+
+        var svc = new MasterSubscriptionRequestService(db, master, clock, keySvc);
+        var response = await svc.GetPlansForRequestAsync(1);
+        Assert.NotNull(response);
+        Assert.False(response!.IsSelf);
+        Assert.Empty(response.Plans);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

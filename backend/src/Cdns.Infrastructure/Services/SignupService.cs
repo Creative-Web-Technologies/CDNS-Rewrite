@@ -55,8 +55,8 @@ public class SignupService : ISignupService
         if (status == 1)
             return new VerifyTinResponse { StatusCode = status, Message = "TIN verified successfully." };
 
-        var (_, message) = TinStatusToError(status);
-        return new VerifyTinResponse { StatusCode = status, Message = message };
+        var (code, message) = TinStatusToError(status);
+        return new VerifyTinResponse { StatusCode = status, Code = code, Message = message };
     }
 
     public async Task<RegisterResponse> RegisterAsync(RegisterRequest request)

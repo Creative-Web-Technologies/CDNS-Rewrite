@@ -41,6 +41,14 @@ public record SubscriptionPlanDto(
     string ActionType
 );
 
+// ── Plans response (wraps plan list with the request's type for the picker tab) ──
+
+public record SubscriptionPlansResponseDto(
+    string RequestType,
+    bool IsSelf,
+    IReadOnlyList<SubscriptionPlanDto> Plans
+);
+
 // ── Subscription list / detail DTOs ──────────────────────────────────────────
 
 public record MasterSubscriptionSummaryDto(
@@ -96,6 +104,8 @@ public abstract record ApproveRequestResult
     public sealed record NotFound : ApproveRequestResult;
     public sealed record NotPending : ApproveRequestResult;
     public sealed record PlanNotFound : ApproveRequestResult;
+    /// <summary>Member request: selected plan type does not match request type.</summary>
+    public sealed record TypeMismatch : ApproveRequestResult;
 }
 
 public abstract record DeactivateResult

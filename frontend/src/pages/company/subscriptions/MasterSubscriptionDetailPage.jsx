@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { ArrowLeft, AlertCircle } from 'lucide-react';
 import { Button, Card, PageTransition, Pill } from '../../../components/ui';
 import { apiGet, apiPost } from '../../../lib/api';
+import { useNumericIdParam } from '../../../lib/useNumericIdParam';
 import './master-subscription-detail.css';
 
 function formatDate(iso) {
@@ -35,7 +36,7 @@ function DetailRow({ label, value }) {
 }
 
 export default function MasterSubscriptionDetailPage() {
-  const { id } = useParams();
+  const id = useNumericIdParam();
   const navigate = useNavigate();
   const [sub, setSub] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -49,6 +50,7 @@ export default function MasterSubscriptionDetailPage() {
   const [deactivateConflict, setDeactivateConflict] = useState(false);
 
   useEffect(() => {
+    if (id === null) return;
     let alive = true;
     setLoading(true);
     apiGet(`/api/master/subscriptions/${id}`)
@@ -80,6 +82,8 @@ export default function MasterSubscriptionDetailPage() {
       setDeactivating(false);
     }
   }
+
+  if (id === null) return <Navigate to="/company/subscriptions" replace />;
 
   if (loading) {
     return (

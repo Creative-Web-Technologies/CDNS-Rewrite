@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { ClipboardCheck, Clock, BadgeCheck, AlertCircle } from 'lucide-react';
+import { ClipboardCheck, Clock, BadgeCheck, AlertCircle, PlusCircle } from 'lucide-react';
 import { Button, Card, PageTransition, StatTile } from '../../components/ui';
 import {
   Banner, WorkspaceActivity, TotalClearances, PriorityStream,
   PaymentSummaryCard, DashboardError, useDashboardSummary, Skeleton,
 } from '../../components/dashboard';
 import { usePortalChrome } from '../../components/portal/portalChrome';
+import { apiPost } from '../../lib/api';
 import '../../components/dashboard/dashboard.css';
 
 function SubscriptionStatusWidget({ subscriptions, loading }) {
@@ -46,12 +48,35 @@ export default function CompanyDashboard() {
   const navigate = useNavigate();
   const { summary, status, reload } = useDashboardSummary('/api/company/dashboard-summary');
   const loading = status === 'loading';
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState(null);
+
+  async function handleNewSubscription() {
+    setCreating(true);
+    setCreateError(null);
+    try {
+      const result = await apiPost('/api/master/subscription-requests', {});
+      navigate(`/company/requests/${result.requestId}/plans`, { state: { type: 'Consignee' } });
+    } catch (err) {
+      setCreating(false);
+      if (err.code === 'NoCompanyMapped') {
+        setCreateError('Your account is not linked to a company yet. Please contact support.');
+      } else {
+        setCreateError('Could not create subscription request. Please try again.');
+      }
+    }
+  }
 
   usePortalChrome({
     actions: (
-      <Button icon={ClipboardCheck} onClick={() => navigate('/company/requests')}>
-        Review requests
-      </Button>
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Button icon={PlusCircle} disabled={creating} onClick={handleNewSubscription}>
+          {creating ? 'Creating…' : 'New subscription'}
+        </Button>
+        <Button icon={ClipboardCheck} onClick={() => navigate('/company/requests')}>
+          Review requests
+        </Button>
+      </div>
     ),
   });
 
@@ -59,6 +84,18 @@ export default function CompanyDashboard() {
     <PageTransition>
       <div className="dash-stack">
         <Banner text="Monitor declarations, subscriptions and payments across every company you administer." />
+
+        {createError && (
+          <div role="alert" style={{
+            display: 'flex', alignItems: 'center', gap: 8,
+            padding: '12px 16px', borderRadius: 'var(--radius-sm)',
+            background: 'var(--pill-red-bg)', color: 'var(--pill-red-fg)',
+            fontSize: 14,
+          }}>
+            <AlertCircle size={16} aria-hidden="true" />
+            {createError}
+          </div>
+        )}
 
         {status === 'error' ? (
           <DashboardError onRetry={reload} />

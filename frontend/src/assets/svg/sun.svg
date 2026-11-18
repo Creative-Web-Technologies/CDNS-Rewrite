@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 192" fill="none" overflow="visible">
+  <title>Sun</title>
+  <circle class="cd-glare" cx="120" cy="96" r="84" fill="#FFE2A6" opacity="0.25"/>
+  <circle class="cd-glare cd-glare-b" cx="120" cy="96" r="62" fill="#FFE2A6" opacity="0.4"/>
+  <g class="cd-rays" stroke="#FFD98A" stroke-width="3" stroke-linecap="round" opacity="0.7">
+    <path d="M120 30V14M120 178V162M54 96H38M202 96H186M73 49L62 38M178 154L167 143M73 143L62 154M178 38L167 49"/>
+  </g>
+  <circle cx="120" cy="96" r="40" fill="#FFD98A"/>
+  <circle cx="108" cy="84" r="14" fill="#FFFFFF" opacity="0.55"/>
+  <circle cx="188" cy="150" r="10" fill="#FFFFFF" opacity="0.35"/>
+  <circle cx="222" cy="176" r="5" fill="#FFFFFF" opacity="0.35"/>
+</svg>

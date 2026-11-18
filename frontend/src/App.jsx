@@ -22,7 +22,7 @@ import NewRequestPage from './pages/member/requests/NewRequestPage';
 import RequestDetailPage from './pages/member/requests/RequestDetailPage';
 import MasterRequestsPage from './pages/company/requests/MasterRequestsPage';
 import MasterRequestDetailPage from './pages/company/requests/MasterRequestDetailPage';
-import MasterNewRequestPage from './pages/company/requests/MasterNewRequestPage';
+import MasterPlanPickerPage from './pages/company/requests/MasterPlanPickerPage';
 import MasterSubscriptionsPage from './pages/company/subscriptions/MasterSubscriptionsPage';
 import MasterSubscriptionDetailPage from './pages/company/subscriptions/MasterSubscriptionDetailPage';
 
@@ -116,7 +116,7 @@ function AppRoutes() {
         <Route path="cusdecs"             element={<ComingSoon title="Company CusDecs" />} />
         <Route path="members"             element={<ComingSoon title="Members & Subscriptions" />} />
         <Route path="requests"            element={<MasterRequestsPage />} />
-        <Route path="requests/new"        element={<MasterNewRequestPage />} />
+        <Route path="requests/:id/plans"  element={<MasterPlanPickerPage />} />
         <Route path="requests/:id"        element={<MasterRequestDetailPage />} />
         <Route path="subscriptions"       element={<MasterSubscriptionsPage />} />
         <Route path="subscriptions/:id"   element={<MasterSubscriptionDetailPage />} />

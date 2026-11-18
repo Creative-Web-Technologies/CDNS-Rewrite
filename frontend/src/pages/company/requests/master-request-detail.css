@@ -98,17 +98,135 @@
   color: var(--muted);
 }
 
-/* Plan cards */
-.mrd-plans { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
-.mrd-plan-card {
-  border: 2px solid var(--line);
-  border-radius: var(--radius-sm);
-  padding: 14px 16px;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+/* Type chip — shared between pickers */
+.mrd-type-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
   background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 12px;
+  align-self: flex-start;
 }
-.mrd-plan-card.is-selected { border-color: var(--primary); background: var(--primary-soft, #eff6ff); }
-.mrd-plan-card:hover:not(.is-selected) { border-color: var(--primary); }
-.mrd-plan-name { font-size: 14px; font-weight: 600; color: var(--ink); margin: 0 0 4px; }
-.mrd-plan-meta { font-size: 13px; color: var(--muted); margin: 0; }
+
+/* Shimmer keyframe — used by approve skeleton */
+@keyframes mrd-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Approve card (right column) ──────────────────────────────────────────── */
+
+.mrd-approve-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+/* Skeleton rows (compact height) */
+.mrd-approve-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mrd-approve-skel-row {
+  height: 52px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--line) 25%, var(--surface) 50%, var(--line) 75%);
+  background-size: 200% 100%;
+  animation: mrd-shimmer 1.5s infinite;
+}
+
+/* Error state */
+.mrd-approve-err {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--pill-red-fg);
+}
+
+.mrd-approve-err-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Empty state */
+.mrd-approve-empty {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* Summary after plan selected */
+.mrd-approve-summary {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mrd-approve-summary-text {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.mrd-approve-summary-note {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.mrd-approve-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mrd-approve-clear {
+  font-size: 13px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: underline;
+  text-align: center;
+}
+.mrd-approve-clear:hover { color: var(--ink); }
+
+/* Success state inside approve card */
+.mrd-approve-success {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mrd-approve-success-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.mrd-approve-success-icon { color: var(--pill-green-fg); flex-shrink: 0; }
+
+.mrd-approve-success-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}

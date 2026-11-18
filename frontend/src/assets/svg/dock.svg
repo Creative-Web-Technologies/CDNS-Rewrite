@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 340" width="660" height="340" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 340" width="660" height="340" fill="none" overflow="visible">
 <title>Customs dock</title>
 <g id="dock-building">
 <rect x="446" y="96" width="194" height="204" rx="6" fill="#EEF4F6" stroke="#6B8794" stroke-width="4"/>
@@ -28,10 +28,14 @@
 <rect x="-46" y="168" width="60" height="9" rx="3" fill="#23485A"/>
 </g>
 </g>
+<g id="crane-container" opacity="0">
+<rect x="-46" y="177" width="60" height="47" rx="3" fill="#3A6E82" stroke="#1F4A5B" stroke-width="2.5"/>
+<g stroke="#1F4A5B" stroke-width="1.5" opacity="0.7"><line x1="-27" y1="181" x2="-27" y2="220"/><line x1="-8" y1="181" x2="-8" y2="220"/></g>
+</g>
 <g id="dock-quay">
-<rect x="60" y="300" width="600" height="40" fill="#5E7C88"/>
-<rect x="60" y="296" width="600" height="8" rx="2" fill="#44626E"/>
+<rect x="60" y="300" width="600" height="40" fill="#2A6577"/>
+<rect x="60" y="296" width="600" height="8" rx="2" fill="#1C4E5E"/>
 <g fill="#23485A"><rect x="72" y="284" width="12" height="14" rx="3"/><rect x="212" y="284" width="12" height="14" rx="3"/></g>
-<g stroke="#44626E" stroke-width="3" opacity="0.6"><path d="M60 316h600M60 328h600"/></g>
+<g stroke="#5E97A8" stroke-width="3" opacity="0.25"><path d="M60 316h600M60 328h600"/></g>
 </g>
 </svg>
