@@ -20,7 +20,9 @@ public class CusDecSyncProcessorTests
     private const string AsycudaSyncAppName = "AsycudaCusDecSync";
     // Same connection string as appsettings.Development.json's "Default" entry —
     // this test writes real rows into your local dev Postgres.
-    private const string TestConnectionString = "Host=localhost;Port=5432;Database=cdns_dev;Username=postgres;Password=chirath2004";
+    private static readonly string TestConnectionString =
+    Environment.GetEnvironmentVariable("CDNS_TEST_CONNECTION")
+    ?? "Host=localhost;Port=5432;Database=cdns_test;Username=postgres;Password=postgres";
 
     // An external system number that's extremely unlikely to collide with any real
     // ASYCUDA instance ID, so this test never touches real data even accidentally.
