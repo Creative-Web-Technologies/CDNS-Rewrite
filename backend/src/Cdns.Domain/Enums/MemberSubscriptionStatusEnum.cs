@@ -20,5 +20,8 @@ public enum MemberSubscriptionStatusEnum
     Expired = 4,
 
     [Description("Payment Inprogress")]
-    PaymentInprogress = 5
+    PaymentInprogress = 5,
+
+    [Description("Change Subscription Type")]
+    ChangeSubscriptionType = 6
 }

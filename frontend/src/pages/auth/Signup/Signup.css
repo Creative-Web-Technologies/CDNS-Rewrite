@@ -1,173 +1,210 @@
-.signup-container {
-  display: flex;
-  height: 100vh;
-  width: 100vw;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #fff;
+/* Signup page — step-specific styles. Shell and shared component styles in AuthShell.css. */
+
+/* ── Left panel signup heading ── */
+.signup-left-h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--auth-ink);
+}
+
+/* ── Vertical stepper on left panel ── */
+.signup-stepper {
+  list-style: none;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-}
-
-.signup-image-side {
-  flex: 1.2;
-  background-image: url('/Customs.png');
-  background-size: cover;
-  background-position: center;
-  position: relative;
-  border-top-right-radius: 20px;
-  border-bottom-right-radius: 20px;
-}
-
-.overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 50, 130, 0.2);
-  border-top-right-radius: 20px;
-  border-bottom-right-radius: 20px;
-}
-
-.signup-form-side {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 40px;
-  overflow-y: auto;
-}
-
-.form-wrapper {
-  width: 100%;
-  max-width: 600px;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.logo-placeholder {
-  width: 90px;
-  height: 90px;
-  border: 2px solid #003282;
-  border-radius: 50%;
-  margin: 0 auto 15px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  color: #003282;
-  font-weight: bold;
-}
-
-.header h2 {
-  color: #003282;
-  font-size: 18px;
-  margin: 0;
-  font-weight: 600;
-}
-
-.header h1 {
-  color: #333;
-  font-size: 26px;
-  margin: 10px 0 5px;
-}
-
-.header p {
-  color: #555;
-  font-size: 18px;
-  margin: 0;
-}
-
-.input-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.input-group {
   display: flex;
   flex-direction: column;
+  gap: 16px;
 }
 
-.input-group label {
-  font-size: 13px;
-  color: #444;
-  margin-bottom: 5px;
+.ss-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
-.input-group input,
-.input-group select {
-  padding: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+.ss-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--auth-border);
+  color: var(--auth-muted);
   font-size: 14px;
-  outline: none;
-  transition: all 0.2s;
-}
-
-.input-group input:focus,
-.input-group select:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-}
-
-.submit-btn {
-  width: 100%;
-  padding: 14px;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
   font-weight: 600;
-  margin-top: 30px;
-  cursor: pointer;
-  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.25s, border-color 0.25s, color 0.25s;
 }
 
-.submit-btn:hover {
-  background-color: #1d4ed8;
+.ss-item--done .ss-circle {
+  background: var(--auth-primary);
+  border-color: var(--auth-primary);
+  color: #fff;
+  animation: cd-pop 0.5s cubic-bezier(0.2,0.7,0.2,1) both;
 }
 
-.submit-btn:disabled {
-  background-color: #93c5fd;
-  cursor: not-allowed;
+.ss-item--active .ss-circle {
+  background: #fff;
+  border: 2px solid var(--auth-primary);
+  color: var(--auth-primary);
 }
 
-.login-link {
-  text-align: center;
+@keyframes cd-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(28,78,94,0.35); }
+  100% { box-shadow: 0 0 0 10px rgba(28,78,94,0); }
+}
+
+.cd-pulse {
+  animation: cd-pulse 1.6s ease-out infinite;
+}
+
+.ss-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ss-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--auth-ink);
+}
+
+.ss-sub {
+  font-size: 13px;
+  color: var(--auth-text-2);
+}
+
+.ss-item--done .ss-title,
+.ss-item--done .ss-sub {
+  color: var(--auth-muted);
+}
+
+/* ── Right panel header (step label + progress bar) ── */
+.signup-right-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.signup-right-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.signup-step-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--auth-muted);
+}
+
+/* Segmented progress bar */
+.signup-progress {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.sp-seg {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--auth-track);
+  overflow: hidden;
+}
+
+.sp-seg--filled {
+  background: var(--auth-primary);
+  transform-origin: left;
+  animation: cd-fill 0.5s cubic-bezier(0.2,0.7,0.2,1) both;
+}
+
+@keyframes cd-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* ── Details form grid ── */
+.signup-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.signup-full-field {
+  margin-bottom: 14px;
+}
+
+.signup-submit-btn {
+  margin-top: 8px;
+}
+
+/* ── Terms checkbox ── */
+.signup-terms {
+  margin-top: 4px;
+}
+
+.signup-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
   font-size: 14px;
-  margin-top: 25px;
-  color: #666;
+  color: var(--auth-ink);
+  cursor: pointer;
+  line-height: 1.5;
 }
 
-.login-link a {
-  color: #2563eb;
-  text-decoration: none;
-  font-weight: 500;
+.signup-checkbox-label input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  accent-color: var(--auth-primary);
+  cursor: pointer;
 }
 
-.login-link a:hover {
+.signup-checkbox-label a {
+  color: var(--auth-primary);
+  font-weight: 600;
   text-decoration: underline;
 }
 
-.api-response {
-  margin-top: 25px;
-  padding: 15px;
-  border-radius: 6px;
-  font-size: 13px;
-  overflow-x: auto;
+/* ── Sign-in footer link ── */
+.signup-signin-link {
+  margin: 0;
+  font-size: 14px;
+  color: var(--auth-muted);
+  text-align: center;
 }
 
-.api-response.success {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #bbf7d0;
+/* ── Done screen ── */
+.signup-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
 }
 
-.api-response.error {
-  background: #fee2e2;
-  color: #991b1b;
-  border: 1px solid #fecaca;
+/* ── Responsive ── */
+@media (max-width: 540px) {
+  .signup-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .cd-pulse { animation: none; }
+  .ss-item--done .ss-circle { animation: none; }
+  .sp-seg--filled { animation: none; }
 }

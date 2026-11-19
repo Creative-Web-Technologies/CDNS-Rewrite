@@ -1,0 +1,59 @@
+/* Design tokens for the CDNS portals. Imported once from main.jsx. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Core palette */
+  --bg: #E3F2FD;
+  --surface: #FFFFFF;
+  --line: #E1EAEF;
+  --ink: #0F2A35;
+  --muted: #536974;
+  --primary: #1C4E5E;
+  --primary-soft: #E4F0F4;
+  --chart: #2F6F7E;
+
+  /* Pill tones — each tone has a soft background and a readable foreground */
+  --pill-green-bg: #E3F5EA;
+  --pill-green-fg: #1E7A46;
+  --pill-amber-bg: #FBEFD6;
+  --pill-amber-fg: #9A6A12;
+  --pill-red-bg: #FBE4E4;
+  --pill-red-fg: #B23434;
+  --pill-blue-bg: #E2EEFB;
+  --pill-blue-fg: #2660A4;
+  --pill-grey-bg: #ECF1F4;
+  --pill-grey-fg: #536974;
+
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Auth screen tokens */
+  --auth-ink: #0F2A35;
+  --auth-primary: #1C4E5E;
+  --auth-primary-mid: #2A6577;
+  --auth-sea-light: #5E97A8;
+  --auth-steel: #8FB8C8;
+  --auth-text-2: #3D5360;
+  --auth-muted: #536974;
+  --auth-border: #C9D6DD;
+  --auth-track: #E1EAEF;
+  --auth-surface-2: #F3F7FA;
+  --auth-panel: #E3F2FD;
+  --auth-orange: #E0862F;
+  --auth-sand: #F2C48D;
+  --auth-sun: #FFD98A;
+  --auth-glare: #FFE2A6;
+
+  /* Shared radii / shadows used by the shell and shared components */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --shadow-card: 0 1px 2px rgba(15, 42, 53, 0.04), 0 8px 24px rgba(15, 42, 53, 0.05);
+  --shadow-rail: 0 8px 30px rgba(15, 42, 53, 0.08);
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--ink);
+}

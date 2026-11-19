@@ -1,0 +1,116 @@
+.mpp-stack { display: flex; flex-direction: column; gap: 20px; }
+
+.mpp-top { display: flex; }
+.mpp-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.mpp-back:hover { color: var(--primary); }
+
+.mpp-header { display: flex; flex-direction: column; gap: 4px; }
+.mpp-title { margin: 0; font-size: 20px; font-weight: 700; color: var(--ink); }
+.mpp-subtitle { margin: 0; font-size: 14px; color: var(--muted); }
+
+/* Tabs */
+.mpp-tabs {
+  display: flex;
+  border-bottom: 2px solid var(--line);
+  gap: 0;
+}
+.mpp-tab {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.mpp-tab.is-active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.mpp-tab:hover:not(.is-active) { color: var(--ink); }
+
+/* Plan grid — shared card styles now in plan-card.css (imported via PlanCard.jsx) */
+.mpp-grid-margin { margin-top: 4px; }
+
+/* Confirm dialog overlay */
+.mpp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 24px;
+}
+.mpp-dialog {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+.mpp-dialog-title { margin: 0; font-size: 17px; font-weight: 700; color: var(--ink); }
+.mpp-dialog-body  { margin: 0; font-size: 14px; color: var(--muted); line-height: 1.5; }
+.mpp-dialog-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* Confirmation (payment stub) screen */
+.mpp-confirm-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 700px) { .mpp-confirm-layout { grid-template-columns: 1fr; } }
+
+.mpp-plan-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.mpp-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.mpp-detail-row:last-child { border-bottom: none; }
+.mpp-detail-label { font-size: 14px; color: var(--muted); flex-shrink: 0; }
+.mpp-detail-value { font-size: 14px; color: var(--ink); font-weight: 500; text-align: right; }
+
+.mpp-payment-stub {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.mpp-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--pill-red-fg);
+  margin-top: 4px;
+}
+
+.mpp-loading { padding: 60px; text-align: center; color: var(--muted); font-size: 14px; }
+.mpp-empty  { padding: 32px; text-align: center; color: var(--muted); font-size: 14px; }

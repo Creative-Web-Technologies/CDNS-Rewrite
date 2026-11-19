@@ -9,6 +9,8 @@ using Xunit;
 using Cdns.Application.Interfaces;
 using WorkerService = Cdns.Worker.Worker;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.FileProviders;
 
 namespace Cdns.Infrastructure.Tests.Sync;
 
@@ -24,6 +26,14 @@ public class CusDecSyncProcessorTests
     // ASYCUDA instance ID, so this test never touches real data even accidentally.
     private const long TestExternalId = 900000001L;
 
+        private sealed class TestHostEnvironment : IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = Environments.Development;
+        public string ApplicationName { get; set; } = "Cdns.Infrastructure.Tests";
+        public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
+    }
+
     private static ServiceProvider BuildServices()
     {
         var configuration = new ConfigurationBuilder()
@@ -35,7 +45,7 @@ public class CusDecSyncProcessorTests
 
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddInfrastructure(configuration);
+        services.AddInfrastructure(configuration, new TestHostEnvironment());
         return services.BuildServiceProvider();
     }
 
@@ -50,7 +60,7 @@ public class CusDecSyncProcessorTests
 
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddInfrastructure(configuration);
+                services.AddInfrastructure(configuration, new TestHostEnvironment());
 
         // Overrides the real Oracle-backed sync service — this test only exercises
         // the Worker's watermark logic, never real Oracle.

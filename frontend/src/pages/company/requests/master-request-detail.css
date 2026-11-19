@@ -1,0 +1,232 @@
+.mrd-stack { display: flex; flex-direction: column; gap: 20px; }
+
+.mrd-top { display: flex; }
+.mrd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.mrd-back:hover { color: var(--primary); }
+
+.mrd-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.mrd-title { margin: 0; font-size: 20px; font-weight: 700; color: var(--ink); }
+.mrd-subtitle { margin: 4px 0 0; font-size: 14px; color: var(--muted); }
+
+.mrd-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 760px) { .mrd-layout { grid-template-columns: 1fr; } }
+
+.mrd-details { display: flex; flex-direction: column; gap: 0; }
+.mrd-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+.mrd-row:last-child { border-bottom: none; }
+.mrd-label { font-size: 14px; color: var(--muted); flex-shrink: 0; }
+.mrd-value { font-size: 14px; color: var(--ink); font-weight: 500; text-align: right; }
+
+.mrd-action-info { font-size: 14px; color: var(--muted); margin: 0 0 16px; }
+
+.mrd-textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--surface);
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.mrd-textarea:focus { border-color: var(--primary); }
+
+.mrd-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.mrd-field-label { font-size: 13px; font-weight: 500; color: var(--ink); }
+
+.mrd-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+
+.mrd-conflict-msg {
+  font-size: 13px;
+  color: var(--pill-amber-fg);
+  background: var(--pill-amber-bg);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+}
+
+.mrd-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--pill-red-fg);
+  margin-top: 8px;
+}
+
+.mrd-loading { padding: 60px; text-align: center; color: var(--muted); font-size: 14px; }
+.mrd-not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* Type chip — shared between pickers */
+.mrd-type-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 12px;
+  align-self: flex-start;
+}
+
+/* Shimmer keyframe — used by approve skeleton */
+@keyframes mrd-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* ── Approve card (right column) ──────────────────────────────────────────── */
+
+.mrd-approve-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 6px;
+}
+
+/* Skeleton rows (compact height) */
+.mrd-approve-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mrd-approve-skel-row {
+  height: 52px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--line) 25%, var(--surface) 50%, var(--line) 75%);
+  background-size: 200% 100%;
+  animation: mrd-shimmer 1.5s infinite;
+}
+
+/* Error state */
+.mrd-approve-err {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--pill-red-fg);
+}
+
+.mrd-approve-err-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Empty state */
+.mrd-approve-empty {
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  padding: 12px 0;
+}
+
+/* Summary after plan selected */
+.mrd-approve-summary {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mrd-approve-summary-text {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.mrd-approve-summary-note {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.mrd-approve-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mrd-approve-clear {
+  font-size: 13px;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  text-decoration: underline;
+  text-align: center;
+}
+.mrd-approve-clear:hover { color: var(--ink); }
+
+/* Success state inside approve card */
+.mrd-approve-success {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mrd-approve-success-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.mrd-approve-success-icon { color: var(--pill-green-fg); flex-shrink: 0; }
+
+.mrd-approve-success-sub {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}

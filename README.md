@@ -149,7 +149,7 @@ copy backend\src\Cdns.Api\appsettings.Development.example.json backend\src\Cdns.
 Copy-Item backend/src/Cdns.Api/appsettings.Development.example.json backend/src/Cdns.Api/appsettings.Development.json
 ```
 
-Open the newly created `backend/src/Cdns.Api/appsettings.Development.json` and replace the placeholder with your real connection details — use the same values you set in `.env`:
+Open the newly created `backend/src/Cdns.Api/appsettings.Development.json` and replace the placeholders with your real connection details — use the same values you set in `.env`:
 
 ```json
 {
@@ -157,6 +157,31 @@ Open the newly created `backend/src/Cdns.Api/appsettings.Development.json` and r
     "Default": "Host=localhost;Port=5433;Database=cdns_dev;Username=cdns;Password=<your-password>"
   }
 }
+```
+
+**Required secret: `Cdns:MemberSubscriptionSecret`**
+
+The API will refuse to start (all environments) if this key is missing or blank.
+Generate a value locally with:
+
+```shell
+openssl rand -base64 48
+```
+
+Add it to your `appsettings.Development.json`:
+
+```json
+{
+  "Cdns": {
+    "MemberSubscriptionSecret": "<your-generated-value>"
+  }
+}
+```
+
+In staging and production, supply it as an environment variable instead — never use the dev value outside your local machine:
+
+```
+Cdns__MemberSubscriptionSecret=<staging-or-prod-value>
 ```
 
 **Cdns.Worker (if you run the worker service)**

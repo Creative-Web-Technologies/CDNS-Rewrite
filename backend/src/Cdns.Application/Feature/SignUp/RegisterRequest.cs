@@ -9,4 +9,5 @@ public class RegisterRequest
     public string Mobile { get; set; } = string.Empty;
     public string Nic { get; set; } = string.Empty;
     public string Designation { get; set; } = string.Empty;
+    public bool AgreeToTerms { get; set; }
 }

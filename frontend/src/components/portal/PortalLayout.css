@@ -1,0 +1,254 @@
+/* Portal shell: a narrow icon-only rail on the left, a plain header and the
+   scrollable content on the right. Depends on tokens.css. */
+
+.pl-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 10px 14px;
+  background: var(--primary);
+  color: #fff;
+  border-radius: var(--radius-sm);
+}
+.pl-skip:focus { left: 12px; top: 12px; }
+
+.pl-shell {
+  display: flex;
+  gap: 20px;
+  min-height: 100vh;
+  padding: 20px;
+  background: var(--bg);
+  box-sizing: border-box;
+}
+
+/* ── Icon rail ──────────────────────────────────────────────────────────── */
+.pl-rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 56px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 28px;
+  box-shadow: var(--shadow-rail);
+  padding: 12px 0;
+  position: sticky;
+  top: 20px;
+  height: calc(100vh - 40px);
+  box-sizing: border-box;
+}
+
+.pl-rail__crest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+  border-radius: 10px;
+}
+/* ~32px, fully visible (contain), never cropped */
+.pl-rail__crest img { width: 32px; height: 32px; object-fit: contain; }
+.pl-rail__crest:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.pl-rail__nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.pl-rail__bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding-top: 10px;
+}
+
+/* Rail items (and the icon-buttons that share their look) */
+.pl-rail__item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.pl-rail__item:hover { background: var(--primary-soft); color: var(--primary); }
+.pl-rail__item.is-active { background: var(--primary); color: #fff; }
+.pl-rail__item:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* Rail tooltip — portaled to <body>, positioned with fixed coords from JS, so
+   it renders above all page content with no clipping parent. */
+.pl-tooltip {
+  position: fixed;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  background: var(--ink);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 9px;
+  border-radius: 7px;
+  pointer-events: none;
+  z-index: 2000;
+  box-shadow: 0 4px 14px rgba(15, 42, 53, 0.18);
+}
+.pl-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: var(--ink);
+}
+
+/* Avatar + menu */
+.pl-rail__avatar-wrap { position: relative; margin-top: 4px; }
+.pl-rail__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease;
+}
+.pl-rail__avatar:hover { box-shadow: 0 0 0 3px var(--primary-soft); }
+.pl-rail__avatar:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.pl-rail__menu {
+  position: absolute;
+  left: calc(100% + 12px);
+  bottom: 0;
+  min-width: 210px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 8px;
+  z-index: 40;
+}
+.pl-rail__menu-head { padding: 6px 10px 10px; border-bottom: 1px solid var(--line); margin-bottom: 6px; }
+.pl-rail__menu-name { display: block; font-size: 13px; font-weight: 700; color: var(--ink); }
+.pl-rail__menu-sub { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; word-break: break-all; }
+.pl-rail__menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+.pl-rail__menu-item:hover { background: var(--primary-soft); color: var(--primary); }
+.pl-rail__menu-item:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.pl-rail__menu-item--danger:hover { background: var(--pill-red-bg); color: var(--pill-red-fg); }
+
+/* ── Main column ────────────────────────────────────────────────────────── */
+.pl-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Plain header on the page background (no card) */
+.pl-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 4px 2px;
+}
+.pl-header__date {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* Override the global negative h1 tracking so words/letters are not squashed. */
+.pl-header__title { margin: 6px 0 0; font-size: 26px; font-weight: 700; color: var(--ink); line-height: 1.15; letter-spacing: -0.01em; }
+.pl-header__subtitle { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+.pl-header__right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.pl-header__actions { display: flex; align-items: center; gap: 8px; }
+
+.pl-iconbtn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.pl-iconbtn:hover { background: var(--primary-soft); color: var(--primary); border-color: var(--primary-soft); }
+.pl-iconbtn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.pl-iconbtn__dot {
+  position: absolute;
+  top: 8px;
+  right: 9px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pill-red-fg);
+  border: 2px solid var(--surface);
+}
+
+.pl-content { flex: 1; min-width: 0; }
+
+/* ── Narrow screens: rail becomes a horizontal bar ──────────────────────── */
+@media (max-width: 860px) {
+  .pl-shell { flex-direction: column; padding: 14px; gap: 14px; }
+  .pl-rail {
+    flex-direction: row;
+    width: auto;
+    height: auto;
+    border-radius: 20px;
+    padding: 8px 12px;
+  }
+  .pl-rail__crest { margin-bottom: 0; margin-right: 6px; }
+  .pl-rail__nav { flex-direction: row; flex-wrap: wrap; }
+  .pl-rail__bottom { margin-top: 0; margin-left: auto; flex-direction: row; padding-top: 0; }
+  .pl-rail__menu { left: auto; right: 0; bottom: calc(100% + 10px); }
+  .pl-header { align-items: center; }
+}
+
+/* Phones: let the header action drop to its own full-width row so the long
+   button label can never overflow the viewport. */
+@media (max-width: 520px) {
+  .pl-header__right { width: 100%; flex-wrap: wrap; }
+  .pl-header__actions { flex: 1 1 100%; }
+  .pl-header__actions .ui-btn { width: 100%; }
+}

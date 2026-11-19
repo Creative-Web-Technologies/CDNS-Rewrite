@@ -1,0 +1,123 @@
+.pc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.pc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 2px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  background: var(--surface);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.pc-card--radio {
+  cursor: pointer;
+}
+
+.pc-card--radio:hover:not(.is-selected) {
+  border-color: var(--primary);
+}
+
+.pc-card.is-selected {
+  border-color: var(--primary);
+  background: var(--primary-soft, #eff6ff);
+}
+
+.pc-card--radio:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.pc-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pc-name { margin: 0; font-size: 16px; font-weight: 700; color: var(--ink); }
+
+.pc-check { color: var(--primary); flex-shrink: 0; margin-top: 2px; }
+
+.pc-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.pc-desc { font-size: 13px; color: var(--ink); line-height: 1.4; flex: 1; margin: 0; }
+
+.pc-amount {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.pc-amount.is-free { color: var(--pill-green-fg); }
+
+.pc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.pc-applicable { font-size: 12px; color: var(--muted); }
+
+/* Compact variant — single-row layout for narrow column */
+.pc-card--compact { padding: 10px 12px; gap: 0; border-radius: var(--radius-lg); }
+
+.pc-compact-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pc-compact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pc-compact-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pc-compact-meta {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pc-compact-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.pc-compact-amount { font-size: 13px; font-weight: 700; color: var(--ink); }
+.pc-compact-amount.is-free { color: var(--pill-green-fg); }
+
+/* Single-column grid for the narrow column */
+.pc-grid--compact {
+  grid-template-columns: 1fr;
+  gap: 6px;
+}

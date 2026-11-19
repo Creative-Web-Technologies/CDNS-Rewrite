@@ -29,15 +29,18 @@ public class SignupController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<IActionResult> Register([FromBody] RegisterRequest? request)
     {
-        if (string.IsNullOrWhiteSpace(request.Tin) || string.IsNullOrWhiteSpace(request.Email))
-            return BadRequest(new { message = "TIN and Email are required." });
+        if (request is null) return BadRequest(new { code = "InvalidRequest" });
 
         var result = await _signupService.RegisterAsync(request);
 
         if (!result.Success)
+        {
+            if (result.Code is "AccountExists" or "EmailBelongsToMaster")
+                return Conflict(result);
             return BadRequest(result);
+        }
 
         return Ok(result);
     }
@@ -59,14 +62,13 @@ public class SignupController : ControllerBase
     [HttpPost("set-password")]
     public async Task<IActionResult> SetPassword([FromBody] SetPasswordRequest request)
     {
-        if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6)
-            return BadRequest(new { message = "Password must be at least 6 characters." });
-
         var result = await _signupService.SetPasswordAsync(request);
         return result switch
         {
-            SignupSetPasswordResult.Success =>
-                Ok(new { message = "Password set successfully. You are now logged in.", success = true }),
+            SignupSetPasswordResult.Success s =>
+                Ok(new { message = "Password set successfully. You are now logged in.", success = true, portal = s.Portal }),
+            SignupSetPasswordResult.WeakPassword =>
+                BadRequest(new { code = "WeakPassword" }),
             SignupSetPasswordResult.InvalidToken =>
                 BadRequest(new { success = false, message = "Invalid session or OTP not verified." }),
             _ => StatusCode(500)
