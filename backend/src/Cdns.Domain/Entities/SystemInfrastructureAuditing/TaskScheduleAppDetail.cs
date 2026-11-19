@@ -9,4 +9,8 @@ public class TaskScheduleAppDetail
     public string AppName { get; set; } = null!;
 
     public DateTimeOffset? LastRunDateTime { get; set; }
+
+    public bool IsSuccess { get; set; }
+
+    public string? Errors { get; set; }
 }

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Cdns.Application.Features.Signup; 
 using Cdns.Infrastructure.Services; 
+using Cdns.Infrastructure.Sync;
 
 namespace Cdns.Infrastructure;
 
@@ -35,6 +36,8 @@ public static class DependencyInjection
         services.AddScoped<ILoginService, LoginService>();
         services.AddScoped<IMasterActivationService, MasterActivationService>();
         services.AddScoped<IPasswordResetService, PasswordResetService>();
+        services.AddScoped<IAsycudaSyncService, AsycudaSyncService>();
+        services.AddScoped<CusDecSyncProcessor>();
 
         return services;
     }

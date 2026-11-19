@@ -2771,6 +2771,15 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("app_name");
 
+                    b.Property<string>("Errors")
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)")
+                        .HasColumnName("errors");
+
+                    b.Property<bool>("IsSuccess")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_success");
+
                     b.Property<DateTimeOffset?>("LastRunDateTime")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_run_date_time");

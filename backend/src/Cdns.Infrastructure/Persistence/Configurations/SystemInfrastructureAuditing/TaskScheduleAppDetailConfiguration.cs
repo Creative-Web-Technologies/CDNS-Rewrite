@@ -20,5 +20,11 @@ public class TaskScheduleAppDetailConfiguration : IEntityTypeConfiguration<TaskS
         builder.Property(x => x.AppName)
                .HasMaxLength(500)
                .IsRequired();
+
+        builder.Property(x => x.IsSuccess)
+               .IsRequired();
+
+        builder.Property(x => x.Errors)
+               .HasMaxLength(4000);
     }
 }
