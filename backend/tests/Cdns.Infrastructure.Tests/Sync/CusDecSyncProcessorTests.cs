@@ -24,7 +24,7 @@ public class CusDecSyncProcessorTests
 
     // An external system number that's extremely unlikely to collide with any real
     // ASYCUDA instance ID, so this test never touches real data even accidentally.
-    private const long TestExternalId = 900000001L;
+    private const long TestExternalId = 777777777L;
 
         private sealed class TestHostEnvironment : IHostEnvironment
     {
