@@ -49,7 +49,7 @@ jobs:
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Apply migrations to test database
-        run: dotnet ef database update --project src/Cdns.Infrastructure --startup-project src/Cdns.Api
+        run: $HOME/.dotnet/tools/dotnet-ef database update --project src/Cdns.Infrastructure --startup-project src/Cdns.Api
         env:
           ConnectionStrings__Default: "Host=localhost;Port=5432;Database=cdns_test;Username=postgres;Password=postgres"
 
