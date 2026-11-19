@@ -17,85 +17,10 @@
   font-family: var(--font-sans);
 }
 
-/* Ship lane */
-.login-overlay-lane {
-  position: relative;
-  width: 320px;
-  max-width: 80vw;
-  /* Height matches the ship's displayed height (25px) + lane padding */
-  height: 60px;
-}
-
-.login-overlay-ship {
-  position: absolute;
-  bottom: 12px;
-  left: 0;
-  /* Sized to ship.svg real aspect (860:340 ≈ 2.53:1) → 64×25 (#25) */
-  width: 64px;
-  height: 25px;
-}
-
-.login-overlay-ship img {
-  width: 100%;
-  height: 100%;
-  object-fit: fill;
-}
-
-.login-overlay-dock-post {
-  position: absolute;
-  right: -10px;
-  bottom: 12px;
-  width: 10px;
-  height: 28px;
-  background: var(--auth-orange);
-  border-radius: 2px 2px 0 0;
-}
-
-/* Progress track + bar */
-.login-overlay-track {
-  width: 320px;
-  max-width: 80vw;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(255,255,255,0.16);
-  overflow: hidden;
-}
-
-.login-overlay-bar {
-  width: 100%;
-  height: 100%;
-  background: #fff;
-  transform-origin: left;
-  animation: cd-load-bar 2.6s linear both;
-}
-
-@keyframes cd-load-bar {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
-}
-
-/* Load ship animation — renamed cd-bob-load to avoid conflict with scene cd-bob */
-.cd-load-ship {
-  animation: cd-load-sail 2.6s cubic-bezier(0.45, 0, 0.2, 1) both;
-}
-
-@keyframes cd-load-sail {
-  from { left: 0; }
-  to   { left: calc(100% - 64px); }
-}
-
-/* cd-bob-load: plain vertical bob (no rotation) for the overlay ship (#M3) */
+/* cd-bob-load: plain vertical bob (no rotation) for the overlay ship */
 .cd-bob-load {
   animation: cd-bob-load 4s ease-in-out infinite;
   display: block;
-}
-
-@keyframes overlay-wave {
-  to { transform: translateX(-60px); }
-}
-
-.overlay-wave {
-  animation: overlay-wave 3s linear infinite;
 }
 
 /* Stage text */
@@ -103,36 +28,6 @@
   font-size: 18px;
   font-weight: 600;
   margin: 0;
-}
-
-.login-overlay-hint {
-  font-size: 14px;
-  color: #B9CCD5;
-  margin: -20px 0 0;
-}
-
-/* Arrival state */
-.login-overlay-success-circle {
-  width: 76px;
-  height: 76px;
-  border-radius: 50%;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: cd-pop 0.5s cubic-bezier(0.2,0.7,0.2,1) both;
-}
-
-.login-overlay-welcome {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0;
-}
-
-.login-overlay-opening {
-  font-size: 14px;
-  color: #B9CCD5;
-  margin: -20px 0 0;
 }
 
 /* ── Signup link ── */
@@ -154,7 +49,5 @@
 
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
-  .cd-load-ship  { animation: none; left: calc(100% - 64px); }
-  .login-overlay-bar { animation: none; transform: scaleX(1); }
-  .cd-bob-load   { animation: none; }
+  .cd-bob-load { animation: none; }
 }
