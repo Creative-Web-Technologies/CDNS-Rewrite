@@ -44,7 +44,9 @@ jobs:
         run: dotnet build --no-restore --configuration Release
 
       - name: Install EF Core tools
-        run: dotnet tool install --global dotnet-ef
+        run: |
+          dotnet tool install --global dotnet-ef
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Apply migrations to test database
         run: dotnet ef database update --project src/Cdns.Infrastructure --startup-project src/Cdns.Api
