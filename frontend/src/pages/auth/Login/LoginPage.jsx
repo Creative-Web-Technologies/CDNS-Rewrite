@@ -39,71 +39,17 @@ function Banner({ variant, icon, title, body }) {
   );
 }
 
-const STAGE_TEXT = [
-  'Clearing Customs…',
-  'Preparing your workspace…',
-  'Opening your portal…',
-];
-
-function LoadingOverlay({ stage }) {
+function LoadingOverlay() {
   return (
     <div className="login-overlay" role="status" aria-live="polite">
-      {stage !== 'done' ? (
-        <>
-          <div className="login-overlay-lane">
-            <div className="login-overlay-ship cd-load-ship">
-              <img
-                src={shipSvg}
-                alt=""
-                aria-hidden="true"
-                className="cd-bob-load"
-                style={{ width: 64, height: 25, objectFit: 'fill' }}
-              />
-            </div>
-            <div className="login-overlay-dock-post" aria-hidden="true" />
-            <svg
-              aria-hidden="true"
-              width="100%"
-              height="16"
-              viewBox="0 0 320 16"
-              preserveAspectRatio="none"
-              style={{ position: 'absolute', left: 0, bottom: 0 }}
-            >
-              <path
-                className="overlay-wave"
-                fill="none"
-                stroke="#5E97A8"
-                strokeWidth="2"
-                d="M-120 8q15 -6 30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0"
-              />
-            </svg>
-          </div>
-
-          <div className="login-overlay-track">
-            <div className="login-overlay-bar" />
-          </div>
-
-          <p className="login-overlay-stage">{STAGE_TEXT[stage] ?? STAGE_TEXT[0]}</p>
-          <p className="login-overlay-hint">This only takes a moment.</p>
-        </>
-      ) : (
-        <>
-          <div className="login-overlay-success-circle">
-            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" aria-hidden="true">
-              <polyline
-                points="8,19 15,26 28,12"
-                stroke="var(--auth-primary)"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="auth-success-check"
-              />
-            </svg>
-          </div>
-          <p className="login-overlay-welcome">Welcome back</p>
-          <p className="login-overlay-opening">Your dashboard opens here.</p>
-        </>
-      )}
+      <img
+        src={shipSvg}
+        alt=""
+        aria-hidden="true"
+        className="cd-bob-load"
+        style={{ width: 64, height: 25, objectFit: 'fill' }}
+      />
+      <p className="login-overlay-stage">Signing you in…</p>
     </div>
   );
 }
@@ -113,7 +59,7 @@ export default function LoginPage() {
   const { refreshUser } = useAuth();
 
   const [view, setView] = useState('login');
-  const [overlay, setOverlay] = useState(null);
+  const [showLoader, setShowLoader] = useState(false);
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -165,15 +111,15 @@ export default function LoginPage() {
   async function handleLogin(e) {
     e.preventDefault();
 
-    // B1 — empty-field validation before hitting the API
     if (!username.trim()) { setLoginError('empty-username'); return; }
     if (!password.trim()) { setLoginError('empty-password'); return; }
 
     setLoginLoading(true);
     setLoginError(null);
 
-    // Show overlay immediately after login API succeeds (#23)
-    // refreshUser runs asynchronously during the stage cycle
+    // Anti-flash: only show the overlay if the round-trip takes longer than 300 ms
+    const loaderTimer = scheduleTimeout(() => setShowLoader(true), 300);
+
     try {
       const data = await apiPost('/api/auth/login', { userName: username, password });
 
@@ -182,28 +128,14 @@ export default function LoginPage() {
         return;
       }
 
-      // Kick off refreshUser in parallel with the overlay animation (#23)
-      const userPromise = refreshUser();
-
-      setOverlay({ stage: 0, path: null });
-      scheduleTimeout(() => setOverlay(o => o ? { ...o, stage: 1 } : o), 900);
-      scheduleTimeout(() => setOverlay(o => o ? { ...o, stage: 2 } : o), 1800);
-
-      // Resolve user and navigate once both the minimum animation time and
-      // refreshUser have finished (#23)
-      const minWait = new Promise(res => scheduleTimeout(res, 2600));
-      const [u] = await Promise.all([userPromise, minWait]);
+      const u = await refreshUser();
 
       if (!u) {
-        // refreshUser failed — treat as network error
-        setOverlay(null);
         setLoginError('network');
         return;
       }
 
-      const path = `/${u.portal.toLowerCase()}/dashboard`;
-      setOverlay(o => o ? { ...o, stage: 'done', path } : o);
-      scheduleTimeout(() => navigate(path), 600);
+      navigate(`/${u.portal.toLowerCase()}/dashboard`);
 
     } catch (err) {
       if (!err.status || err.status >= 500) {
@@ -216,6 +148,8 @@ export default function LoginPage() {
         setLoginError('invalid');
       }
     } finally {
+      clearTimeout(loaderTimer);
+      setShowLoader(false);
       setLoginLoading(false);
     }
   }
@@ -308,7 +242,7 @@ export default function LoginPage() {
 
   return (
     <AuthShell leftTop={leftTop}>
-      {overlay && <LoadingOverlay stage={overlay.stage} />}
+      {showLoader && <LoadingOverlay />}
 
       {/* ── login view ── */}
       {view === 'login' && (
