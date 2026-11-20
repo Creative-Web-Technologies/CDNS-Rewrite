@@ -77,6 +77,8 @@ public class CusDecConfiguration : IEntityTypeConfiguration<CusDec>
         builder.HasIndex(x => x.DeclarantCompanyId).HasDatabaseName("IX_CusDec_DeclarantCompanyId");
         builder.HasIndex(x => x.ConsigneeCompanyId).HasDatabaseName("IX_CusDec_ConsigneeCompanyId");
 
+        builder.HasIndex(x => x.CusDecExternalSystemNumber).IsUnique();
+
         // The *ById columns (claim, disclaim, ready-to-process, can/can't process) are
         // plain bigint in legacy with no FK, so they stay that way for now.
     }

@@ -15,6 +15,8 @@ using Cdns.Application.Feature.Subscriptions;
 using Cdns.Infrastructure.Services;
 using Cdns.Infrastructure.Services.Dashboard;
 using Cdns.Infrastructure.Services.Subscriptions;
+using Cdns.Infrastructure.Sync;
+
 
 namespace Cdns.Infrastructure;
 
@@ -49,6 +51,8 @@ public static class DependencyInjection
         services.AddScoped<ILoginService, LoginService>();
         services.AddScoped<IMasterActivationService, MasterActivationService>();
         services.AddScoped<IPasswordResetService, PasswordResetService>();
+        services.AddScoped<IAsycudaSyncService, AsycudaSyncService>();
+        services.AddScoped<CusDecSyncProcessor>();
         services.AddScoped<IMemberDashboardService, MemberDashboardService>();
         services.AddScoped<ICompanyDashboardService, CompanyDashboardService>();
         services.AddScoped<IMemberSubscriptionService, MemberSubscriptionService>();

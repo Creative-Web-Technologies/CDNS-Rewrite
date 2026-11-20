@@ -35,5 +35,8 @@ public class CusDecStatusConfiguration
             .HasForeignKey(x => x.CusDecId)
             .HasPrincipalKey(x => x.CusDecId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(x => new { x.ExternalSystemNumber, x.CusDecStatusNumber, x.CusDecExternalSystemNumber, x.TableName })
+        .IsUnique();
     }
 }
