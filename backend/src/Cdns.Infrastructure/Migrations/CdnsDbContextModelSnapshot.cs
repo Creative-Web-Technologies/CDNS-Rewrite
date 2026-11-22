@@ -620,11 +620,12 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasKey("CompanyMemberMappingId")
                         .HasName("pk_company_member_mappings");
 
-                    b.HasIndex("CompanyId")
-                        .HasDatabaseName("ix_company_member_mappings_company_id");
-
                     b.HasIndex("MemberId")
                         .HasDatabaseName("ix_company_member_mappings_member_id");
+
+                    b.HasIndex("CompanyId", "MemberId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_company_member_mappings_company_id_member_id");
 
                     b.ToTable("company_member_mappings", (string)null);
                 });
@@ -1018,7 +1019,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("can_not_process_by_id");
 
                     b.Property<DateTime?>("CanNotProcessMarkDateTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("can_not_process_mark_date_time");
 
                     b.Property<string>("CanNotProcessReason")
@@ -1036,7 +1037,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("can_process_by_id");
 
                     b.Property<DateTime?>("CanProcessMarkDateTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("can_process_mark_date_time");
 
                     b.Property<string>("Channel")
@@ -1049,7 +1050,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("consignee_claimed_by_id");
 
                     b.Property<DateTime?>("ConsigneeClaimedDateTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("consignee_claimed_date_time");
 
                     b.Property<int?>("ConsigneeCompanyId")
@@ -1066,7 +1067,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("consignee_disclaimed_by_id");
 
                     b.Property<DateTime?>("ConsigneeDisclaimedDateTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("consignee_disclaimed_date_time");
 
                     b.Property<string>("ConsigneeTinNumber")
@@ -1075,7 +1076,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("consignee_tin_number");
 
                     b.Property<DateTime?>("CusDecDate")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("cus_dec_date");
 
                     b.Property<long>("CusDecExternalSystemNumber")
@@ -1097,7 +1098,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("declarant_claimed_by_id");
 
                     b.Property<DateTime?>("DeclarantClaimedDateTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("declarant_claimed_date_time");
 
                     b.Property<int?>("DeclarantCompanyId")
@@ -1114,7 +1115,7 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("declarant_disclaimed_by_id");
 
                     b.Property<DateTime?>("DeclarantDisclaimedDateTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("declarant_disclaimed_date_time");
 
                     b.Property<string>("DeclarantTinNumber")
@@ -1154,7 +1155,7 @@ namespace Cdns.Infrastructure.Migrations
 
                     b.Property<DateTime>("LastSyncDateTime")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_sync_date_time")
                         .HasDefaultValueSql("now()");
 
@@ -1183,15 +1184,15 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnName("ready_to_process_mark_by_id");
 
                     b.Property<DateTime?>("ReadyToProcessMarkDateTime")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("ready_to_process_mark_date_time");
 
                     b.Property<DateTime?>("RegistrationDate")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("registration_date");
 
                     b.Property<DateTime?>("ReleaseDate")
-                        .HasColumnType("timestamp without time zone")
+                        .HasColumnType("timestamp with time zone")
                         .HasColumnName("release_date");
 
                     b.Property<string>("SupplierCompanyName")
@@ -1202,15 +1203,17 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasKey("CusDecId")
                         .HasName("pk_cus_decs");
 
-                    b.HasIndex("ConsigneeCompanyId")
-                        .HasDatabaseName("IX_CusDec_ConsigneeCompanyId");
-
                     b.HasIndex("CusDecExternalSystemNumber")
                         .IsUnique()
                         .HasDatabaseName("ix_cus_decs_cus_dec_external_system_number");
 
-                    b.HasIndex("DeclarantCompanyId")
-                        .HasDatabaseName("IX_CusDec_DeclarantCompanyId");
+                    b.HasIndex("ConsigneeCompanyId", "ConsigneeDisclaimedById", "ConsigneeClaimedById", "CusDecDate")
+                        .IsDescending(false, false, false, true)
+                        .HasDatabaseName("IX_CusDec_Consignee_Tabs");
+
+                    b.HasIndex("DeclarantCompanyId", "DeclarantDisclaimedById", "DeclarantClaimedById", "CusDecDate")
+                        .IsDescending(false, false, false, true)
+                        .HasDatabaseName("IX_CusDec_Declarant_Tabs");
 
                     b.ToTable("cus_decs", (string)null);
                 });
@@ -1360,8 +1363,8 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasKey("CusDecContainerStatusId")
                         .HasName("pk_cus_dec_container_statuses");
 
-                    b.HasIndex("CusDecContainerId")
-                        .HasDatabaseName("ix_cus_dec_container_statuses_cus_dec_container_id");
+                    b.HasIndex("CusDecContainerId", "StatusDateTime")
+                        .HasDatabaseName("ix_cus_dec_container_statuses_cus_dec_container_id_status_date");
 
                     b.HasIndex("ExternalSystemNumber", "ContainerStatusNumber")
                         .IsUnique()
@@ -1428,8 +1431,8 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasKey("CusDecInspectStatusId")
                         .HasName("pk_cus_dec_inspect_statuses");
 
-                    b.HasIndex("CusDecId")
-                        .HasDatabaseName("ix_cus_dec_inspect_statuses_cus_dec_id");
+                    b.HasIndex("CusDecId", "StatusDateTime")
+                        .HasDatabaseName("ix_cus_dec_inspect_statuses_cus_dec_id_status_date_time");
 
                     b.HasIndex("ExternalSystemNumber", "CusDecExternalSystemNumber", "TableName", "Status")
                         .IsUnique()
@@ -1884,8 +1887,8 @@ namespace Cdns.Infrastructure.Migrations
                     b.HasKey("CusDecStatusId")
                         .HasName("pk_cus_dec_statuses");
 
-                    b.HasIndex("CusDecId")
-                        .HasDatabaseName("ix_cus_dec_statuses_cus_dec_id");
+                    b.HasIndex("CusDecId", "StatusDateTime")
+                        .HasDatabaseName("ix_cus_dec_statuses_cus_dec_id_status_date_time");
 
                     b.HasIndex("ExternalSystemNumber", "CusDecStatusNumber", "CusDecExternalSystemNumber", "TableName")
                         .IsUnique()
@@ -2417,6 +2420,9 @@ namespace Cdns.Infrastructure.Migrations
 
                     b.HasKey("MemberNotificationId")
                         .HasName("pk_member_notifications");
+
+                    b.HasIndex("CusDecId")
+                        .HasDatabaseName("ix_member_notifications_cus_dec_id");
 
                     b.HasIndex("MemberId", "IsDeleted", "IsSeen", "NotificationDateTime")
                         .HasDatabaseName("ix_member_notifications_member_id_is_deleted_is_seen_notificat");
@@ -3202,6 +3208,12 @@ namespace Cdns.Infrastructure.Migrations
 
             modelBuilder.Entity("Cdns.Domain.Entities.MemberSignupTables.MemberNotification", b =>
                 {
+                    b.HasOne("Cdns.Domain.Entities.CusdecTables.CusDec", null)
+                        .WithMany()
+                        .HasForeignKey("CusDecId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .HasConstraintName("fk_member_notifications_cus_decs_cus_dec_id");
+
                     b.HasOne("Cdns.Domain.Entities.MemberSignupTables.Member", "Member")
                         .WithMany()
                         .HasForeignKey("MemberId")

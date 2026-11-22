@@ -259,7 +259,9 @@ namespace Cdns.Infrastructure.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     app_id = table.Column<Guid>(type: "uuid", nullable: false),
                     app_name = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
-                    last_run_date_time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                    last_run_date_time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    is_success = table.Column<bool>(type: "boolean", nullable: false),
+                    errors = table.Column<string>(type: "character varying(4000)", maxLength: 4000, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -330,23 +332,23 @@ namespace Cdns.Infrastructure.Migrations
                     bl_number = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
                     global_identity = table.Column<Guid>(type: "uuid", nullable: false),
                     cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: false),
-                    last_sync_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "now()"),
+                    last_sync_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "now()"),
                     declarant_claimed_by_id = table.Column<long>(type: "bigint", nullable: true),
                     consignee_claimed_by_id = table.Column<long>(type: "bigint", nullable: true),
                     declarant_disclaimed_by_id = table.Column<long>(type: "bigint", nullable: true),
                     consignee_disclaimed_by_id = table.Column<long>(type: "bigint", nullable: true),
-                    declarant_claimed_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    consignee_claimed_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    declarant_disclaimed_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    consignee_disclaimed_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    declarant_claimed_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    consignee_claimed_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    declarant_disclaimed_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    consignee_disclaimed_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     is_ready_to_process = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     ready_to_process_mark_by_id = table.Column<long>(type: "bigint", nullable: true),
-                    ready_to_process_mark_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    cus_dec_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    ready_to_process_mark_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    cus_dec_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     origin = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     office_code = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true),
-                    release_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
-                    registration_date = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    release_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    registration_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     exporter = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     incoterm = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     destination = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: true),
@@ -355,11 +357,11 @@ namespace Cdns.Infrastructure.Migrations
                     cus_dec_type = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     can_not_process = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     can_not_process_by_id = table.Column<long>(type: "bigint", nullable: true),
-                    can_not_process_mark_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    can_not_process_mark_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     can_not_process_reason = table.Column<string>(type: "text", nullable: true),
                     can_process = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
                     can_process_by_id = table.Column<long>(type: "bigint", nullable: true),
-                    can_process_mark_date_time = table.Column<DateTime>(type: "timestamp without time zone", nullable: true),
+                    can_process_mark_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     declarant_company_name = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     consignee_company_name = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     supplier_company_name = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true)
@@ -498,34 +500,6 @@ namespace Cdns.Infrastructure.Migrations
                     table.PrimaryKey("pk_member_login_sessions", x => x.member_login_session_id);
                     table.ForeignKey(
                         name: "fk_member_login_sessions_members_member_id",
-                        column: x => x.member_id,
-                        principalTable: "members",
-                        principalColumn: "member_id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "member_notifications",
-                columns: table => new
-                {
-                    member_notification_id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    member_id = table.Column<long>(type: "bigint", nullable: false),
-                    title = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
-                    message = table.Column<string>(type: "text", nullable: true),
-                    notification_date_time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    cus_dec_id = table.Column<long>(type: "bigint", nullable: true),
-                    is_seen = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
-                    seen_date_time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    show_on_home = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
-                    is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
-                    notification_type = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_member_notifications", x => x.member_notification_id);
-                    table.ForeignKey(
-                        name: "fk_member_notifications_members_member_id",
                         column: x => x.member_id,
                         principalTable: "members",
                         principalColumn: "member_id",
@@ -692,8 +666,8 @@ namespace Cdns.Infrastructure.Migrations
                     arrival_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     voyage = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     vessel = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
-                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: true),
-                    container_key = table.Column<int>(type: "integer", nullable: true),
+                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: false),
+                    container_key = table.Column<int>(type: "integer", nullable: false),
                     container_pass_number = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
                 },
                 constraints: table =>
@@ -708,15 +682,43 @@ namespace Cdns.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "cus_dec_inspect_statuses",
+                columns: table => new
+                {
+                    cus_dec_inspect_status_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    cus_dec_id = table.Column<long>(type: "bigint", nullable: true),
+                    cus_dec_global_identity = table.Column<Guid>(type: "uuid", nullable: true),
+                    status = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    description = table.Column<string>(type: "text", nullable: true),
+                    status_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    last_sync_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    external_system_number = table.Column<long>(type: "bigint", nullable: false),
+                    cus_dec_status_number = table.Column<int>(type: "integer", nullable: true),
+                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: false),
+                    table_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_cus_dec_inspect_statuses", x => x.cus_dec_inspect_status_id);
+                    table.ForeignKey(
+                        name: "fk_cus_dec_inspect_statuses_cus_decs_cus_dec_id",
+                        column: x => x.cus_dec_id,
+                        principalTable: "cus_decs",
+                        principalColumn: "cus_dec_id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "cus_dec_inspection_section_tab",
                 columns: table => new
                 {
                     cus_dec_inspection_section_tab_id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     cus_dec_id = table.Column<long>(type: "bigint", nullable: true),
-                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: true),
-                    ins_tab_external_system_number = table.Column<long>(type: "bigint", nullable: true),
-                    key_sec_number = table.Column<int>(type: "integer", nullable: true),
+                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: false),
+                    ins_tab_external_system_number = table.Column<long>(type: "bigint", nullable: false),
+                    key_sec_number = table.Column<int>(type: "integer", nullable: false),
                     section_name = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     section_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     last_sync_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
@@ -742,10 +744,10 @@ namespace Cdns.Infrastructure.Migrations
                     description = table.Column<string>(type: "text", nullable: true),
                     value = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: true),
                     cus_dec_id = table.Column<long>(type: "bigint", nullable: true),
-                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: true),
+                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: false),
                     last_sync_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    inspection_instance_id = table.Column<long>(type: "bigint", nullable: true),
-                    key_frd_number = table.Column<int>(type: "integer", nullable: true),
+                    inspection_instance_id = table.Column<long>(type: "bigint", nullable: false),
+                    key_frd_number = table.Column<int>(type: "integer", nullable: false),
                     frd_nfr = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     frd_uni = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
                     frd_ubr = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
@@ -776,8 +778,8 @@ namespace Cdns.Infrastructure.Migrations
                     quantity = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     unit_price = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
                     total_value = table.Column<decimal>(type: "numeric(18,4)", precision: 18, scale: 4, nullable: true),
-                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: true),
-                    cus_dec_item_number = table.Column<int>(type: "integer", nullable: true),
+                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: false),
+                    cus_dec_item_number = table.Column<int>(type: "integer", nullable: false),
                     bl_number = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
                 },
                 constraints: table =>
@@ -803,10 +805,10 @@ namespace Cdns.Infrastructure.Migrations
                     description = table.Column<string>(type: "text", nullable: true),
                     status_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     last_sync_date_time = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    external_system_number = table.Column<long>(type: "bigint", nullable: true),
-                    cus_dec_status_number = table.Column<int>(type: "integer", nullable: true),
-                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: true),
-                    table_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true)
+                    external_system_number = table.Column<long>(type: "bigint", nullable: false),
+                    cus_dec_status_number = table.Column<int>(type: "integer", nullable: false),
+                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: false),
+                    table_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -829,9 +831,9 @@ namespace Cdns.Infrastructure.Migrations
                     tax_code = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true),
                     tax_amount = table.Column<decimal>(type: "numeric(18,2)", precision: 18, scale: 2, nullable: false, defaultValue: 0m),
                     last_sync_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: true),
-                    item_number = table.Column<int>(type: "integer", nullable: true),
-                    tax_rank = table.Column<int>(type: "integer", nullable: true)
+                    cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: false),
+                    item_number = table.Column<int>(type: "integer", nullable: false),
+                    tax_rank = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -841,6 +843,40 @@ namespace Cdns.Infrastructure.Migrations
                         column: x => x.cus_dec_id,
                         principalTable: "cus_decs",
                         principalColumn: "cus_dec_id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "member_notifications",
+                columns: table => new
+                {
+                    member_notification_id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    member_id = table.Column<long>(type: "bigint", nullable: false),
+                    title = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    message = table.Column<string>(type: "text", nullable: true),
+                    notification_date_time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    cus_dec_id = table.Column<long>(type: "bigint", nullable: true),
+                    is_seen = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    seen_date_time = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    show_on_home = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    is_deleted = table.Column<bool>(type: "boolean", nullable: false, defaultValue: false),
+                    notification_type = table.Column<int>(type: "integer", nullable: false, defaultValue: 0)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_member_notifications", x => x.member_notification_id);
+                    table.ForeignKey(
+                        name: "fk_member_notifications_cus_decs_cus_dec_id",
+                        column: x => x.cus_dec_id,
+                        principalTable: "cus_decs",
+                        principalColumn: "cus_dec_id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "fk_member_notifications_members_member_id",
+                        column: x => x.member_id,
+                        principalTable: "members",
+                        principalColumn: "member_id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -1062,8 +1098,8 @@ namespace Cdns.Infrastructure.Migrations
                     last_sync_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     cus_dec_external_system_number = table.Column<long>(type: "bigint", nullable: true),
                     container_number = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: true),
-                    external_system_number = table.Column<long>(type: "bigint", nullable: true),
-                    container_status_number = table.Column<int>(type: "integer", nullable: true)
+                    external_system_number = table.Column<long>(type: "bigint", nullable: false),
+                    container_status_number = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -1199,9 +1235,10 @@ namespace Cdns.Infrastructure.Migrations
                 column: "menu_item_function_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_company_member_mappings_company_id",
+                name: "ix_company_member_mappings_company_id_member_id",
                 table: "company_member_mappings",
-                column: "company_id");
+                columns: new[] { "company_id", "member_id" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_company_member_mappings_member_id",
@@ -1214,9 +1251,21 @@ namespace Cdns.Infrastructure.Migrations
                 column: "company_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_cus_dec_container_statuses_cus_dec_container_id",
+                name: "ix_cus_dec_container_statuses_cus_dec_container_id_status_date",
                 table: "cus_dec_container_statuses",
-                column: "cus_dec_container_id");
+                columns: new[] { "cus_dec_container_id", "status_date_time" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_cus_dec_container_statuses_external_system_number_container",
+                table: "cus_dec_container_statuses",
+                columns: new[] { "external_system_number", "container_status_number" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_cus_dec_containers_cus_dec_external_system_number_container",
+                table: "cus_dec_containers",
+                columns: new[] { "cus_dec_external_system_number", "container_key" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_cus_dec_containers_cus_dec_id",
@@ -1224,14 +1273,43 @@ namespace Cdns.Infrastructure.Migrations
                 column: "cus_dec_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_cus_dec_inspect_statuses_cus_dec_id_status_date_time",
+                table: "cus_dec_inspect_statuses",
+                columns: new[] { "cus_dec_id", "status_date_time" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_cus_dec_inspect_statuses_external_system_number_cus_dec_ext",
+                table: "cus_dec_inspect_statuses",
+                columns: new[] { "external_system_number", "cus_dec_external_system_number", "table_name", "status" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_cus_dec_inspection_section_tab_cus_dec_external_system_numb",
+                table: "cus_dec_inspection_section_tab",
+                columns: new[] { "cus_dec_external_system_number", "ins_tab_external_system_number", "key_sec_number" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "ix_cus_dec_inspection_section_tab_cus_dec_id",
                 table: "cus_dec_inspection_section_tab",
                 column: "cus_dec_id");
 
             migrationBuilder.CreateIndex(
+                name: "ix_cus_dec_inspections_cus_dec_external_system_number_inspecti",
+                table: "cus_dec_inspections",
+                columns: new[] { "cus_dec_external_system_number", "inspection_instance_id", "key_frd_number" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "ix_cus_dec_inspections_cus_dec_id",
                 table: "cus_dec_inspections",
                 column: "cus_dec_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_cus_dec_items_cus_dec_external_system_number_cus_dec_item_n",
+                table: "cus_dec_items",
+                columns: new[] { "cus_dec_external_system_number", "cus_dec_item_number" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_cus_dec_items_cus_dec_id",
@@ -1250,9 +1328,21 @@ namespace Cdns.Infrastructure.Migrations
                 column: "office_code_id");
 
             migrationBuilder.CreateIndex(
-                name: "ix_cus_dec_statuses_cus_dec_id",
+                name: "ix_cus_dec_statuses_cus_dec_id_status_date_time",
                 table: "cus_dec_statuses",
-                column: "cus_dec_id");
+                columns: new[] { "cus_dec_id", "status_date_time" });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_cus_dec_statuses_external_system_number_cus_dec_status_numb",
+                table: "cus_dec_statuses",
+                columns: new[] { "external_system_number", "cus_dec_status_number", "cus_dec_external_system_number", "table_name" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_cus_dec_taxes_cus_dec_external_system_number_item_number_ta",
+                table: "cus_dec_taxes",
+                columns: new[] { "cus_dec_external_system_number", "item_number", "tax_rank" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_cus_dec_taxes_cus_dec_id",
@@ -1260,14 +1350,22 @@ namespace Cdns.Infrastructure.Migrations
                 column: "cus_dec_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_CusDec_ConsigneeCompanyId",
+                name: "ix_cus_decs_cus_dec_external_system_number",
                 table: "cus_decs",
-                column: "consignee_company_id");
+                column: "cus_dec_external_system_number",
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_CusDec_DeclarantCompanyId",
+                name: "IX_CusDec_Consignee_Tabs",
                 table: "cus_decs",
-                column: "declarant_company_id");
+                columns: new[] { "consignee_company_id", "consignee_disclaimed_by_id", "consignee_claimed_by_id", "cus_dec_date" },
+                descending: new[] { false, false, false, true });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CusDec_Declarant_Tabs",
+                table: "cus_decs",
+                columns: new[] { "declarant_company_id", "declarant_disclaimed_by_id", "declarant_claimed_by_id", "cus_dec_date" },
+                descending: new[] { false, false, false, true });
 
             migrationBuilder.CreateIndex(
                 name: "ix_customer_support_tickets_member_id",
@@ -1299,6 +1397,11 @@ namespace Cdns.Infrastructure.Migrations
                 table: "member_login_sessions",
                 column: "session_id",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_member_notifications_cus_dec_id",
+                table: "member_notifications",
+                column: "cus_dec_id");
 
             migrationBuilder.CreateIndex(
                 name: "ix_member_notifications_member_id_is_deleted_is_seen_notificat",
@@ -1429,6 +1532,9 @@ namespace Cdns.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "cus_dec_container_statuses");
+
+            migrationBuilder.DropTable(
+                name: "cus_dec_inspect_statuses");
 
             migrationBuilder.DropTable(
                 name: "cus_dec_inspection_mappings");
