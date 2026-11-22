@@ -27,11 +27,18 @@ public static class SubscriptionExpiry
             colomboStart.Year, colomboStart.Month, colomboStart.Day,
             0, 0, 0, DateTimeKind.Unspecified);
 
+        // Explicit cases only — an unknown or null duration type is a data/logic
+        // error and must surface, not silently fall back to AddDays.
         var expiryLocal = durationTypeEnum switch
         {
-            (int)SubscriptionDurationTypeEnum.Months => startLocal.AddMonths(noOfActiveDuration),
-            (int)SubscriptionDurationTypeEnum.Years  => startLocal.AddYears(noOfActiveDuration),
-            _  /* Days (0) or null */                => startLocal.AddDays(noOfActiveDuration),
+            (int)SubscriptionDurationTypeEnum.Days     => startLocal.AddDays(noOfActiveDuration),
+            (int)SubscriptionDurationTypeEnum.Months   => startLocal.AddMonths(noOfActiveDuration),
+            (int)SubscriptionDurationTypeEnum.Years    => startLocal.AddYears(noOfActiveDuration),
+            // Lifetime matches legacy: start + 500 years.
+            (int)SubscriptionDurationTypeEnum.Lifetime => startLocal.AddYears(500),
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(durationTypeEnum), durationTypeEnum,
+                "Unknown subscription duration type."),
         };
 
         return new DateTimeOffset(expiryLocal, Colombo.GetUtcOffset(expiryLocal));

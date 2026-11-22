@@ -1,5 +1,6 @@
 using Cdns.Api.Authentication;
 using Cdns.Api.Endpoints.Auth;
+using Cdns.Api.Endpoints.Dev;
 using Cdns.Application.Interfaces;
 using Cdns.Infrastructure;
 using Cdns.Infrastructure.Persistence;
@@ -91,6 +92,10 @@ if (app.Environment.IsDevelopment())
     await MemberPortalSeedData.SeedAsync(db);
 
     app.MapOpenApi();
+
+    // Development-only maintenance endpoints (e.g. subscription key backfill).
+    // Not registered at all outside Development.
+    app.MapDevSubscriptionEndpoints();
 }
 
 app.UseHttpsRedirection();

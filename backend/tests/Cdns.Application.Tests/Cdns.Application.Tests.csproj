@@ -20,6 +20,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Cdns.Application\Cdns.Application.csproj" />
+    <!-- Referenced so the HMAC tests exercise the real MemberSubscriptionKeyService
+         (Infrastructure) instead of a hand-kept re-implementation. -->
+    <ProjectReference Include="..\..\src\Cdns.Infrastructure\Cdns.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

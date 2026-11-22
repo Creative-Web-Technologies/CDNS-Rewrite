@@ -117,7 +117,7 @@ public sealed class MasterSubscriptionService : IMasterSubscriptionService
             x.StartDate,
             x.ExpiryDate,
             SubscriptionStatusLabel(x.MemberSubscriptionStatusEnum),
-            IsActive(x.MemberSubscriptionStatusEnum, x.ExpiryDate, today)
+            SubscriptionUsability.IsActiveForDisplay(x.MemberSubscriptionStatusEnum, x.ExpiryDate, today)
         )).ToList();
 
         return new PagedResult<MasterSubscriptionSummaryDto>(dtos, total, page, pageSize);
@@ -169,7 +169,7 @@ public sealed class MasterSubscriptionService : IMasterSubscriptionService
             row.s.StartDate,
             row.s.ExpiryDate,
             SubscriptionStatusLabel(row.s.MemberSubscriptionStatusEnum),
-            IsActive(row.s.MemberSubscriptionStatusEnum, row.s.ExpiryDate, today),
+            SubscriptionUsability.IsActiveForDisplay(row.s.MemberSubscriptionStatusEnum, row.s.ExpiryDate, today),
             row.r?.SubscriptionRequestNumber,
             history
         );
@@ -207,11 +207,8 @@ public sealed class MasterSubscriptionService : IMasterSubscriptionService
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
-
-    private static bool IsActive(int statusEnum, DateTimeOffset? expiryDate, DateTimeOffset today)
-        => statusEnum == (int)MemberSubscriptionStatusEnum.Activate
-           && expiryDate.HasValue
-           && expiryDate.Value >= today;
+    // "Active" here is a display badge (status + expiry only, no company/HMAC gate)
+    // and is defined once in SubscriptionUsability.IsActiveForDisplay.
 
     private static string SubscriptionStatusLabel(int status) => status switch
     {

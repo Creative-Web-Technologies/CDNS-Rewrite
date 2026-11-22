@@ -1,8 +1,10 @@
+using Cdns.Domain.Entities.CompanySubscriptionManagement;
+
 namespace Cdns.Application.Feature.Subscriptions;
 
 /// <summary>
 /// Generates and verifies the HMAC-SHA512 key stored on
-/// <see cref="Cdns.Domain.Entities.CompanySubscriptionManagement.MemberSubscription.Key"/>.
+/// <see cref="MemberSubscription.Key"/>.
 /// </summary>
 public interface IMemberSubscriptionKeyService
 {
@@ -33,4 +35,18 @@ public interface IMemberSubscriptionKeyService
         int subscriptionActionTypeEnum,
         int subscriptionTypeEnum,
         string key);
+
+    /// <summary>
+    /// Computes the key from a subscription's own stored values, so callers can't
+    /// transpose arguments. Throws if the subscription has no ExpiryDate (a key
+    /// over a null expiry is meaningless).
+    /// </summary>
+    string Generate(MemberSubscription subscription);
+
+    /// <summary>
+    /// Verifies <see cref="MemberSubscription.Key"/> against the key recomputed
+    /// from the subscription's own stored values. Returns <c>false</c> (never
+    /// throws) when the key or ExpiryDate is missing.
+    /// </summary>
+    bool Verify(MemberSubscription subscription);
 }

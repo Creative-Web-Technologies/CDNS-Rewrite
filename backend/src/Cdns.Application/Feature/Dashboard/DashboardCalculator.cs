@@ -1,3 +1,4 @@
+using Cdns.Application.Feature.Subscriptions;
 using Cdns.Application.Interfaces;
 using Cdns.Domain.Entities.Company;
 
@@ -142,13 +143,14 @@ public static class DashboardCalculator
 
         var subs = subscriptions as IReadOnlyCollection<SubscriptionView> ?? subscriptions.ToList();
 
+        // Display counts: status + expiry only (no company/HMAC gate, so a history
+        // summary never drops rows). Active and expired share one expiry boundary
+        // via SubscriptionUsability so they can't drift.
         var active = subs.Count(s =>
-            s.StatusEnum == (int)MemberSubscriptionStatusEnum.Activate &&
-            s.ExpiryDate is not null && s.ExpiryDate >= today);
+            SubscriptionUsability.IsActiveForDisplay(s.StatusEnum, s.ExpiryDate, today));
 
         var expired = subs.Count(s =>
-            s.StatusEnum == (int)MemberSubscriptionStatusEnum.Expired ||
-            (s.ExpiryDate is not null && s.ExpiryDate < today));
+            SubscriptionUsability.IsExpiredForDisplay(s.StatusEnum, s.ExpiryDate, today));
 
         return new SubscriptionCounts(pending, active, expired);
     }

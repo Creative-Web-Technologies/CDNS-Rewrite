@@ -1,9 +1,13 @@
+using Cdns.Application.Feature.Subscriptions;
 using Cdns.Application.Interfaces;
+using Cdns.Domain.Entities.CompanySubscriptionManagement;
 using Cdns.Domain.Enums;
 using Cdns.Infrastructure.Persistence;
+using Cdns.Infrastructure.Services.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Cdns.Infrastructure.Tests;
 
@@ -16,6 +20,31 @@ internal static class TestHelpers
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
         return new CdnsDbContext(options);
+    }
+
+    /// <summary>A real SubscriptionAccessService over the given context.</summary>
+    public static SubscriptionAccessService AccessService(
+        CdnsDbContext db, IBusinessClock clock, IMemberSubscriptionKeyService keys)
+        => new(db, clock, keys, NullLogger<SubscriptionAccessService>.Instance);
+
+    /// <summary>MemberSubscriptionService wired with its access service.</summary>
+    public static MemberSubscriptionService NewMemberSubscriptionService(
+        CdnsDbContext db, ICurrentUser user, IBusinessClock clock, IMemberSubscriptionKeyService keys)
+        => new(db, user, clock, AccessService(db, clock, keys));
+
+    /// <summary>
+    /// Backfills a valid HMAC key (computed from stored values) onto every tracked
+    /// MemberSubscription that has an ExpiryDate and no key, so access-list fixtures
+    /// aren't rejected for a missing key. Call just before SaveChanges.
+    /// </summary>
+    public static void AssignSubscriptionKeys(CdnsDbContext db, IMemberSubscriptionKeyService keys)
+    {
+        foreach (var entry in db.ChangeTracker.Entries<MemberSubscription>())
+        {
+            var s = entry.Entity;
+            if (string.IsNullOrEmpty(s.Key) && s.ExpiryDate is not null)
+                s.Key = keys.Generate(s);
+        }
     }
 
     public static CdnsDbContext CreateDbWithInterceptor(string name, UtcDateTimeOffsetInterceptor interceptor)

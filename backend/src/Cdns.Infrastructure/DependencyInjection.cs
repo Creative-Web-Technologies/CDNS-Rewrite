@@ -60,6 +60,7 @@ public static class DependencyInjection
 
         services.AddSingleton<IBusinessClock, ColomboBusinessClock>();
         services.AddScoped<IMemberSubscriptionKeyService, MemberSubscriptionKeyService>();
+        services.AddScoped<ISubscriptionAccessService, SubscriptionAccessService>();
         services.AddScoped<IMasterSubscriptionRequestService, MasterSubscriptionRequestService>();
         services.AddScoped<IMasterSubscriptionService, MasterSubscriptionService>();
 
