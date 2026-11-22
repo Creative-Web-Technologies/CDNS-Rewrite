@@ -207,7 +207,7 @@ public class CusDecSyncProcessorTests
             ConsigneeCompanyName = "Test Consignee",
             SupplierCompanyName = "Test Supplier",
             GlobalIdentity = Guid.NewGuid(),
-            RegistrationDate = new DateTime(2026, 1, 1),
+            RegistrationDate = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
         };
 
         await processor.ProcessAsync(new[] { row }, CancellationToken.None);
@@ -260,7 +260,7 @@ public class CusDecSyncProcessorTests
             Origin = originalOrigin,
             GlobalIdentity = Guid.NewGuid(),
             NoOfContainers = 0,
-            LastSyncDateTime = DateTime.SpecifyKind(DateTime.UtcNow.AddDays(-1), DateTimeKind.Unspecified),
+            LastSyncDateTime = DateTime.UtcNow.AddDays(-1),
         });
         await db.SaveChangesAsync();
 
@@ -271,7 +271,7 @@ public class CusDecSyncProcessorTests
             entry.State = EntityState.Detached;
         }
 
-        var newReleaseDate = new DateTime(2026, 2, 1);
+        var newReleaseDate = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc);
 
         var row = new CusDecSyncRow
         {

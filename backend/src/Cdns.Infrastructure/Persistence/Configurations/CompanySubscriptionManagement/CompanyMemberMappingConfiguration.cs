@@ -28,5 +28,9 @@ public class CompanyMemberMappingConfiguration : IEntityTypeConfiguration<Compan
                .WithMany()
                .HasForeignKey(x => x.MemberId)
                .OnDelete(DeleteBehavior.Restrict);
+
+        // One row per company-member pair (legacy SyncMasterMemberDetail MERGE semantics).
+        // Removing a member sets IsDeleted = true on this row; re-adding reactivates it - never insert a second row.
+        builder.HasIndex(x => new { x.CompanyId, x.MemberId }).IsUnique();
     }
 }

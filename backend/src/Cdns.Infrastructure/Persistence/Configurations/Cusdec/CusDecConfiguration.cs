@@ -25,19 +25,7 @@ public class CusDecConfiguration : IEntityTypeConfiguration<CusDec>
 
         builder.Property(x => x.LastSyncDateTime)
             .IsRequired()
-            .HasColumnType("timestamp without time zone")
             .HasDefaultValueSql("now()");
-
-        builder.Property(x => x.DeclarantClaimedDateTime).HasColumnType("timestamp without time zone");
-        builder.Property(x => x.ConsigneeClaimedDateTime).HasColumnType("timestamp without time zone");
-        builder.Property(x => x.DeclarantDisclaimedDateTime).HasColumnType("timestamp without time zone");
-        builder.Property(x => x.ConsigneeDisclaimedDateTime).HasColumnType("timestamp without time zone");
-        builder.Property(x => x.ReadyToProcessMarkDateTime).HasColumnType("timestamp without time zone");
-        builder.Property(x => x.CusDecDate).HasColumnType("timestamp without time zone");
-        builder.Property(x => x.ReleaseDate).HasColumnType("timestamp without time zone");
-        builder.Property(x => x.RegistrationDate).HasColumnType("timestamp without time zone");
-        builder.Property(x => x.CanNotProcessMarkDateTime).HasColumnType("timestamp without time zone");
-        builder.Property(x => x.CanProcessMarkDateTime).HasColumnType("timestamp without time zone");
 
         builder.Property(x => x.IsReadyToProcess).IsRequired().HasDefaultValue(false);
         builder.Property(x => x.CanNotProcess).IsRequired().HasDefaultValue(false);
@@ -74,8 +62,14 @@ public class CusDecConfiguration : IEntityTypeConfiguration<CusDec>
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(x => x.DeclarantCompanyId).HasDatabaseName("IX_CusDec_DeclarantCompanyId");
-        builder.HasIndex(x => x.ConsigneeCompanyId).HasDatabaseName("IX_CusDec_ConsigneeCompanyId");
+        // CusDec page tabs + master auto-claim: company -> not/discarded -> not/claimed -> newest first.
+        // Leading column also serves "by company" lookups and the Company FK.
+        builder.HasIndex(x => new { x.DeclarantCompanyId, x.DeclarantDisclaimedById, x.DeclarantClaimedById, x.CusDecDate })
+            .IsDescending(false, false, false, true)
+            .HasDatabaseName("IX_CusDec_Declarant_Tabs");
+        builder.HasIndex(x => new { x.ConsigneeCompanyId, x.ConsigneeDisclaimedById, x.ConsigneeClaimedById, x.CusDecDate })
+            .IsDescending(false, false, false, true)
+            .HasDatabaseName("IX_CusDec_Consignee_Tabs");
 
         builder.HasIndex(x => x.CusDecExternalSystemNumber).IsUnique();
 

@@ -23,7 +23,8 @@ public class AsycudaSyncService : IAsycudaSyncService
         var results = new List<CusDecSyncRow>();
         const int pageSize = 3000;
         var pageNumber = 1;
-        var endDate = DateTime.Now;
+        var endDate = SriLankaTime.ToColombo(DateTime.UtcNow);
+        var sinceColombo = SriLankaTime.ToColombo(since);
 
         await using var connection = new OracleConnection(_connectionString);
         await connection.OpenAsync(cancellationToken);
@@ -81,7 +82,7 @@ public class AsycudaSyncService : IAsycudaSyncService
                 OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY";
 
             await using var command = new OracleCommand(query, connection);
-            command.Parameters.Add("startDate", since.ToString("yyyy-MM-dd HH:mm:ss"));
+            command.Parameters.Add("startDate", sinceColombo.ToString("yyyy-MM-dd HH:mm:ss"));
             command.Parameters.Add("endDate", endDate.ToString("yyyy-MM-dd HH:mm:ss"));
             command.Parameters.Add("offset", offset);
             command.Parameters.Add("pageSize", pageSize);
@@ -132,7 +133,7 @@ public class AsycudaSyncService : IAsycudaSyncService
             consigneeTin = GetString(reader, "Exporter_TIN");
         }
 
-        var registrationDate = GetNullableDateTime(reader, "Reg_Date");
+        var registrationDate = SriLankaTime.FromColomboToUtc(GetNullableDateTime(reader, "Reg_Date"));
 
         return new CusDecSyncRow
         {
@@ -145,7 +146,7 @@ public class AsycudaSyncService : IAsycudaSyncService
             Channel = GetString(reader, "channel"),
             OfficeCode = GetString(reader, "Office_Code"),
             RegistrationDate = registrationDate,
-            ReleaseDate = GetNullableDateTime(reader, "Release_Date"),
+            ReleaseDate = SriLankaTime.FromColomboToUtc(GetNullableDateTime(reader, "Release_Date")),
             CusDecDate = registrationDate,
             InvoiceValue = GetNullableDecimal(reader, "Invoice_Value") ?? 0,
             NoOfContainers = GetNullableInt(reader, "Container_Count") ?? 0,

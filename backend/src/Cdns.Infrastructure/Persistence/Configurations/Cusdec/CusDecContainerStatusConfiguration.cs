@@ -27,6 +27,9 @@ public class CusDecContainerStatusConfiguration : IEntityTypeConfiguration<CusDe
 
         builder.HasIndex(x => new { x.ExternalSystemNumber, x.ContainerStatusNumber }).IsUnique();
 
+        // Container status timeline (replaces the automatic FK index on CusDecContainerId).
+        builder.HasIndex(x => new { x.CusDecContainerId, x.StatusDateTime });
+
         builder.Property(x => x.ExternalSystemNumber).IsRequired();
         builder.Property(x => x.ContainerStatusNumber).IsRequired();
         

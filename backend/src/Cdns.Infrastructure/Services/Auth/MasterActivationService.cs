@@ -134,8 +134,7 @@ public class MasterActivationService : IMasterActivationService
 
     private async Task ClaimCusDecsForMaster(long memberId, int companyId, CancellationToken ct)
     {
-        // timestamp without time zone columns require Unspecified Kind — UTC Kind throws in Npgsql
-        var now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+        var now = DateTime.UtcNow;
 
         var declarantCount = await _db.CusDecs
             .Where(c => c.DeclarantCompanyId == companyId
