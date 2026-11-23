@@ -25,6 +25,8 @@ import MasterRequestDetailPage from './pages/company/requests/MasterRequestDetai
 import MasterPlanPickerPage from './pages/company/requests/MasterPlanPickerPage';
 import MasterSubscriptionsPage from './pages/company/subscriptions/MasterSubscriptionsPage';
 import MasterSubscriptionDetailPage from './pages/company/subscriptions/MasterSubscriptionDetailPage';
+import SubscriptionPickerPage from './features/cusdec/SubscriptionPickerPage';
+import CusDecWorkspacePage from './features/cusdec/CusDecWorkspacePage';
 
 // ── Loading screen ──────────────────────────────────────────────────────────
 function LoadingScreen() {
@@ -96,13 +98,13 @@ function AppRoutes() {
       <Route path="/member" element={<PortalGuard portal="Member" />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard"     element={<MemberDashboard />} />
-        <Route path="cusdecs"       element={<ComingSoon title="CusDecs" />} />
+        <Route path="cusdecs"       element={<SubscriptionPickerPage portal="member" />} />
         <Route path="containers"    element={<ComingSoon title="Containers" />} />
         <Route path="subscriptions" element={<SubscriptionsPage />} />
         <Route path="requests"      element={<RequestsPage />} />
         <Route path="requests/new"  element={<NewRequestPage />} />
         <Route path="requests/:id"  element={<RequestDetailPage />} />
-        <Route path="cusdec/:subscriptionId"     element={<ComingSoon title="CusDec workspace" />} />
+        <Route path="cusdec/:subscriptionId"     element={<CusDecWorkspacePage portal="member" />} />
         <Route path="containers/:subscriptionId" element={<ComingSoon title="Containers" />} />
         <Route path="notifications" element={<ComingSoon title="Notifications" />} />
         <Route path="support"       element={<ComingSoon title="Support" />} />
@@ -113,7 +115,8 @@ function AppRoutes() {
       <Route path="/company" element={<PortalGuard portal="Company" />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard"           element={<CompanyDashboard />} />
-        <Route path="cusdecs"             element={<ComingSoon title="Company CusDecs" />} />
+        <Route path="cusdecs"             element={<SubscriptionPickerPage portal="company" />} />
+        <Route path="cusdec/:subscriptionId" element={<CusDecWorkspacePage portal="company" />} />
         <Route path="members"             element={<ComingSoon title="Members & Subscriptions" />} />
         <Route path="requests"            element={<MasterRequestsPage />} />
         <Route path="requests/:id/plans"  element={<MasterPlanPickerPage />} />

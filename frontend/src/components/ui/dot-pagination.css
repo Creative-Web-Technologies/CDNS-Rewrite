@@ -1,0 +1,80 @@
+.dp-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0 2px;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.dp-info {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.dp-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dp-arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+}
+.dp-arrow:hover:not(:disabled) {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: var(--primary-soft);
+}
+.dp-arrow:disabled { opacity: 0.35; cursor: not-allowed; }
+.dp-arrow:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.dp-dots {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dp-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: var(--line);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: background 0.15s ease, width 0.18s ease, border-radius 0.18s ease;
+  position: relative;
+}
+/* Expand hit area to 40×40px without affecting layout */
+.dp-dot::after {
+  content: '';
+  position: absolute;
+  inset: -16px;
+}
+.dp-dot:hover:not(.dp-dot--active) { background: var(--muted); }
+.dp-dot:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 999px;
+}
+.dp-dot--active {
+  width: 20px;
+  border-radius: 4px;
+  background: var(--primary);
+}

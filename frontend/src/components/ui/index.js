@@ -6,3 +6,5 @@ export { default as DataTable } from './DataTable';
 export { default as PageHeader } from './PageHeader';
 export { default as EmptyState } from './EmptyState';
 export { default as PageTransition } from './PageTransition';
+export { default as DotPagination } from './DotPagination';
+export { ToastProvider, useToast } from './Toast';

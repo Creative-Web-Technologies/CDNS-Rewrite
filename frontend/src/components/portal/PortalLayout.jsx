@@ -8,6 +8,7 @@ import {
 import { apiGet } from '../../lib/api';
 import { useAuth } from '../../contexts/useAuth';
 import { PortalChromeContext } from './portalChrome';
+import { ToastProvider } from '../ui/Toast';
 import './PortalLayout.css';
 
 // Sri Lanka Customs crest shipped in /public (the official emblem PNG).
@@ -154,6 +155,7 @@ export default function PortalLayout({ portal }) {
   );
 
   return (
+    <ToastProvider>
     <PortalChromeContext.Provider value={{ setChrome: setChromeStable }}>
       <a className="pl-skip" href="#main-content">Skip to content</a>
       <div className="pl-shell">
@@ -244,5 +246,6 @@ export default function PortalLayout({ portal }) {
         document.body,
       )}
     </PortalChromeContext.Provider>
+    </ToastProvider>
   );
 }
