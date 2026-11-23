@@ -37,6 +37,9 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("MemberOnly", p => p.RequireClaim("MemberType", "Member"));
     options.AddPolicy("MasterOnly", p => p.RequireClaim("MemberType", "CompanyMasterMember"));
+    // Shared CusDec page: either role. The service applies the role-specific
+    // ownership scope; this policy only requires an authenticated member of a known type.
+    options.AddPolicy("MemberOrMaster", p => p.RequireClaim("MemberType", "Member", "CompanyMasterMember"));
 });
 builder.Services.AddControllers();
 

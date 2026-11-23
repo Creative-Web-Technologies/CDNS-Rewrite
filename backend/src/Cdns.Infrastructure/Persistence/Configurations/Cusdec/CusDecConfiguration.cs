@@ -62,18 +62,54 @@ public class CusDecConfiguration : IEntityTypeConfiguration<CusDec>
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // CusDec page tabs + master auto-claim: company -> not/discarded -> not/claimed -> newest first.
-        // Leading column also serves "by company" lookups and the Company FK.
-        builder.HasIndex(x => new { x.DeclarantCompanyId, x.DeclarantDisclaimedById, x.DeclarantClaimedById, x.CusDecDate })
-            .IsDescending(false, false, false, true)
-            .HasDatabaseName("IX_CusDec_Declarant_Tabs");
-        builder.HasIndex(x => new { x.ConsigneeCompanyId, x.ConsigneeDisclaimedById, x.ConsigneeClaimedById, x.CusDecDate })
-            .IsDescending(false, false, false, true)
-            .HasDatabaseName("IX_CusDec_Consignee_Tabs");
+        // ── Partial indexes for the four CusDec page tabs ────────────────────────
+        // Each partial index is company-id leading (also serves the Company FK scan),
+        // then the tab-specific sort column DESC, with a WHERE clause that exactly
+        // matches the tab's column-based predicate. Tenuka generates the migration.
+
+        // Declarant — New (unclaimed, undisclaimed)
+        builder.HasIndex(x => new { x.DeclarantCompanyId, x.CusDecDate }, "IX_CusDec_Declarant_New")
+            .IsDescending(false, true)
+            .HasFilter("declarant_claimed_by_id IS NULL AND declarant_disclaimed_by_id IS NULL");
+
+        // Declarant — In progress (claimed, not disclaimed, not completed)
+        builder.HasIndex(x => new { x.DeclarantCompanyId, x.CusDecDate }, "IX_CusDec_Declarant_InProgress")
+            .IsDescending(false, true)
+            .HasFilter("declarant_claimed_by_id IS NOT NULL AND declarant_disclaimed_by_id IS NULL AND declarant_completed_date_time IS NULL");
+
+        // Declarant — Completed (claimed, not disclaimed, completed set)
+        builder.HasIndex(x => new { x.DeclarantCompanyId, x.DeclarantCompletedDateTime }, "IX_CusDec_Declarant_Completed")
+            .IsDescending(false, true)
+            .HasFilter("declarant_claimed_by_id IS NOT NULL AND declarant_disclaimed_by_id IS NULL AND declarant_completed_date_time IS NOT NULL");
+
+        // Declarant — Disclaimed
+        builder.HasIndex(x => new { x.DeclarantCompanyId, x.DeclarantDisclaimedDateTime }, "IX_CusDec_Declarant_Disclaimed")
+            .IsDescending(false, true)
+            .HasFilter("declarant_disclaimed_by_id IS NOT NULL");
+
+        // Consignee — New
+        builder.HasIndex(x => new { x.ConsigneeCompanyId, x.CusDecDate }, "IX_CusDec_Consignee_New")
+            .IsDescending(false, true)
+            .HasFilter("consignee_claimed_by_id IS NULL AND consignee_disclaimed_by_id IS NULL");
+
+        // Consignee — In progress
+        builder.HasIndex(x => new { x.ConsigneeCompanyId, x.CusDecDate }, "IX_CusDec_Consignee_InProgress")
+            .IsDescending(false, true)
+            .HasFilter("consignee_claimed_by_id IS NOT NULL AND consignee_disclaimed_by_id IS NULL AND consignee_completed_date_time IS NULL");
+
+        // Consignee — Completed
+        builder.HasIndex(x => new { x.ConsigneeCompanyId, x.ConsigneeCompletedDateTime }, "IX_CusDec_Consignee_Completed")
+            .IsDescending(false, true)
+            .HasFilter("consignee_claimed_by_id IS NOT NULL AND consignee_disclaimed_by_id IS NULL AND consignee_completed_date_time IS NOT NULL");
+
+        // Consignee — Disclaimed
+        builder.HasIndex(x => new { x.ConsigneeCompanyId, x.ConsigneeDisclaimedDateTime }, "IX_CusDec_Consignee_Disclaimed")
+            .IsDescending(false, true)
+            .HasFilter("consignee_disclaimed_by_id IS NOT NULL");
 
         builder.HasIndex(x => x.CusDecExternalSystemNumber).IsUnique();
 
-        // The *ById columns (claim, disclaim, ready-to-process, can/can't process) are
-        // plain bigint in legacy with no FK, so they stay that way for now.
+        // The *ById columns (claim, disclaim, complete, ready-to-process, can/can't process)
+        // are plain bigint in legacy with no FK, so they stay that way for now.
     }
 }
