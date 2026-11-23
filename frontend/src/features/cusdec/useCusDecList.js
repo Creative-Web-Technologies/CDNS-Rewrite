@@ -24,7 +24,7 @@ export function buildListParams(subId, tab, trackingState, filters, page, pageSi
   if (filters.fromDate) params.set('from', filters.fromDate);
   if (filters.toDate) params.set('to', filters.toDate);
 
-  if (tab === 'completed' && filters.sort) {
+  if (filters.sort) {
     params.set('sort', filters.sort);
   }
 

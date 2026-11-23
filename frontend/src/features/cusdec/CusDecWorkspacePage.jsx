@@ -226,6 +226,20 @@ export default function CusDecWorkspacePage({ portal }) {
     setSearchParams({ tab: newTab, page: '1' });
   }
 
+  // ARIA tab pattern: arrow keys move focus and activate the tab
+  function handleTabKeyDown(e, currentKey) {
+    const idx = TABS.findIndex((t) => t.key === currentKey);
+    let newIdx = -1;
+    if (e.key === 'ArrowRight') newIdx = (idx + 1) % TABS.length;
+    else if (e.key === 'ArrowLeft') newIdx = (idx - 1 + TABS.length) % TABS.length;
+    else if (e.key === 'Home') newIdx = 0;
+    else if (e.key === 'End') newIdx = TABS.length - 1;
+    else return;
+    e.preventDefault();
+    handleTabChange(TABS[newIdx].key);
+    document.getElementById(`cd-tab-${TABS[newIdx].key}`)?.focus();
+  }
+
   function handleFilterChange(key, value) {
     setFilters((prev) => ({ ...prev, [key]: value }));
   }
@@ -360,7 +374,7 @@ export default function CusDecWorkspacePage({ portal }) {
   return (
     <PageTransition>
       <div className="cd-stack">
-        {/* Block 1 — Strip (skeleton / error / loaded) */}
+        {/* Strip — skeleton / error / loaded */}
         {stripLoading && (
           <div className="cd-strip cd-strip--skeleton" aria-busy="true">
             <div className="cd-skel cd-skel--title" />
@@ -389,7 +403,7 @@ export default function CusDecWorkspacePage({ portal }) {
           />
         )}
 
-        {/* Gate blocked state */}
+        {/* Gate blocked */}
         {gateBlocked && (
           <Card>
             <EmptyState
@@ -407,7 +421,7 @@ export default function CusDecWorkspacePage({ portal }) {
 
         {!gateBlocked && strip && (
           <>
-            {/* Pill tab bar — on page background, between Block 1 and Block 2 */}
+            {/* Tab bar — on page background */}
             <div className="cd-tabbar" role="tablist" aria-label="Declaration status">
               {TABS.map(({ key, label }) => {
                 const n = tabCount(counts, key);
@@ -419,8 +433,10 @@ export default function CusDecWorkspacePage({ portal }) {
                     id={`cd-tab-${key}`}
                     aria-selected={tab === key}
                     aria-controls={`cd-tabpanel-${key}`}
+                    tabIndex={tab === key ? 0 : -1}
                     className={`cd-tab${tab === key ? ' cd-tab--active' : ''}`}
                     onClick={() => handleTabChange(key)}
+                    onKeyDown={(e) => handleTabKeyDown(e, key)}
                   >
                     {label}
                     {n !== null && (
@@ -431,150 +447,144 @@ export default function CusDecWorkspacePage({ portal }) {
               })}
             </div>
 
-            {/* Tab panel — wraps Block 2 and Block 3 */}
+            {/* Tab panel */}
             <div
               role="tabpanel"
               id={`cd-tabpanel-${tab}`}
               aria-labelledby={`cd-tab-${tab}`}
               className="cd-tabpanel-wrapper"
             >
-              {/* Block 2 — Filters */}
-              <Card padding={false}>
-                <FilterBar
-                  tab={tab}
-                  subscriptionType={strip.subscriptionType}
-                  offices={offices}
-                  filters={filters}
-                  onChange={handleFilterChange}
-                  onClear={handleClearFilters}
-                />
-              </Card>
+              {/* Filter area — 3 blocks on page background */}
+              <FilterBar
+                tab={tab}
+                subscriptionType={strip.subscriptionType}
+                offices={offices}
+                filters={filters}
+                onChange={handleFilterChange}
+                onClear={handleClearFilters}
+              />
 
-              {/* Block 3 — Results */}
-              <Card padding={false}>
-                {/* Sub-bar: state toggle (left) + count + sort (right) */}
-                <div className="cd-subbar">
-                  <div className="cd-subbar-left">
-                    {tab === 'tracking' && (
-                      <div className="cd-state-toggle" role="group" aria-label="Filter by state">
-                        {[
-                          { key: 'all', label: 'All', count: counts ? counts.trackingNew + counts.trackingInProgress : null },
-                          { key: 'new', label: 'New', count: counts?.trackingNew ?? null },
-                          { key: 'inprogress', label: 'In progress', count: counts?.trackingInProgress ?? null },
-                        ].map(({ key, label, count }) => (
-                          <button
-                            key={key}
-                            type="button"
-                            className={`cd-state-btn${trackingState === key ? ' cd-state-btn--active' : ''}`}
-                            aria-pressed={trackingState === key}
-                            onClick={() => { setTrackingState(key); setPage(1); }}
-                          >
-                            {label}
-                            {count !== null && (
-                              <span className="cd-state-count" aria-hidden="true">{count}</span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div className="cd-subbar-right">
-                    <span className="cd-result-count" aria-live="polite" aria-atomic="true">
-                      {!listLoading && `${totalCount} declaration${totalCount !== 1 ? 's' : ''}`}
-                    </span>
-                    <div className="cd-sort-field">
-                      <label htmlFor="cd-results-sort" className="cd-label">{sortLabel(tab)}</label>
-                      <select
-                        id="cd-results-sort"
-                        className="cd-select cd-select--sm"
-                        value={filters.sort}
-                        onChange={(e) => handleFilterChange('sort', e.target.value)}
-                      >
-                        <option value="newest">Newest first</option>
-                        <option value="oldest">Oldest first</option>
-                      </select>
+              {/* Sub-bar — on page background, above the list */}
+              <div className="cd-subbar">
+                <div className="cd-subbar-left">
+                  {tab === 'tracking' && (
+                    <div className="cd-state-toggle" role="group" aria-label="Filter by state">
+                      {[
+                        { key: 'all', label: 'All', count: counts ? counts.trackingNew + counts.trackingInProgress : null },
+                        { key: 'new', label: 'New', count: counts?.trackingNew ?? null },
+                        { key: 'inprogress', label: 'In progress', count: counts?.trackingInProgress ?? null },
+                      ].map(({ key, label, count }) => (
+                        <button
+                          key={key}
+                          type="button"
+                          className={`cd-state-btn${trackingState === key ? ' cd-state-btn--active' : ''}`}
+                          aria-pressed={trackingState === key}
+                          onClick={() => { setTrackingState(key); setPage(1); }}
+                        >
+                          {label}
+                          {count !== null && (
+                            <span className="cd-state-count" aria-hidden="true">{count}</span>
+                          )}
+                        </button>
+                      ))}
                     </div>
+                  )}
+                </div>
+                <div className="cd-subbar-right">
+                  <span className="cd-result-count" aria-live="polite" aria-atomic="true">
+                    {!listLoading && `${totalCount} declaration${totalCount !== 1 ? 's' : ''}`}
+                  </span>
+                  <div className="cd-sort-field">
+                    <label htmlFor="cd-results-sort" className="cd-label">{sortLabel(tab)}</label>
+                    <select
+                      id="cd-results-sort"
+                      className="cd-select cd-select--sm"
+                      value={filters.sort}
+                      onChange={(e) => handleFilterChange('sort', e.target.value)}
+                    >
+                      <option value="newest">Newest first</option>
+                      <option value="oldest">Oldest first</option>
+                    </select>
                   </div>
                 </div>
+              </div>
 
-                {/* Declaration list */}
-                {listLoading ? (
-                  <ul className="cd-list" aria-busy="true" aria-label="Loading declarations">
-                    {Array.from({ length: PAGE_SIZE }, (_, k) => (
-                      <li key={k} className="cd-list-item"><SkeletonCard /></li>
-                    ))}
-                  </ul>
-                ) : listError && !isGateError(listError?.code) ? (
-                  <div className="cd-error-state">
-                    <EmptyState
-                      icon={AlertCircle}
-                      title="Couldn't load declarations"
-                      message="Something went wrong while fetching declarations."
-                      action={
-                        <Button variant="secondary" icon={RefreshCw} onClick={refetchList}>
-                          Retry
-                        </Button>
-                      }
-                    />
-                  </div>
-                ) : items.length === 0 ? (
-                  <div className="cd-empty-state">
-                    <EmptyState
-                      icon={FileText}
-                      title={hasFilters ? 'No declarations match these filters' : `No ${tab} declarations`}
-                      message={hasFilters ? undefined : `There are no ${tab} declarations for this subscription.`}
-                      action={hasFilters ? (
-                        <Button variant="secondary" icon={RefreshCw} onClick={handleClearFilters}>
-                          Clear filters
-                        </Button>
-                      ) : undefined}
-                    />
-                  </div>
-                ) : (
-                  <ul className="cd-list" role="list" aria-label="Declarations">
-                    {items.map((item) => (
-                      <li key={item.cusDecId} className="cd-list-item">
-                        <CusDecCard
-                          item={item}
-                          subscriptionType={strip.subscriptionType}
-                          containersBlocked={strip.containersBlocked}
-                          busyCardId={busyCardId}
-                          highlighted={highlightedCardId === item.cusDecId}
-                          onAcknowledge={handleAcknowledge}
-                          onDisclaimRequest={setDisclaimTarget}
-                          onComplete={handleComplete}
-                          onReopen={handleReopen}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              {/* Declaration list — each row is its own card */}
+              {listLoading ? (
+                <ul className="cd-list" aria-busy="true" aria-label="Loading declarations">
+                  {Array.from({ length: PAGE_SIZE }, (_, k) => (
+                    <li key={k} className="cd-list-item"><SkeletonCard /></li>
+                  ))}
+                </ul>
+              ) : listError && !isGateError(listError?.code) ? (
+                <div className="cd-error-state">
+                  <EmptyState
+                    icon={AlertCircle}
+                    title="Couldn't load declarations"
+                    message="Something went wrong while fetching declarations."
+                    action={
+                      <Button variant="secondary" icon={RefreshCw} onClick={refetchList}>
+                        Retry
+                      </Button>
+                    }
+                  />
+                </div>
+              ) : items.length === 0 ? (
+                <div className="cd-empty-state">
+                  <EmptyState
+                    icon={FileText}
+                    title={hasFilters ? 'No declarations match these filters' : `No ${tab} declarations`}
+                    message={hasFilters ? undefined : `There are no ${tab} declarations for this subscription.`}
+                    action={hasFilters ? (
+                      <Button variant="secondary" icon={RefreshCw} onClick={handleClearFilters}>
+                        Clear filters
+                      </Button>
+                    ) : undefined}
+                  />
+                </div>
+              ) : (
+                <ul className="cd-list" role="list" aria-label="Declarations">
+                  {items.map((item) => (
+                    <li key={item.cusDecId} className="cd-list-item">
+                      <CusDecCard
+                        item={item}
+                        subscriptionType={strip.subscriptionType}
+                        containersBlocked={strip.containersBlocked}
+                        busyCardId={busyCardId}
+                        highlighted={highlightedCardId === item.cusDecId}
+                        onAcknowledge={handleAcknowledge}
+                        onDisclaimRequest={setDisclaimTarget}
+                        onComplete={handleComplete}
+                        onReopen={handleReopen}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
 
-                {/* Footer — pagination (only when list spans >1 page) */}
-                {totalCount > PAGE_SIZE && (
-                  <div className="cd-pagination-wrap">
-                    <DotPagination
-                      page={page}
-                      totalCount={totalCount}
-                      pageSize={PAGE_SIZE}
-                      onPageChange={setPage}
-                    />
-                  </div>
-                )}
-              </Card>
+              {/* Pagination — own slim rounded block */}
+              {totalCount > PAGE_SIZE && (
+                <div className="cd-pagination-block">
+                  <DotPagination
+                    page={page}
+                    totalCount={totalCount}
+                    pageSize={PAGE_SIZE}
+                    onPageChange={setPage}
+                  />
+                </div>
+              )}
             </div>
           </>
         )}
       </div>
 
-      {disclaimTarget && (
-        <DisclaimDialog
-          item={disclaimTarget}
-          busy={disclaimBusy}
-          onConfirm={handleDisclaimConfirm}
-          onCancel={() => { if (!disclaimBusy) setDisclaimTarget(null); }}
-        />
-      )}
+      {/* DisclaimDialog always rendered; Modal handles open/close animation */}
+      <DisclaimDialog
+        item={disclaimTarget}
+        busy={disclaimBusy}
+        onConfirm={handleDisclaimConfirm}
+        onCancel={() => { if (!disclaimBusy) setDisclaimTarget(null); }}
+      />
     </PageTransition>
   );
 }

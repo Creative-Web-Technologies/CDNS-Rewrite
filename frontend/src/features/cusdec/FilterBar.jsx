@@ -30,12 +30,8 @@ export default function FilterBar({
   const rangeLabel = dateLabel(tab);
   const tinLabel = counterpartyLabel(subscriptionType);
 
-  // Desktop "More filters" badge: cdnum + tin
   const advancedCount = [cusDecNumber, counterpartyTin].filter(Boolean).length;
-
-  // Mobile "Filters" badge: all non-search filters
   const mobileFilterCount = [office, fromDate, toDate, cusDecNumber, counterpartyTin].filter(Boolean).length;
-
   const hasAny = !!(search || cusDecNumber || counterpartyTin || office || fromDate || toDate);
 
   const chips = [];
@@ -58,24 +54,112 @@ export default function FilterBar({
     : { initial: { opacity: 0, height: 0, overflow: 'hidden' }, animate: { opacity: 1, height: 'auto', overflow: 'hidden' }, exit: { opacity: 0, height: 0, overflow: 'hidden' }, transition: { duration: 0.15, ease: 'easeOut' } };
 
   return (
-    <div className="cd-filterbar">
-      {/* ── Primary row ──────────────────────────────────────────────────── */}
-      <div className="cd-filter-row" role="search" aria-label="Filter declarations">
-        {/* Search — always visible */}
-        <div className="cd-filter-field cd-filter-field--search">
-          <label htmlFor="cd-f-search" className="cd-label">Search</label>
-          <input
-            id="cd-f-search"
-            type="text"
-            className="cd-input"
-            placeholder="Search CusDec number or company"
-            value={search}
-            onChange={(e) => onChange('search', e.target.value)}
-          />
-        </div>
+    <div className="cd-filterbar" role="search" aria-label="Filter declarations">
 
-        {/* Mobile button OR desktop group — never both */}
-        {isMobile ? (
+      {/* ── Desktop row: 3 blocks + More filters + Clear ──────────────────── */}
+      {!isMobile && (
+        <div className="cd-filterbar-row">
+          {/* Block 1 — Search */}
+          <div className="cd-filter-block cd-filter-block--search">
+            <label htmlFor="cd-f-search" className="cd-label">Search</label>
+            <input
+              id="cd-f-search"
+              type="text"
+              className="cd-input"
+              placeholder="CusDec number or company"
+              value={search}
+              onChange={(e) => onChange('search', e.target.value)}
+            />
+          </div>
+
+          {/* Block 2 — Customs office */}
+          <div className="cd-filter-block cd-filter-block--office">
+            <label htmlFor="cd-f-office" className="cd-label">Customs office</label>
+            <select
+              id="cd-f-office"
+              className="cd-select"
+              value={office}
+              onChange={(e) => onChange('office', e.target.value)}
+            >
+              <option value="">All offices</option>
+              {offices.map((o) => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </div>
+
+          {/* Block 3 — Date range */}
+          <div className="cd-filter-block cd-filter-block--dates">
+            <span className="cd-label" aria-hidden="true">{rangeLabel} range</span>
+            <div className="cd-date-inputs">
+              <input
+                id="cd-f-from"
+                type="date"
+                className="cd-input cd-input--date"
+                value={fromDate}
+                aria-label={`${rangeLabel} from`}
+                onChange={(e) => onChange('fromDate', e.target.value)}
+              />
+              <span className="cd-date-sep" aria-hidden="true">–</span>
+              <input
+                id="cd-f-to"
+                type="date"
+                className="cd-input cd-input--date"
+                value={toDate}
+                aria-label={`${rangeLabel} to`}
+                onChange={(e) => onChange('toDate', e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* More filters — not a block */}
+          <button
+            type="button"
+            className={`cd-mf-btn${advancedCount > 0 ? ' cd-mf-btn--active' : ''}`}
+            aria-expanded={panelOpen}
+            aria-controls="cd-mf-panel"
+            onClick={() => setPanelOpen((o) => !o)}
+          >
+            <SlidersHorizontal size={14} aria-hidden="true" />
+            More filters
+            {advancedCount > 0 && (
+              <span className="cd-mf-badge" aria-label={`${advancedCount} active`}>{advancedCount}</span>
+            )}
+            <ChevronDown
+              size={12}
+              aria-hidden="true"
+              className={`cd-mf-chevron${panelOpen ? ' cd-mf-chevron--open' : ''}`}
+            />
+          </button>
+
+          {/* Clear — reserved slot, no reflow */}
+          <button
+            type="button"
+            className="cd-clear-btn"
+            style={{ visibility: hasAny ? 'visible' : 'hidden' }}
+            aria-hidden={!hasAny}
+            tabIndex={hasAny ? 0 : -1}
+            onClick={onClear}
+          >
+            <X size={13} aria-hidden="true" />
+            Clear all
+          </button>
+        </div>
+      )}
+
+      {/* ── Mobile row: search + Filters button + Clear ───────────────────── */}
+      {isMobile && (
+        <div className="cd-filterbar-row cd-filterbar-row--mobile">
+          <div className="cd-filter-field cd-filter-field--search-full">
+            <label htmlFor="cd-fm-search" className="cd-label">Search</label>
+            <input
+              id="cd-fm-search"
+              type="text"
+              className="cd-input"
+              placeholder="Search CusDec number or company"
+              value={search}
+              onChange={(e) => onChange('search', e.target.value)}
+            />
+          </div>
+
           <button
             type="button"
             className={`cd-mf-btn${mobileFilterCount > 0 ? ' cd-mf-btn--active' : ''}`}
@@ -89,80 +173,22 @@ export default function FilterBar({
               <span className="cd-mf-badge" aria-label={`${mobileFilterCount} active`}>{mobileFilterCount}</span>
             )}
           </button>
-        ) : (
-          <div className="cd-filter-desktop">
-            <div className="cd-filter-field">
-              <label htmlFor="cd-f-office" className="cd-label">Customs office</label>
-              <select
-                id="cd-f-office"
-                className="cd-select"
-                value={office}
-                onChange={(e) => onChange('office', e.target.value)}
-              >
-                <option value="">All offices</option>
-                {offices.map((o) => <option key={o} value={o}>{o}</option>)}
-              </select>
-            </div>
 
-            <div className="cd-date-group">
-              <span className="cd-label" aria-hidden="true">{rangeLabel} range</span>
-              <div className="cd-date-inputs">
-                <input
-                  id="cd-f-from"
-                  type="date"
-                  className="cd-input cd-input--date"
-                  value={fromDate}
-                  aria-label={`${rangeLabel} from`}
-                  onChange={(e) => onChange('fromDate', e.target.value)}
-                />
-                <span className="cd-date-sep" aria-hidden="true">–</span>
-                <input
-                  id="cd-f-to"
-                  type="date"
-                  className="cd-input cd-input--date"
-                  value={toDate}
-                  aria-label={`${rangeLabel} to`}
-                  onChange={(e) => onChange('toDate', e.target.value)}
-                />
-              </div>
-            </div>
+          <button
+            type="button"
+            className="cd-clear-btn"
+            style={{ visibility: hasAny ? 'visible' : 'hidden' }}
+            aria-hidden={!hasAny}
+            tabIndex={hasAny ? 0 : -1}
+            onClick={onClear}
+          >
+            <X size={13} aria-hidden="true" />
+            Clear
+          </button>
+        </div>
+      )}
 
-            <button
-              type="button"
-              className={`cd-mf-btn${advancedCount > 0 ? ' cd-mf-btn--active' : ''}`}
-              aria-expanded={panelOpen}
-              aria-controls="cd-mf-panel"
-              onClick={() => setPanelOpen((o) => !o)}
-            >
-              <SlidersHorizontal size={14} aria-hidden="true" />
-              More filters
-              {advancedCount > 0 && (
-                <span className="cd-mf-badge" aria-label={`${advancedCount} active`}>{advancedCount}</span>
-              )}
-              <ChevronDown
-                size={12}
-                aria-hidden="true"
-                className={`cd-mf-chevron${panelOpen ? ' cd-mf-chevron--open' : ''}`}
-              />
-            </button>
-          </div>
-        )}
-
-        {/* Clear all — reserved space, no layout shift */}
-        <button
-          type="button"
-          className="cd-clear-btn"
-          style={{ visibility: hasAny ? 'visible' : 'hidden' }}
-          aria-hidden={!hasAny}
-          tabIndex={hasAny ? 0 : -1}
-          onClick={onClear}
-        >
-          <X size={13} aria-hidden="true" />
-          Clear all
-        </button>
-      </div>
-
-      {/* ── Single panel (content differs by breakpoint) ──────────────── */}
+      {/* ── Single panel (content differs by breakpoint) ──────────────────── */}
       <AnimatePresence>
         {panelOpen && (
           <motion.div
@@ -261,7 +287,7 @@ export default function FilterBar({
         )}
       </AnimatePresence>
 
-      {/* ── Active filter chips ──────────────────────────────────────── */}
+      {/* ── Active filter chips ───────────────────────────────────────────── */}
       <AnimatePresence>
         {chips.length > 0 && (
           <motion.div

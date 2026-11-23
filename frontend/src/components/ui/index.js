@@ -7,4 +7,5 @@ export { default as PageHeader } from './PageHeader';
 export { default as EmptyState } from './EmptyState';
 export { default as PageTransition } from './PageTransition';
 export { default as DotPagination } from './DotPagination';
+export { default as Modal } from './Modal';
 export { ToastProvider, useToast } from './Toast';
