@@ -1,20 +1,9 @@
 import { useNavigate } from 'react-router-dom';
-import { Shield, Info } from 'lucide-react';
 import { Pill } from '../../components/ui';
 import { formatDate, daysUntil } from './formatHelpers';
 
-function TypePill({ type }) {
-  if (type === 'Declarant')
-    return (
-      <span className="cd-type-pill cd-type-pill--declarant">
-        <Shield size={11} aria-hidden="true" /> Declarant
-      </span>
-    );
-  return (
-    <span className="cd-type-pill cd-type-pill--consignee">
-      <Shield size={11} aria-hidden="true" /> Consignee
-    </span>
-  );
+function stripAckSuffix(name) {
+  return name?.replace(/\s*\(Acknowledgement Only\)\s*/i, '').trim() || name || '';
 }
 
 export default function SubscriptionStrip({ strip, subscriptions, portal }) {
@@ -34,43 +23,40 @@ export default function SubscriptionStrip({ strip, subscriptions, portal }) {
   return (
     <div className="cd-strip">
       <div className="cd-strip__left">
-        <TypePill type={strip.subscriptionType} />
-        <span className="cd-strip__company">{strip.companyName}</span>
 
-        <span className="cd-strip__sep" aria-hidden="true">|</span>
-        <span className="cd-strip__meta">TIN {strip.companyTin}</span>
+        {/* Line 1: company name */}
+        <div className="cd-strip__row1">
+          <span className="cd-strip__company">{strip.companyName}</span>
+        </div>
 
-        <span className="cd-strip__sep" aria-hidden="true">|</span>
-        <span className="cd-strip__meta">
-          <span className="cd-strip__label">Plan</span>
-          {strip.planName}
-        </span>
-
-        <span className="cd-strip__sep" aria-hidden="true">|</span>
-        <span className="cd-strip__meta">
-          Expires {formatDate(strip.expiryDate)}
-        </span>
-        {days !== null && days <= 90 && (
-          <Pill tone={days <= 30 ? 'amber' : 'green'} className="cd-strip__expiry-pill">
-            {days}d
-          </Pill>
-        )}
-
-        {strip.containersBlocked && (
-          <>
-            <span
-              className="cd-strip__ack-pill"
-              title="This plan is acknowledgement only. Container details are not available."
-              aria-describedby="cd-ack-pill-desc"
-            >
-              <Info size={11} aria-hidden="true" />
-              Acknowledgement only
+        {/* Line 2: TIN · Plan · Expires */}
+        <div className="cd-strip__row2">
+          <div className="cd-strip__meta-item">
+            <span className="cd-strip__meta-label">TIN</span>
+            <span className="cd-strip__meta-value">{strip.companyTin}</span>
+          </div>
+          <div className="cd-strip__meta-sep" aria-hidden="true" />
+          <div className="cd-strip__meta-item">
+            <span className="cd-strip__meta-label">Plan</span>
+            <span className="cd-strip__meta-value">{strip.planName}</span>
+          </div>
+          <div className="cd-strip__meta-sep" aria-hidden="true" />
+          <div className="cd-strip__meta-item">
+            <span className="cd-strip__meta-label">Expires</span>
+            <span className="cd-strip__meta-value cd-strip__meta--expiry">
+              {formatDate(strip.expiryDate)}
+              {days !== null && days <= 90 && (
+                <Pill
+                  tone={days <= 30 ? 'amber' : 'green'}
+                  className="cd-strip__expiry-pill"
+                >
+                  {days}d
+                </Pill>
+              )}
             </span>
-            <span id="cd-ack-pill-desc" className="cd-visually-hidden">
-              This plan is acknowledgement only. Container details are not available.
-            </span>
-          </>
-        )}
+          </div>
+        </div>
+
       </div>
 
       {hasMultiple && (
@@ -80,16 +66,22 @@ export default function SubscriptionStrip({ strip, subscriptions, portal }) {
           </label>
           <select
             id="cd-sub-switch"
-            className="cd-select cd-select--sm"
+            className="cd-select cd-strip__select"
             value={String(strip.memberSubscriptionId)}
             onChange={handleSwitch}
             aria-label="Switch subscription"
+            title={`${strip.subscriptionType} · ${strip.companyName} · ${strip.planName}`}
           >
-            {subscriptions.map((s) => (
-              <option key={s.memberSubscriptionId} value={String(s.memberSubscriptionId)}>
-                {s.subscriptionType} · {s.companyName} · {s.planName}
-              </option>
-            ))}
+            {subscriptions.map((s) => {
+              const sIsAck = s.planName?.toLowerCase().includes('acknowledgement only');
+              const cleanPlan = sIsAck ? stripAckSuffix(s.planName) : s.planName;
+              const label = `${s.subscriptionType} · ${s.companyName} · ${cleanPlan}${sIsAck ? ' (Ack only)' : ''}`;
+              return (
+                <option key={s.memberSubscriptionId} value={String(s.memberSubscriptionId)}>
+                  {label}
+                </option>
+              );
+            })}
           </select>
         </div>
       )}

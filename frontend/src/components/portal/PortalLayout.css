@@ -173,7 +173,125 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+}
+
+/* ── Mobile top bar (≤768px, replaces the rail) ─────────────────────────── */
+.pl-mobile-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.pl-mobile-bar__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.pl-mobile-bar__logo {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  border-radius: 8px;
+}
+.pl-mobile-bar__logo:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.pl-mobile-bar__logo img { display: block; }
+.pl-mobile-bar__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pl-mobile-bar__right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* Mobile nav popover anchored to the top bar */
+.pl-mobile-nav-wrap {
+  position: relative;
+}
+.pl-mobile-nav {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 260px;
+  max-width: 320px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 6px;
+  z-index: 10;
+  animation: pl-nav-in 0.16s ease-out;
+}
+@keyframes pl-nav-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl-mobile-nav { animation: none; }
+}
+
+.pl-mobile-nav__section { padding: 4px 0; }
+.pl-mobile-nav__divider {
+  height: 1px;
+  background: var(--line);
+  margin: 4px 6px;
+}
+.pl-mobile-nav__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  width: 100%;
+  text-align: left;
+  box-sizing: border-box;
+}
+.pl-mobile-nav__item:hover { background: var(--primary-soft); color: var(--primary); }
+.pl-mobile-nav__item.is-active { color: var(--primary); font-weight: 600; background: var(--primary-soft); }
+.pl-mobile-nav__item:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.pl-mobile-nav__item--danger:hover { background: var(--pill-red-bg); color: var(--pill-red-fg); }
+
+.pl-mobile-nav__account {
+  padding: 8px 10px 4px;
+}
+.pl-mobile-nav__account-name {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.pl-mobile-nav__account-sub {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+  word-break: break-all;
 }
 
 /* Plain header on the page background (no card) */
@@ -196,6 +314,10 @@
 /* Override the global negative h1 tracking so words/letters are not squashed. */
 .pl-header__title { margin: 6px 0 0; font-size: 26px; font-weight: 700; color: var(--ink); line-height: 1.15; letter-spacing: -0.01em; }
 .pl-header__subtitle { margin: 6px 0 0; font-size: 14px; color: var(--muted); }
+
+/* Compact header: tighter margins only — font sizes/colours unchanged */
+.pl-header--compact .pl-header__title { margin: 0; }
+.pl-header--compact .pl-header__subtitle { margin: 2px 0 0; }
 .pl-header__right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .pl-header__actions { display: flex; align-items: center; gap: 8px; }
 
@@ -251,4 +373,12 @@
   .pl-header__right { width: 100%; flex-wrap: wrap; }
   .pl-header__actions { flex: 1 1 100%; }
   .pl-header__actions .ui-btn { width: 100%; }
+}
+
+/* ≤768px: mobile bar replaces the rail — adjust shell and hide duplicate controls */
+@media (max-width: 768px) {
+  .pl-shell { padding-top: 0; }
+  .pl-main { padding: 14px; gap: 12px; }
+  /* Search + bell live in the mobile bar; hide them from the page header */
+  .pl-header .pl-iconbtn { display: none; }
 }

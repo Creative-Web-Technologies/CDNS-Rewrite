@@ -4,9 +4,11 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutGrid, FileText, Container, BadgeCheck, ClipboardList, Bell,
   LifeBuoy, UserRound, CreditCard, Users, LogOut, Search, Settings, ClipboardCheck,
+  EllipsisVertical,
 } from 'lucide-react';
 import { apiGet } from '../../lib/api';
 import { useAuth } from '../../contexts/useAuth';
+import { useMediaQuery } from '../../lib/useMediaQuery';
 import { PortalChromeContext } from './portalChrome';
 import { ToastProvider } from '../ui/Toast';
 import './PortalLayout.css';
@@ -112,6 +114,41 @@ export default function PortalLayout({ portal }) {
     };
   }, [menuOpen]);
 
+  // Mobile nav menu.
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const mobileMenuTriggerRef = useRef(null);
+  const mobileNavRef = useRef(null);
+  const mobileMenuWasOpen = useRef(false);
+
+  useEffect(() => {
+    if (mobileMenuWasOpen.current && !mobileMenuOpen) {
+      mobileMenuTriggerRef.current?.focus();
+    }
+    mobileMenuWasOpen.current = mobileMenuOpen;
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined;
+    function onDocClick(e) {
+      if (
+        mobileNavRef.current && !mobileNavRef.current.contains(e.target) &&
+        mobileMenuTriggerRef.current && !mobileMenuTriggerRef.current.contains(e.target)
+      ) {
+        setMobileMenuOpen(false);
+      }
+    }
+    function onEsc(e) { if (e.key === 'Escape') setMobileMenuOpen(false); }
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, [mobileMenuOpen]);
+
+  useEffect(() => { setMobileMenuOpen(false); }, [location.pathname]);
+
   // Rail tooltip — a single, body-portaled label positioned to the right of the
   // hovered/focused icon, so no clipping parent can crop it and only one shows
   // at a time. Suppressed on the narrow (horizontal) rail.
@@ -130,6 +167,9 @@ export default function PortalLayout({ portal }) {
     await logout();
     navigate('/login');
   }
+
+  // Default compact (tighter margins) on all pages; dashboards opt out via compactHeader: false.
+  const isCompactHeader = chrome.compactHeader !== false;
 
   // Captured once when the shell mounts — stable across re-renders.
   const [now] = useState(() => new Date());
@@ -154,12 +194,93 @@ export default function PortalLayout({ portal }) {
     </NavLink>
   );
 
+  const renderMobileItem = ({ to, label, Icon }) => (
+    <NavLink
+      key={to}
+      to={to}
+      className={({ isActive }) => `pl-mobile-nav__item${isActive ? ' is-active' : ''}`}
+      onClick={() => setMobileMenuOpen(false)}
+    >
+      <Icon size={18} aria-hidden="true" />
+      <span>{label}</span>
+    </NavLink>
+  );
+
   return (
     <ToastProvider>
     <PortalChromeContext.Provider value={{ setChrome: setChromeStable }}>
       <a className="pl-skip" href="#main-content">Skip to content</a>
       <div className="pl-shell">
-        {/* ── Icon rail ── */}
+        {/* ── Icon rail (desktop) OR mobile top bar ── */}
+        {isMobile ? (
+          <header className="pl-mobile-bar">
+            <div className="pl-mobile-bar__left">
+              <NavLink to={`/${portalKey}/dashboard`} className="pl-mobile-bar__logo" aria-label="Sri Lanka Customs — home">
+                <img src={crest} alt="" width={28} height={28} />
+              </NavLink>
+              <span className="pl-mobile-bar__title">{title}</span>
+            </div>
+            <div className="pl-mobile-bar__right">
+              <button type="button" className="pl-iconbtn" aria-label="Search">
+                <Search size={18} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="pl-iconbtn"
+                aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+                onClick={() => navigate(`/${portalKey}/notifications`)}
+              >
+                <Bell size={18} aria-hidden="true" />
+                {unread > 0 && <span className="pl-iconbtn__dot" aria-hidden="true" />}
+              </button>
+              <div className="pl-mobile-nav-wrap">
+                <button
+                  ref={mobileMenuTriggerRef}
+                  type="button"
+                  className="pl-iconbtn"
+                  aria-label="Menu"
+                  aria-haspopup="true"
+                  aria-expanded={mobileMenuOpen}
+                  aria-controls={mobileMenuOpen ? 'pl-mobile-nav' : undefined}
+                  onClick={() => setMobileMenuOpen((o) => !o)}
+                >
+                  <EllipsisVertical size={18} aria-hidden="true" />
+                </button>
+                {mobileMenuOpen && (
+                  <nav
+                    id="pl-mobile-nav"
+                    className="pl-mobile-nav"
+                    ref={mobileNavRef}
+                    aria-label="Navigation"
+                  >
+                    <div className="pl-mobile-nav__section">
+                      {nav.primary.map(renderMobileItem)}
+                    </div>
+                    <div className="pl-mobile-nav__divider" />
+                    <div className="pl-mobile-nav__section">
+                      {nav.bottom.map(renderMobileItem)}
+                    </div>
+                    <div className="pl-mobile-nav__divider" />
+                    <div className="pl-mobile-nav__account">
+                      <span className="pl-mobile-nav__account-name">{user?.firstName} {user?.lastName}</span>
+                      <span className="pl-mobile-nav__account-sub">{user?.userName}</span>
+                    </div>
+                    <div className="pl-mobile-nav__section">
+                      <button
+                        type="button"
+                        className="pl-mobile-nav__item pl-mobile-nav__item--danger"
+                        onClick={handleLogout}
+                      >
+                        <LogOut size={18} aria-hidden="true" />
+                        <span>Log out</span>
+                      </button>
+                    </div>
+                  </nav>
+                )}
+              </div>
+            </div>
+          </header>
+        ) : (
         <aside className="pl-rail" aria-label="Primary">
           <NavLink to={`/${portalKey}/dashboard`} className="pl-rail__crest" aria-label="Sri Lanka Customs — home">
             <img src={crest} alt="" width={32} height={32} />
@@ -206,12 +327,13 @@ export default function PortalLayout({ portal }) {
             </div>
           </div>
         </aside>
+        )}
 
         {/* ── Main column ── */}
         <div className="pl-main">
-          <header className="pl-header">
+          <header className={`pl-header${isCompactHeader ? ' pl-header--compact' : ''}`}>
             <div className="pl-header__titles">
-              <span className="pl-header__date">{formatDate(now)}</span>
+              {chrome.showDate && <span className="pl-header__date">{formatDate(now)}</span>}
               <h1 className="pl-header__title">{title}</h1>
               {subtitle && <p className="pl-header__subtitle">{subtitle}</p>}
             </div>

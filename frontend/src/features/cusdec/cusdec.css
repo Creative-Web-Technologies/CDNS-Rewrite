@@ -12,7 +12,7 @@
 }
 
 /* ── Page layout ──────────────────────────────────────────────────────────── */
-.cd-stack { display: flex; flex-direction: column; gap: 18px; }
+.cd-stack { display: flex; flex-direction: column; gap: 14px; }
 
 .cd-page-header { display: flex; flex-direction: column; gap: 4px; }
 .cd-page-eyebrow {
@@ -36,82 +36,112 @@
    --cd-amber-fg #7A5500 on #FBEFD6 ≈ 5.94:1 — passes AA.
    Green #1E7A46 / #E3F5EA ≈ 4.72:1 ✓
    Blue  #2660A4 / #E2EEFB ≈ 5.42:1 ✓
-   Red   #B23434 / #FBE4E4 ≈ 5.05:1 ✓
+   Red   #B23434 / #FBE4E4 ≈ 5.05:1 ✓   (Disclaim outline: #B23434 on --surface ≈ 8.2:1 ✓)
    Grey  #536974 / #ECF1F4 ≈ 5.06:1 ✓  */
 .cd-stack { --cd-amber-fg: #7A5500; }
 .cd-stack .ui-pill--amber { color: var(--cd-amber-fg); }
+
+/* Part 1: Row-scoped pill size (13px/600 per spec) */
+.cd-row .ui-pill { font-size: 13px; }
 
 /* ── Subscription strip ──────────────────────────────────────────────────── */
 .cd-strip {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 16px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  padding: 8px 16px;
-  min-height: 56px;
+  padding: 7px 20px;
   flex-wrap: wrap;
 }
-.cd-strip--skeleton { min-height: 56px; }
+.cd-strip--skeleton { min-height: 60px; }
 
+/* Left side — two stacked lines */
 .cd-strip__left {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
   flex: 1;
   min-width: 0;
+}
+
+/* Line 1: type pill · company name · ack pill */
+.cd-strip__row1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
 }
-.cd-strip__company { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; }
-.cd-strip__meta { font-size: 13px; color: var(--muted); white-space: nowrap; }
-.cd-strip__meta--expiry { display: inline-flex; align-items: center; gap: 5px; }
-
-.cd-strip__sep {
-  font-size: 12px;
-  color: #c5d5dd;
-  user-select: none;
-  flex-shrink: 0;
+.cd-strip__company {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
 }
 
-.cd-strip__label {
-  font-size: 10px;
+/* Line 2: inline label–value pairs */
+.cd-strip__row2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.cd-strip__meta-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+}
+.cd-strip__meta-label {
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   color: var(--muted);
-  margin-right: 4px;
 }
-
-.cd-strip__expiry-pill { font-size: 11px; padding: 2px 7px; }
-
-.cd-strip__ack-pill {
+.cd-strip__meta-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+}
+.cd-strip__meta--expiry {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 9px;
-  border-radius: 999px;
-  background: var(--primary-soft);
-  color: var(--primary);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  cursor: default;
-  flex-shrink: 0;
+  gap: 6px;
 }
+.cd-strip__meta-sep {
+  width: 1px;
+  height: 16px;
+  background: var(--line);
+  flex-shrink: 0;
+  align-self: center;
+}
+.cd-strip__expiry-pill { font-size: 11px; padding: 2px 7px; }
 
+/* Right side — inline label + subscription switcher */
 .cd-strip__switcher {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
 .cd-strip__switch-label {
-  font-size: 11px; font-weight: 600; text-transform: uppercase;
-  letter-spacing: 0.06em; color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.cd-strip__select {
+  height: 38px;
+  font-size: 14px;
+  max-width: 400px;
+  min-width: 200px;
 }
 
 .cd-type-pill {
@@ -133,7 +163,7 @@
 .cd-input, .cd-select {
   height: 36px;
   padding: 0 10px;
-  font-size: 13px;
+  font-size: 14px;
   font-family: var(--font-sans);
   color: var(--ink);
   background: var(--bg);
@@ -155,6 +185,9 @@
 }
 .cd-input--date:not(:focus):not([value]) { color: var(--muted); }
 
+/* Part 7.3: min-width guard so both date inputs stay usable at 700–900px */
+.cd-input--date { min-width: 110px; }
+
 .cd-select {
   appearance: none;
   cursor: pointer;
@@ -166,34 +199,58 @@
 }
 .cd-select--sm { height: 32px; font-size: 12px; padding: 0 24px 0 8px; }
 
-/* ── Pill tab bar ────────────────────────────────────────────────────────── */
+/* ── Pill tab bar — ~41px height, 15px/600, motion layout ───────────────── */
 .cd-tabbar {
   display: flex;
   gap: 4px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.cd-tabbar::-webkit-scrollbar { display: none; }
 .cd-tab {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 16px;
+  padding: 10px 18px;
   border: none;
   background: transparent;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--muted);
   cursor: pointer;
   border-radius: 999px;
   white-space: nowrap;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: color 0.15s ease;
+  position: relative;
 }
-.cd-tab:hover { background: rgba(255, 255, 255, 0.65); color: var(--primary); }
+.cd-tab:hover { color: var(--primary); }
+.cd-tab--active { color: var(--primary); }
+
+/* Under reduced motion the CSS background does the job */
 .cd-tab--active {
   background: var(--surface);
-  color: var(--primary);
   box-shadow: 0 1px 4px rgba(15, 42, 53, 0.1);
 }
+/* When motion runs, the motion.span provides the background — clear the CSS version */
+@media (prefers-reduced-motion: no-preference) {
+  .cd-tab--active { background: transparent; box-shadow: none; }
+}
+
+/* Motion sliding background element */
+.cd-tab__bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(15, 42, 53, 0.1);
+  z-index: 0;
+}
+.cd-tab__text,
+.cd-tab-count { position: relative; z-index: 1; }
+
 .cd-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .cd-tab-count {
   display: inline-flex;
@@ -214,7 +271,7 @@
 .cd-tabpanel-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 /* ── Filter area: three separate blocks in one row ───────────────────────── */
@@ -235,17 +292,17 @@
 .cd-filter-block {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 10px 14px;
+  padding: 5px 14px;
   box-shadow: var(--shadow-card);
   min-width: 0;
 }
 .cd-filter-block--search { flex: 1 1 240px; max-width: 340px; }
 .cd-filter-block--office { flex: 1 1 150px; }
-.cd-filter-block--dates  { flex: 1.5 1 210px; }
+.cd-filter-block--dates  { flex: 1.5 1 240px; }
 
 /* Mobile row: search fills full width, then buttons */
 .cd-filterbar-row--mobile { flex-wrap: wrap; gap: 8px; }
@@ -259,8 +316,9 @@
   min-width: 0;
 }
 
+/* Part 1: labels 12px/600 */
 .cd-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -418,7 +476,7 @@
 .cd-subbar-left {
   display: flex;
   align-items: center;
-  min-height: 36px;
+  min-height: 38px;
 }
 .cd-subbar-right {
   display: flex;
@@ -434,10 +492,11 @@
 }
 .cd-sort-field .cd-label {
   margin: 0;
-  font-size: 11px;
+  font-size: 12px;
   white-space: nowrap;
 }
 
+/* Part 3: state toggle ~38px, motion layout ─────────────────────────────── */
 .cd-state-toggle {
   display: flex;
   gap: 2px;
@@ -451,25 +510,46 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 12px;
+  padding: 8px 14px;
   border: none;
   background: transparent;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--muted);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: color 0.15s ease;
   white-space: nowrap;
-  min-height: 32px;
+  min-height: 38px;
+  position: relative;
 }
 .cd-state-btn:hover { color: var(--primary); }
 .cd-state-btn--active {
-  background: var(--bg);
   color: var(--primary);
   font-weight: 600;
+}
+
+/* Under reduced motion the CSS background does the job */
+.cd-state-btn--active {
+  background: var(--bg);
   box-shadow: 0 1px 3px rgba(15, 42, 53, 0.06);
 }
+@media (prefers-reduced-motion: no-preference) {
+  .cd-state-btn--active { background: transparent; box-shadow: none; }
+}
+
+/* Motion sliding background element */
+.cd-state__bg {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px;
+  background: var(--bg);
+  box-shadow: 0 1px 3px rgba(15, 42, 53, 0.06);
+  z-index: 0;
+}
+.cd-state__text,
+.cd-state-count { position: relative; z-index: 1; }
+
 .cd-state-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .cd-state-count {
   display: inline-flex;
@@ -494,27 +574,28 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
-/* ── CusDec row — each is its own rounded card ───────────────────────────── */
-/* Desktop (≥900px): identity(220px) | party(1fr) | status(1fr) | actions(232px) */
-/* One-container rule: no child adds its own horizontal margin.               */
+/* ── CusDec row ───────────────────────────────────────────────────────────── */
+/* >= 1280px: 260px | 1.2fr | 1.4fr | 360px fixed action column             */
+/* 900–1279px: 3-column, actions wrap full-width to their own line           */
 .cd-row {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr) minmax(0, 1fr) 232px;
-  gap: 20px;
+  grid-template-columns: 260px minmax(0, 1.2fr) minmax(0, 1.4fr) 360px;
+  gap: 16px;
   align-items: start;
-  padding: 14px 20px;
+  padding: 14px 18px;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 14px;
   box-shadow: var(--shadow-card);
   transition: background 0.15s ease;
   position: relative;
+  box-sizing: border-box;
 }
 
-/* State accent stripes via inset box-shadow, clipped to border-radius */
+/* State accent stripes */
 .cd-row--new        { box-shadow: var(--shadow-card), inset 3px 0 0 var(--pill-amber-fg); }
 .cd-row--inprogress { box-shadow: var(--shadow-card), inset 3px 0 0 var(--pill-blue-fg); }
 .cd-row--completed  { box-shadow: var(--shadow-card), inset 3px 0 0 var(--pill-green-fg); }
@@ -532,48 +613,47 @@
   min-width: 0;
 }
 .cd-row__number {
-  font-size: 14px;
+  font-size: 17px;
   font-weight: 700;
   color: var(--ink);
   line-height: 1.3;
 }
+/* Regdate + office chip on one line */
+.cd-row__meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .cd-row__regdate {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   color: var(--muted);
+  white-space: nowrap;
 }
 .cd-row__office-chip {
   display: inline-flex;
   align-items: center;
-  align-self: flex-start;
-  padding: 1px 7px;
+  flex-shrink: 0;
+  padding: 2px 8px;
   border-radius: 4px;
   background: var(--bg);
   border: 1px solid var(--line);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.03em;
   color: var(--muted);
-  margin-top: 2px;
 }
 
-/* Counterparty column */
+/* Counterparty column — name only, vertically centred */
 .cd-row__party {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  align-self: center;
   min-width: 0;
 }
-.cd-row__party-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted);
-}
 .cd-row__party-name {
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--ink);
   line-height: 1.4;
   display: -webkit-box;
@@ -587,7 +667,7 @@
 .cd-row__status {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 .cd-row__status-pills {
@@ -596,13 +676,20 @@
   flex-wrap: wrap;
 }
 .cd-row__context {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--muted);
-  line-height: 1.4;
+  line-height: 1.3;
+}
+/* Single-line truncating variant used for In progress last-update */
+.cd-row__context--nowrap {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Actions column — fixed width, right-aligned, vertically centred */
+/* Actions column — fixed width, vertically centred */
 .cd-row__actions {
   display: flex;
   align-items: center;
@@ -613,67 +700,133 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: nowrap;
   width: 100%;
 }
 
-/* ── Pagination — slim rounded block ─────────────────────────────────────── */
-.cd-pagination-block {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  box-shadow: var(--shadow-card);
-  padding: 0 20px;
+/* Row action buttons: 35px fixed height, nowrap at >=1280px */
+.cd-row__action-group .ui-btn--sm {
+  font-size: 13px;
+  height: 35px;
+  min-height: unset;
+  padding: 0 12px;
 }
 
-/* ── Overflow menu ───────────────────────────────────────────────────────── */
-.cd-card__overflow { position: relative; }
-.cd-overflow-btn {
+/* Part 4: Disclaim outline button — #B23434 on --surface ≈ 8.2:1 ✓ */
+.cd-btn-disclaim.ui-btn--secondary {
+  color: var(--pill-red-fg);
+  border-color: var(--pill-red-fg);
+}
+.cd-btn-disclaim.ui-btn--secondary:hover:not(:disabled) {
+  background: var(--pill-red-bg);
+  border-color: var(--pill-red-fg);
+  color: var(--pill-red-fg);
+}
+
+/* ── CusDec modal tab bar (.cdm-*) — Part 5 ─────────────────────────────── */
+.cdm-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 8px 0 0;
+}
+.cdm-tab {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
+  gap: 6px;
+  padding: 8px 16px;
   border: none;
   background: transparent;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
   color: var(--muted);
-  transition: background 0.15s ease, color 0.15s ease;
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  white-space: nowrap;
+  position: relative;
+  transition: color 0.15s ease;
+  border-bottom: 2px solid transparent;
 }
-.cd-overflow-btn:hover { background: var(--primary-soft); color: var(--primary); }
-.cd-overflow-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
-.cd-overflow-menu {
+.cdm-tab:hover { color: var(--primary); }
+.cdm-tab--active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+  margin-bottom: -1px;
+}
+.cdm-tab:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+.cdm-tab__bg {
   position: absolute;
-  right: 0;
-  top: calc(100% + 4px);
-  min-width: 180px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
-  padding: 4px;
-  z-index: 30;
+  inset: 0;
+  border-radius: 8px 8px 0 0;
+  background: var(--primary-soft);
+  z-index: 0;
 }
-.cd-overflow-item {
+.cdm-tab__text { position: relative; z-index: 1; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .cdm-tab--active { background: transparent; }
+}
+
+/* Modal tracking tab content */
+.cdm-tracking { display: flex; flex-direction: column; gap: 20px; }
+.cdm-tracking__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cdm-tracking__row {
   display: flex;
   align-items: center;
-  width: 100%;
-  padding: 9px 12px;
-  border: none;
-  background: transparent;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--ink);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  text-align: left;
-  min-height: 40px;
+  gap: 12px;
+  min-height: 28px;
 }
-.cd-overflow-item:hover { background: var(--primary-soft); color: var(--primary); }
-.cd-overflow-item--danger:hover { background: var(--pill-red-bg); color: var(--pill-red-fg); }
-.cd-overflow-item:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+.cdm-tracking__label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  min-width: 130px;
+  flex-shrink: 0;
+}
+.cdm-tracking__value {
+  font-size: 14px;
+  color: var(--ink);
+}
+.cdm-tracking__pills { display: flex; gap: 6px; align-items: center; }
+.cdm-tracking__note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  font-style: italic;
+  padding: 12px 16px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  line-height: 1.6;
+}
+
+/* Modal empty state */
+.cdm-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+.cdm-empty-state__text {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* ── Pagination ───────────────────────────────────────────────────────────── */
+.cd-pagination-block {
+  padding: 0 20px;
+  margin-top: 2px;
+}
 
 /* ── Disclaim dialog content (inside Modal shell) ────────────────────────── */
 .cd-dialog__icon {
@@ -782,7 +935,7 @@
 .cd-skel--title   { height: 20px; width: 65%; }
 .cd-skel--row     { height: 18px; width: 40%; }
 .cd-skel--line    { height: 14px; width: 55%; }
-.cd-skel--actions { height: 30px; width: 60%; }
+.cd-skel--actions { height: 36px; width: 60%; }
 @keyframes cd-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 /* ── Spin / flash animations ─────────────────────────────────────────────── */
@@ -801,12 +954,27 @@
 
 /* ── Responsive ──────────────────────────────────────────────────────────── */
 
-/* 900–1100px: columns tighten slightly */
-@media (max-width: 1100px) {
+/* 900–1279px: 3-column, actions wrap to full-width own row, left-aligned */
+@media (max-width: 1279px) and (min-width: 900px) {
   .cd-row {
-    grid-template-columns: 190px minmax(0, 1fr) minmax(0, 1fr) 200px;
+    grid-template-columns: 220px minmax(0, 1.2fr) minmax(0, 1.4fr);
     gap: 16px;
   }
+  .cd-row__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    align-self: auto;
+    padding-bottom: 2px;
+  }
+  .cd-row__action-group {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+/* Below 1280px: allow action buttons to wrap */
+@media (max-width: 1279px) {
+  .cd-row__action-group { flex-wrap: wrap; }
 }
 
 /* 600–899px: 2-line row layout */
@@ -815,7 +983,8 @@
     grid-template-columns: 1fr 1fr;
     grid-template-areas:
       "identity party"
-      "status   actions";
+      "status   status"
+      "actions  actions";
     gap: 12px 16px;
   }
   .cd-row__identity { grid-area: identity; }
@@ -823,24 +992,34 @@
   .cd-row__status   { grid-area: status; }
   .cd-row__actions  {
     grid-area: actions;
-    justify-self: end;
-    align-self: end;
+    justify-self: start;
+    align-self: auto;
+    justify-content: flex-start;
   }
+  .cd-row__action-group { justify-content: flex-start; }
+}
+
+/* 700–1100px: keep regdate and strip meta row on one line */
+@media (min-width: 700px) and (max-width: 1100px) {
+  .cd-strip__row2 { flex-wrap: nowrap; overflow-x: auto; }
 }
 
 /* ≤700px: strip + filter adjustments */
 @media (max-width: 700px) {
-  .cd-strip { padding: 10px 14px; }
-  .cd-strip__left { gap: 6px; }
+  .cd-strip { padding: 8px 16px; }
+  .cd-strip__row2 { gap: 8px; }
+  .cd-strip__meta-sep { height: 14px; }
+  .cd-strip__select { width: 100%; min-width: 0; max-width: 100%; }
+  .cd-strip__switcher { width: 100%; }
 
   .cd-subbar { padding: 2px 0; }
-  .cd-row { padding: 12px 16px; }
+  .cd-row { padding: 14px 16px; }
   .cd-pagination-block { padding: 0 16px; }
 
   .cd-picker-grid { grid-template-columns: 1fr; }
 }
 
-/* <600px: stacked row layout */
+/* <600px: stacked row layout, 2-column action grid */
 @media (max-width: 599px) {
   .cd-row {
     grid-template-columns: 1fr;
@@ -851,9 +1030,15 @@
       "actions";
     gap: 10px;
   }
-  .cd-row__actions  { grid-area: actions; justify-self: stretch; align-self: auto; }
-  .cd-row__action-group { flex-direction: column; width: 100%; justify-content: stretch; }
-  .cd-row__action-group > .ui-btn { width: 100%; justify-content: center; }
+  .cd-row__actions { grid-area: actions; justify-self: stretch; align-self: auto; }
+  .cd-row__action-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    flex-wrap: unset;
+  }
+  .cd-row__action-group > .ui-btn { width: auto; min-width: 0; justify-content: center; }
 }
 
 /* <480px: subbar stacks */

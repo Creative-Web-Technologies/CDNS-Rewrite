@@ -21,46 +21,43 @@ export default function DotPagination({ page, totalCount, pageSize, onPageChange
 
   return (
     <nav className="dp-nav" aria-label="Pagination">
-      <span className="dp-info">Showing {start}–{end} of {totalCount}</span>
+      <span className="dp-sr-only">Showing {start}–{end} of {totalCount}</span>
+      <span className="dp-info">Page {page} of {totalPages}</span>
 
-      <div className="dp-controls">
-        <button
-          type="button"
-          className="dp-arrow"
-          aria-label="Previous page"
-          disabled={page <= 1}
-          onClick={() => onPageChange(page - 1)}
-        >
-          <ChevronLeft size={16} aria-hidden="true" />
-        </button>
+      <button
+        type="button"
+        className="dp-arrow"
+        aria-label="Previous page"
+        disabled={page <= 1}
+        onClick={() => onPageChange(page - 1)}
+      >
+        <ChevronLeft size={16} aria-hidden="true" />
+      </button>
 
-        <div className="dp-dots" role="list">
-          {dots.map((n) => (
-            <button
-              key={n}
-              type="button"
-              role="listitem"
-              className={`dp-dot${n === page ? ' dp-dot--active' : ''}`}
-              aria-label={`Page ${n}`}
-              aria-current={n === page ? 'page' : undefined}
-              title={`Page ${n}`}
-              onClick={() => onPageChange(n)}
-            />
-          ))}
-        </div>
-
-        <button
-          type="button"
-          className="dp-arrow"
-          aria-label="Next page"
-          disabled={page >= totalPages}
-          onClick={() => onPageChange(page + 1)}
-        >
-          <ChevronRight size={16} aria-hidden="true" />
-        </button>
+      <div className="dp-dots" role="list">
+        {dots.map((n) => (
+          <button
+            key={n}
+            type="button"
+            role="listitem"
+            className={`dp-dot${n === page ? ' dp-dot--active' : ''}`}
+            aria-label={`Page ${n}`}
+            aria-current={n === page ? 'page' : undefined}
+            title={`Page ${n}`}
+            onClick={() => onPageChange(n)}
+          />
+        ))}
       </div>
 
-      <span className="dp-info">Page {page} of {totalPages}</span>
+      <button
+        type="button"
+        className="dp-arrow"
+        aria-label="Next page"
+        disabled={page >= totalPages}
+        onClick={() => onPageChange(page + 1)}
+      >
+        <ChevronRight size={16} aria-hidden="true" />
+      </button>
     </nav>
   );
 }

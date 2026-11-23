@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { FileText, AlertCircle, RefreshCw, ShieldOff } from 'lucide-react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Button, Card, EmptyState, PageTransition } from '../../components/ui';
 import DotPagination from '../../components/ui/DotPagination';
 import { usePortalChrome } from '../../components/portal/portalChrome';
@@ -15,14 +16,15 @@ import { isGateError, gateBlockedInfo, cusDecErrorMessage } from './errorMessage
 import SubscriptionStrip from './SubscriptionStrip';
 import FilterBar from './FilterBar';
 import CusDecCard from './CusDecCard';
+import CusDecModal from './CusDecModal';
 import DisclaimDialog from './DisclaimDialog';
 import './cusdec.css';
 
 const PAGE_SIZE = 4;
 
 const TABS = [
-  { key: 'tracking', label: 'Tracking' },
-  { key: 'completed', label: 'Completed' },
+  { key: 'tracking',   label: 'Tracking' },
+  { key: 'completed',  label: 'Completed' },
   { key: 'disclaimed', label: 'Disclaimed' },
 ];
 
@@ -71,6 +73,7 @@ export default function CusDecWorkspacePage({ portal }) {
   const subId = parseInt(subscriptionId, 10) || null;
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const shouldReduce = useReducedMotion();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get('tab') || 'tracking';
@@ -119,6 +122,7 @@ export default function CusDecWorkspacePage({ portal }) {
   const [highlightedCardId, setHighlightedCardId] = useState(null);
   const [disclaimTarget, setDisclaimTarget] = useState(null);
   const [disclaimBusy, setDisclaimBusy] = useState(false);
+  const [modalTarget, setModalTarget] = useState(null); // { item, tab }
 
   usePortalChrome({ title: 'CusDecs' });
 
@@ -226,7 +230,7 @@ export default function CusDecWorkspacePage({ portal }) {
     setSearchParams({ tab: newTab, page: '1' });
   }
 
-  // ARIA tab pattern: arrow keys move focus and activate the tab
+  // Manual activation: arrows move focus only; Enter/Space activates.
   function handleTabKeyDown(e, currentKey) {
     const idx = TABS.findIndex((t) => t.key === currentKey);
     let newIdx = -1;
@@ -234,9 +238,9 @@ export default function CusDecWorkspacePage({ portal }) {
     else if (e.key === 'ArrowLeft') newIdx = (idx - 1 + TABS.length) % TABS.length;
     else if (e.key === 'Home') newIdx = 0;
     else if (e.key === 'End') newIdx = TABS.length - 1;
+    else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleTabChange(currentKey); return; }
     else return;
     e.preventDefault();
-    handleTabChange(TABS[newIdx].key);
     document.getElementById(`cd-tab-${TABS[newIdx].key}`)?.focus();
   }
 
@@ -295,15 +299,18 @@ export default function CusDecWorkspacePage({ portal }) {
     }
   }
 
-  async function handleComplete(cusDecId) {
+  // Used by the CusDec modal footer — closes modal on success, keeps it open on failure.
+  async function handleCompleteFromModal(cusDecId) {
     if (busyCardId !== null) return;
     setBusyCardId(cusDecId);
     try {
       const result = await complete(subId, cusDecId);
+      setModalTarget(null);
       await afterAction(cusDecId, result, 'completed');
     } catch (err) {
       const code = err.code;
       if (isGateError(code) || code === 'SubscriptionNotFound') {
+        setModalTarget(null);
         handleGateError(code);
       } else if (err.status === 409 || code === 'CusDecNotFound') {
         addToast({ type: 'error', message: cusDecErrorMessage(code) });
@@ -364,6 +371,11 @@ export default function CusDecWorkspacePage({ portal }) {
     }
   }
 
+  const handleOpenModal = useCallback((cusDecId, modalTab) => {
+    const foundItem = items.find((it) => it.cusDecId === cusDecId);
+    if (foundItem) setModalTarget({ item: foundItem, tab: modalTab });
+  }, [items]);
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   if (!subId) return null;
@@ -421,24 +433,33 @@ export default function CusDecWorkspacePage({ portal }) {
 
         {!gateBlocked && strip && (
           <>
-            {/* Tab bar — on page background */}
+            {/* Tab bar */}
             <div className="cd-tabbar" role="tablist" aria-label="Declaration status">
               {TABS.map(({ key, label }) => {
                 const n = tabCount(counts, key);
+                const isActive = tab === key;
                 return (
                   <button
                     key={key}
                     type="button"
                     role="tab"
                     id={`cd-tab-${key}`}
-                    aria-selected={tab === key}
+                    aria-selected={isActive}
                     aria-controls={`cd-tabpanel-${key}`}
-                    tabIndex={tab === key ? 0 : -1}
-                    className={`cd-tab${tab === key ? ' cd-tab--active' : ''}`}
+                    tabIndex={isActive ? 0 : -1}
+                    className={`cd-tab${isActive ? ' cd-tab--active' : ''}`}
                     onClick={() => handleTabChange(key)}
                     onKeyDown={(e) => handleTabKeyDown(e, key)}
                   >
-                    {label}
+                    {isActive && !shouldReduce && (
+                      <motion.span
+                        layoutId="cd-tab-bg"
+                        className="cd-tab__bg"
+                        aria-hidden="true"
+                        transition={{ type: 'spring', stiffness: 500, damping: 50 }}
+                      />
+                    )}
+                    <span className="cd-tab__text">{label}</span>
                     {n !== null && (
                       <span className="cd-tab-count" aria-hidden="true">{n}</span>
                     )}
@@ -454,7 +475,7 @@ export default function CusDecWorkspacePage({ portal }) {
               aria-labelledby={`cd-tab-${tab}`}
               className="cd-tabpanel-wrapper"
             >
-              {/* Filter area — 3 blocks on page background */}
+              {/* Filter area */}
               <FilterBar
                 tab={tab}
                 subscriptionType={strip.subscriptionType}
@@ -464,29 +485,40 @@ export default function CusDecWorkspacePage({ portal }) {
                 onClear={handleClearFilters}
               />
 
-              {/* Sub-bar — on page background, above the list */}
+              {/* Sub-bar */}
               <div className="cd-subbar">
                 <div className="cd-subbar-left">
                   {tab === 'tracking' && (
                     <div className="cd-state-toggle" role="group" aria-label="Filter by state">
                       {[
-                        { key: 'all', label: 'All', count: counts ? counts.trackingNew + counts.trackingInProgress : null },
-                        { key: 'new', label: 'New', count: counts?.trackingNew ?? null },
+                        { key: 'all',        label: 'All',         count: counts ? counts.trackingNew + counts.trackingInProgress : null },
+                        { key: 'new',        label: 'New',         count: counts?.trackingNew ?? null },
                         { key: 'inprogress', label: 'In progress', count: counts?.trackingInProgress ?? null },
-                      ].map(({ key, label, count }) => (
-                        <button
-                          key={key}
-                          type="button"
-                          className={`cd-state-btn${trackingState === key ? ' cd-state-btn--active' : ''}`}
-                          aria-pressed={trackingState === key}
-                          onClick={() => { setTrackingState(key); setPage(1); }}
-                        >
-                          {label}
-                          {count !== null && (
-                            <span className="cd-state-count" aria-hidden="true">{count}</span>
-                          )}
-                        </button>
-                      ))}
+                      ].map(({ key, label, count }) => {
+                        const isActive = trackingState === key;
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            className={`cd-state-btn${isActive ? ' cd-state-btn--active' : ''}`}
+                            aria-pressed={isActive}
+                            onClick={() => { setTrackingState(key); setPage(1); }}
+                          >
+                            {isActive && !shouldReduce && (
+                              <motion.span
+                                layoutId="cd-state-bg"
+                                className="cd-state__bg"
+                                aria-hidden="true"
+                                transition={{ type: 'spring', stiffness: 500, damping: 50 }}
+                              />
+                            )}
+                            <span className="cd-state__text">{label}</span>
+                            {count !== null && (
+                              <span className="cd-state-count" aria-hidden="true">{count}</span>
+                            )}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -509,7 +541,7 @@ export default function CusDecWorkspacePage({ portal }) {
                 </div>
               </div>
 
-              {/* Declaration list — each row is its own card */}
+              {/* Declaration list */}
               {listLoading ? (
                 <ul className="cd-list" aria-busy="true" aria-label="Loading declarations">
                   {Array.from({ length: PAGE_SIZE }, (_, k) => (
@@ -554,15 +586,15 @@ export default function CusDecWorkspacePage({ portal }) {
                         highlighted={highlightedCardId === item.cusDecId}
                         onAcknowledge={handleAcknowledge}
                         onDisclaimRequest={setDisclaimTarget}
-                        onComplete={handleComplete}
                         onReopen={handleReopen}
+                        onOpenModal={handleOpenModal}
                       />
                     </li>
                   ))}
                 </ul>
               )}
 
-              {/* Pagination — own slim rounded block */}
+              {/* Pagination */}
               {totalCount > PAGE_SIZE && (
                 <div className="cd-pagination-block">
                   <DotPagination
@@ -578,12 +610,23 @@ export default function CusDecWorkspacePage({ portal }) {
         )}
       </div>
 
-      {/* DisclaimDialog always rendered; Modal handles open/close animation */}
+      {/* DisclaimDialog — always rendered so exit animation plays */}
       <DisclaimDialog
         item={disclaimTarget}
         busy={disclaimBusy}
         onConfirm={handleDisclaimConfirm}
         onCancel={() => { if (!disclaimBusy) setDisclaimTarget(null); }}
+      />
+
+      {/* CusDec modal — always rendered so exit animation plays */}
+      <CusDecModal
+        item={modalTarget?.item ?? null}
+        initialTab={modalTarget?.tab}
+        subscriptionType={strip?.subscriptionType}
+        containersBlocked={strip?.containersBlocked}
+        busyId={busyCardId}
+        onComplete={handleCompleteFromModal}
+        onClose={() => setModalTarget(null)}
       />
     </PageTransition>
   );

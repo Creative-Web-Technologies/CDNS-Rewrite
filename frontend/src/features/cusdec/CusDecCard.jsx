@@ -1,8 +1,6 @@
-import { useState } from 'react';
-import { MoreVertical, Loader2 } from 'lucide-react';
+import { Check, Ban, Package, FileText, Route, Loader2 } from 'lucide-react';
 import { Pill, Button } from '../../components/ui';
 import { formatDate, formatDatetime } from './formatHelpers';
-import { cusDecFeatures } from './features';
 
 function StatusPill({ item }) {
   const { tab, state, currentStatus } = item;
@@ -16,18 +14,14 @@ function StatusPill({ item }) {
 }
 
 function ContextLine({ item }) {
-  const { tab, state, claimedDate, claimedByName, lastUpdate, completedAt, completedByName, disclaimedDate, disclaimedByName } = item;
+  const { tab, state, lastUpdate, completedAt, completedByName, disclaimedDate, disclaimedByName } = item;
 
   if (tab === 'tracking' && state === 'new') {
     return <span className="cd-row__context">Awaiting your decision</span>;
   }
   if (tab === 'tracking' && state === 'inprogress') {
-    const ackPart = claimedDate
-      ? `Acknowledged ${formatDate(claimedDate)}${claimedByName ? ` by ${claimedByName}` : ''}`
-      : '';
-    const updatePart = lastUpdate ? `Last update ${formatDatetime(lastUpdate)}` : '';
-    const text = [ackPart, updatePart].filter(Boolean).join(' · ');
-    return <span className="cd-row__context">{text || '—'}</span>;
+    const text = lastUpdate ? `Last update ${formatDatetime(lastUpdate)}` : '—';
+    return <span className="cd-row__context cd-row__context--nowrap" title={text}>{text}</span>;
   }
   if (tab === 'completed') {
     const datePart = completedAt ? formatDate(completedAt) : '—';
@@ -64,10 +58,9 @@ export default function CusDecCard({
   highlighted,
   onAcknowledge,
   onDisclaimRequest,
-  onComplete,
   onReopen,
+  onOpenModal,
 }) {
-  const [overflowOpen, setOverflowOpen] = useState(false);
   const isBusy = busyCardId === item.cusDecId;
   const anyBusy = busyCardId !== null;
   const { label: cpLabel, name: cpName } = counterpartyFor(item, subscriptionType);
@@ -85,13 +78,14 @@ export default function CusDecCard({
       {/* Identity */}
       <div className="cd-row__identity">
         <span className="cd-row__number">{item.cusDecNumber || '—'}</span>
-        <span className="cd-row__regdate">Registered {formatDate(item.cusDecDate)}</span>
-        {item.office && <span className="cd-row__office-chip">{item.office}</span>}
+        <div className="cd-row__meta-row">
+          <span className="cd-row__regdate">Registered {formatDate(item.cusDecDate)}</span>
+          {item.office && <span className="cd-row__office-chip">{item.office}</span>}
+        </div>
       </div>
 
       {/* Counterparty */}
-      <div className="cd-row__party">
-        <span className="cd-row__party-label">{cpLabel}</span>
+      <div className="cd-row__party" aria-label={`${cpLabel}: ${cpName}`}>
         <span className="cd-row__party-name" title={cpName}>{cpName}</span>
       </div>
 
@@ -113,12 +107,10 @@ export default function CusDecCard({
           isBusy={isBusy}
           anyBusy={anyBusy}
           containersBlocked={containersBlocked}
-          overflowOpen={overflowOpen}
-          setOverflowOpen={setOverflowOpen}
           onAcknowledge={onAcknowledge}
           onDisclaimRequest={onDisclaimRequest}
-          onComplete={onComplete}
           onReopen={onReopen}
+          onOpenModal={onOpenModal}
         />
       </div>
     </article>
@@ -127,16 +119,16 @@ export default function CusDecCard({
 
 function RowActions({
   item, isBusy, anyBusy, containersBlocked,
-  overflowOpen, setOverflowOpen,
-  onAcknowledge, onDisclaimRequest, onComplete, onReopen,
+  onAcknowledge, onDisclaimRequest, onReopen, onOpenModal,
 }) {
-  const { tab, state, isExited, cusDecId } = item;
+  const { tab, state, cusDecId } = item;
 
   if (tab === 'tracking' && state === 'new') {
     return (
       <div className="cd-row__action-group">
         <Button
           size="sm"
+          icon={isBusy ? undefined : Check}
           disabled={anyBusy}
           onClick={() => onAcknowledge(cusDecId)}
           aria-busy={isBusy}
@@ -145,34 +137,16 @@ function RowActions({
             ? <><Loader2 size={14} className="cd-spin" aria-hidden="true" /> Acknowledging…</>
             : 'Acknowledge'}
         </Button>
-        {cusDecFeatures.detail && (
-          <Button variant="secondary" size="sm">View detail</Button>
-        )}
-        <div className="cd-card__overflow" role="presentation">
-          <button
-            type="button"
-            className="cd-overflow-btn"
-            aria-label="More actions"
-            aria-expanded={overflowOpen}
-            aria-haspopup="menu"
-            disabled={anyBusy}
-            onClick={() => setOverflowOpen((o) => !o)}
-          >
-            <MoreVertical size={16} aria-hidden="true" />
-          </button>
-          {overflowOpen && (
-            <OverflowMenu onClose={() => setOverflowOpen(false)}>
-              <button
-                type="button"
-                className="cd-overflow-item cd-overflow-item--danger"
-                role="menuitem"
-                onClick={() => { setOverflowOpen(false); onDisclaimRequest(item); }}
-              >
-                Disclaim (not ours)…
-              </button>
-            </OverflowMenu>
-          )}
-        </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          className="cd-btn-disclaim"
+          icon={Ban}
+          disabled={anyBusy}
+          onClick={() => onDisclaimRequest(item)}
+        >
+          Disclaim
+        </Button>
       </div>
     );
   }
@@ -180,19 +154,35 @@ function RowActions({
   if (tab === 'tracking' && state === 'inprogress') {
     return (
       <div className="cd-row__action-group">
+        {!containersBlocked && (
+          <Button
+            size="sm"
+            variant="secondary"
+            icon={Package}
+            disabled={anyBusy}
+            onClick={() => onOpenModal(cusDecId, 'containers')}
+          >
+            Containers
+          </Button>
+        )}
         <Button
           size="sm"
-          variant={isExited ? 'primary' : 'secondary'}
+          variant="secondary"
+          icon={FileText}
           disabled={anyBusy}
-          onClick={() => onComplete(cusDecId)}
-          aria-busy={isBusy}
+          onClick={() => onOpenModal(cusDecId, 'details')}
         >
-          {isBusy
-            ? <><Loader2 size={14} className="cd-spin" aria-hidden="true" /> Completing…</>
-            : 'Complete'}
+          Details
         </Button>
-        {cusDecFeatures.status && <Button variant="secondary" size="sm">View status</Button>}
-        {cusDecFeatures.containers && !containersBlocked && <Button variant="secondary" size="sm">Containers</Button>}
+        <Button
+          size="sm"
+          variant="secondary"
+          icon={Route}
+          disabled={anyBusy}
+          onClick={() => onOpenModal(cusDecId, 'tracking')}
+        >
+          Tracking
+        </Button>
       </div>
     );
   }
@@ -200,6 +190,24 @@ function RowActions({
   if (tab === 'completed') {
     return (
       <div className="cd-row__action-group">
+        <Button
+          size="sm"
+          variant="secondary"
+          icon={FileText}
+          disabled={anyBusy}
+          onClick={() => onOpenModal(cusDecId, 'details')}
+        >
+          Details
+        </Button>
+        <Button
+          size="sm"
+          variant="secondary"
+          icon={Route}
+          disabled={anyBusy}
+          onClick={() => onOpenModal(cusDecId, 'tracking')}
+        >
+          Tracking
+        </Button>
         <Button
           size="sm"
           variant="secondary"
@@ -211,8 +219,6 @@ function RowActions({
             ? <><Loader2 size={14} className="cd-spin" aria-hidden="true" /> Reopening…</>
             : 'Reopen'}
         </Button>
-        {cusDecFeatures.status && <Button variant="secondary" size="sm">View status</Button>}
-        {cusDecFeatures.containers && !containersBlocked && <Button variant="secondary" size="sm">Containers</Button>}
       </div>
     );
   }
@@ -220,22 +226,18 @@ function RowActions({
   if (tab === 'disclaimed') {
     return (
       <div className="cd-row__action-group">
-        {cusDecFeatures.detail && <Button variant="secondary" size="sm">View detail</Button>}
+        <Button
+          size="sm"
+          variant="secondary"
+          icon={FileText}
+          disabled={anyBusy}
+          onClick={() => onOpenModal(cusDecId, 'details')}
+        >
+          Details
+        </Button>
       </div>
     );
   }
 
   return null;
-}
-
-function OverflowMenu({ children, onClose }) {
-  return (
-    <div
-      className="cd-overflow-menu"
-      role="menu"
-      onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) onClose(); }}
-    >
-      {children}
-    </div>
-  );
 }

@@ -1,9 +1,13 @@
+import { useEffect, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
 import { Button } from '../../components/ui';
 import Modal from '../../components/ui/Modal';
 
 export default function DisclaimDialog({ item, busy, onConfirm, onCancel }) {
-  const number = item?.cusDecNumber ?? 'this declaration';
+  const [lastItem, setLastItem] = useState(null);
+  useEffect(() => { if (item) setLastItem(item); }, [item]);
+  const displayed = item ?? lastItem;
+  const number = displayed?.cusDecNumber ?? 'this declaration';
 
   const footer = (
     <div className="cd-dialog__actions">

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
@@ -19,6 +19,9 @@ export default function Modal({
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
   const shouldReduce = useReducedMotion();
+  const uid = useId();
+  const titleId = `${uid}-title`;
+  const descId = `${uid}-desc`;
 
   // Capture the trigger element when the modal opens
   useEffect(() => {
@@ -106,16 +109,16 @@ export default function Modal({
             ref={containerRef}
             role="dialog"
             aria-modal="true"
-            aria-labelledby={title ? 'ui-modal-title' : undefined}
-            aria-describedby={subtitle ? 'ui-modal-desc' : undefined}
+            aria-labelledby={title ? titleId : undefined}
+            aria-describedby={subtitle ? descId : undefined}
             className="ui-modal"
             style={{ maxWidth }}
             {...dialogVariants}
           >
             <div className="ui-modal__header">
               <div className="ui-modal__header-text">
-                {title && <h2 id="ui-modal-title" className="ui-modal__title">{title}</h2>}
-                {subtitle && <p id="ui-modal-desc" className="ui-modal__subtitle">{subtitle}</p>}
+                {title && <h2 id={titleId} className="ui-modal__title">{title}</h2>}
+                {subtitle && <p id={descId} className="ui-modal__subtitle">{subtitle}</p>}
               </div>
               <button
                 type="button"
