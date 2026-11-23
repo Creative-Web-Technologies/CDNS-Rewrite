@@ -4,6 +4,18 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Cdns.Infrastructure.Migrations
 {
+    /// <summary>
+    /// Creates the <c>check_tin_signup_status(text)</c> Postgres function.
+    ///
+    /// Source of truth for the readable SQL:
+    ///   src/Cdns.Infrastructure/Persistence/Sql/Functions/check_tin_signup_status.sql
+    /// (see also src/Cdns.Infrastructure/Persistence/Sql/README.md).
+    ///
+    /// EF does NOT generate raw SQL objects from the C# model, so this function
+    /// must be created by hand here. Any later change to the function must go in a
+    /// NEW migration (using CREATE OR REPLACE FUNCTION) — never edit this migration
+    /// after it has been applied anywhere.
+    /// </summary>
     /// <inheritdoc />
     public partial class AddCheckTinSignupStatusFunction : Migration
     {
@@ -11,6 +23,21 @@ namespace Cdns.Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.Sql(@"
+-- check_tin_signup_status(p_tin)
+--
+-- Checks whether a company TIN is in a state that allows new member signup.
+-- Implemented as a Postgres function rather than C# because the check is a
+-- genuine 4-table join (companies → company_member_mappings → members →
+-- member_users) that is cleaner and atomic when expressed as set-based SQL.
+--
+-- Return codes
+--   1  company found, master active                  → new member may proceed
+--   2  company found, master pending eReg            → block signup
+--   3  company found, master pending activation      → block signup
+--   4  TIN is shorter than 9 characters              → validation error
+--   5  company found, master account incomplete      → block signup
+--   6  company not found in DB                       → block signup
+
 CREATE OR REPLACE FUNCTION check_tin_signup_status(p_tin text)
 RETURNS integer
 LANGUAGE plpgsql
@@ -43,12 +70,12 @@ BEGIN
   FROM   company_member_mappings cmm
   JOIN   members m ON m.member_id = cmm.member_id
   WHERE  cmm.company_id = v_company_id
-    AND  m.member_type   = 2
+    AND  m.member_type   = 2        -- CompanyMasterMember
     AND  cmm.is_deleted  = false
     AND  m.is_deleted    = false
   LIMIT  1;
 
-  -- code 5: no master linked at all, or master linked but no MemberUser yet
+  -- code 5: master Member row exists but no MemberUser yet (or no master linked)
   IF NOT FOUND THEN
     RETURN 5;
   END IF;

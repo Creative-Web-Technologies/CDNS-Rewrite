@@ -1,3 +1,4 @@
+using Cdns.Domain.Entities.CusdecTables;
 using Cdns.Domain.Entities.MemberSignupTables;
 using Cdns.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -26,6 +27,15 @@ public class MemberNotificationConfiguration : IEntityTypeConfiguration<MemberNo
                .WithMany()
                .HasForeignKey(x => x.MemberId)
                .OnDelete(DeleteBehavior.Restrict);
+
+        // Link to the CusDec a notification is about (in-app CusDec notifications).
+        // Nullable: most notifications (e.g. subscription events) are not about a CusDec.
+        // Restrict: CusDecs are never deleted; a notification must not outlive its target silently.
+        builder.HasOne<CusDec>()
+            .WithMany()
+            .HasForeignKey(x => x.CusDecId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
 
         // Proposed index for the bell/home query; confirm against the legacy Get procs
         builder.HasIndex(x => new { x.MemberId, x.IsDeleted, x.IsSeen, x.NotificationDateTime });

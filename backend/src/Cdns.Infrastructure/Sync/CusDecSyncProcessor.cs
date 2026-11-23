@@ -49,7 +49,7 @@ public class CusDecSyncProcessor
             .Where(c => externalIds.Contains(c.CusDecExternalSystemNumber))
             .ToDictionaryAsync(c => c.CusDecExternalSystemNumber, cancellationToken);
 
-        var now = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+        var now = DateTime.UtcNow;
         
         foreach (var row in rows)
         {

@@ -75,7 +75,8 @@ public sealed class CompanyDashboardService : ICompanyDashboardService
             .ToList();
 
         var visible = await DashboardSupport.LoadVisibleCusDecsAsync(_db, scopes, ct);
-        var weekly = DashboardCalculator.Weekly(visible, DateOnly.FromDateTime(now.UtcDateTime));
+        var nowColombo = SriLankaTime.ToColombo(now.UtcDateTime);
+        var weekly = DashboardCalculator.Weekly(visible, DateOnly.FromDateTime(nowColombo));
 
         return new CompanyDashboardSummary(
             Subscriptions: DashboardCalculator.SubscriptionCounts(
@@ -83,7 +84,7 @@ public sealed class CompanyDashboardService : ICompanyDashboardService
                 subs.Select(s => new SubscriptionView(s.MemberSubscriptionStatusEnum, s.ExpiryDate)),
                 today),
             CusDecs: DashboardCalculator.CountCusDecs(visible),
-            MonthlyCompleted: DashboardCalculator.MonthlyCompleted(visible, now.Year),
+            MonthlyCompleted: DashboardCalculator.MonthlyCompleted(visible, nowColombo.Year),
             Weekly: weekly,
             WeeklyAverage: DashboardCalculator.WeeklyAverage(weekly),
             Clearances: DashboardCalculator.Clearances(visible),

@@ -1,3 +1,4 @@
+using Cdns.Application.Interfaces;
 using Cdns.Domain.Entities.Company;
 
 namespace Cdns.Application.Feature.Dashboard;
@@ -65,8 +66,12 @@ public static class DashboardCalculator
         {
             if (!IsExited(c)) continue;
             var exitAt = ExitMoment(c);
-            if (exitAt is { } at && at.Year == year)
-                counts[at.Month - 1]++;
+            if (exitAt is { } at)
+            {
+                var local = SriLankaTime.ToColombo(at);
+                if (local.Year == year)
+                    counts[local.Month - 1]++;
+            }
         }
         return Enumerable.Range(1, 12)
             .Select(m => new MonthlyCompletedPoint(m, counts[m - 1]))
@@ -82,7 +87,7 @@ public static class DashboardCalculator
     {
         var registeredDays = cusDecs
             .Where(c => c.RegisteredAt is not null)
-            .Select(c => DateOnly.FromDateTime(c.RegisteredAt!.Value))
+            .Select(c => DateOnly.FromDateTime(SriLankaTime.ToColombo(c.RegisteredAt!.Value)))
             .ToList();
 
         var points = new List<WeeklyPoint>(weeks);

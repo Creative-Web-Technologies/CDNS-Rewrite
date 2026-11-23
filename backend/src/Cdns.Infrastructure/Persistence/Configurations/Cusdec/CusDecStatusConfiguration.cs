@@ -38,5 +38,8 @@ public class CusDecStatusConfiguration
 
         builder.HasIndex(x => new { x.ExternalSystemNumber, x.CusDecStatusNumber, x.CusDecExternalSystemNumber, x.TableName })
         .IsUnique();
+
+        // Timeline and latest-status lookups per CusDec (replaces the automatic FK index on CusDecId).
+        builder.HasIndex(x => new { x.CusDecId, x.StatusDateTime });
     }
 }

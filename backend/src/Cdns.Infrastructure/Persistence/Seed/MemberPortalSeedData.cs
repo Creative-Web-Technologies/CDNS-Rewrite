@@ -14,9 +14,9 @@ namespace Cdns.Infrastructure.Persistence.Seed;
 /// AFTER <see cref="AuthSeedData"/> because it attaches to the members and
 /// companies that seed creates (existingmember-a@test.cdns, Company A, Company B).
 ///
-/// Column-kind note: the CusDec table maps its DateTime columns to
-/// "timestamp without time zone" (Unspecified kind), while every other table here
-/// uses "timestamp with time zone" (Utc kind). The two locals below keep that straight.
+/// Column-kind note: after the schema reset every DateTime column here — CusDec included —
+/// maps to "timestamp with time zone", so every DateTime value written must be Kind=Utc.
+/// Use <c>nowUtc</c> (DateTime.UtcNow) or values built with DateTimeKind.Utc; never Unspecified.
 /// </summary>
 public static class MemberPortalSeedData
 {
@@ -45,7 +45,11 @@ public static class MemberPortalSeedData
 
         var nowOffset = DateTimeOffset.UtcNow;
         var nowUtc = DateTime.UtcNow;
-        var nowLocal = DateTime.SpecifyKind(nowUtc, DateTimeKind.Unspecified);
+
+        // All-or-nothing: wrap the whole seed in one transaction so a failure (e.g. a unique-key
+        // violation) leaves the DB empty rather than half-seeded. The multiple SaveChangesAsync
+        // calls below all enlist in this transaction and only become visible on CommitAsync.
+        await using var tx = await db.Database.BeginTransactionAsync();
 
         // ---- 1. Subscription plans (Declarant + Consignee) ----------------------
         var planDeclarantAnnual = new Subscription
@@ -185,9 +189,9 @@ public static class MemberPortalSeedData
                     CusDecNumber = $"CUSDEC-{DateTime.UtcNow.Year}-{seq:D4}",
                     GlobalIdentity = Guid.NewGuid(),
                     CusDecExternalSystemNumber = externalSeq,
-                    LastSyncDateTime = nowLocal,
-                    CusDecDate = nowLocal.AddDays(-seq * 2),
-                    RegistrationDate = nowLocal.AddDays(-seq * 2),
+                    LastSyncDateTime = nowUtc,
+                    CusDecDate = nowUtc.AddDays(-seq * 2),
+                    RegistrationDate = nowUtc.AddDays(-seq * 2),
                     OfficeCode = "CBHQ1",
                     Origin = "CN",
                     Destination = "LK",
@@ -221,19 +225,19 @@ public static class MemberPortalSeedData
                 {
                     case "claimed" when declarantSide:
                         cusDec.DeclarantClaimedById = member.MemberId;
-                        cusDec.DeclarantClaimedDateTime = nowLocal.AddDays(-seq);
+                        cusDec.DeclarantClaimedDateTime = nowUtc.AddDays(-seq);
                         break;
                     case "claimed":
                         cusDec.ConsigneeClaimedById = member.MemberId;
-                        cusDec.ConsigneeClaimedDateTime = nowLocal.AddDays(-seq);
+                        cusDec.ConsigneeClaimedDateTime = nowUtc.AddDays(-seq);
                         break;
                     case "disclaimed" when declarantSide:
                         cusDec.DeclarantDisclaimedById = member.MemberId;
-                        cusDec.DeclarantDisclaimedDateTime = nowLocal.AddDays(-seq);
+                        cusDec.DeclarantDisclaimedDateTime = nowUtc.AddDays(-seq);
                         break;
                     case "disclaimed":
                         cusDec.ConsigneeDisclaimedById = member.MemberId;
-                        cusDec.ConsigneeDisclaimedDateTime = nowLocal.AddDays(-seq);
+                        cusDec.ConsigneeDisclaimedDateTime = nowUtc.AddDays(-seq);
                         break;
                 }
 
@@ -283,6 +287,12 @@ public static class MemberPortalSeedData
                             CusDecContainer = container, ContainerNumber = container.Container,
                             Status = status, Description = desc,
                             StatusDateTime = nowUtc.AddDays(-seq).AddHours(step),
+                            // ExternalSystemNumber is the status event's OWN id (legacy IED_ID) and must be
+                            // unique per event; ContainerStatusNumber is the version (legacy DOC_VER). The
+                            // unique index is (external_system_number, container_status_number), so deriving
+                            // a distinct external id per (cusdec, container, step) keeps every row unique —
+                            // the old code reused the parent CusDec number across containers and collided.
+                            ExternalSystemNumber = EventExternalId(externalSeq, kind: 1, a: c, b: step),
                             ContainerStatusNumber = step, CusDecExternalSystemNumber = externalSeq,
                             LastSyncDate = nowUtc,
                         });
@@ -302,8 +312,12 @@ public static class MemberPortalSeedData
                         CusDec = cusDec, CusDecGlobalIdentity = cusDec.GlobalIdentity,
                         Status = asycuda, Description = cdns,
                         StatusDateTime = nowUtc.AddDays(-seq).AddHours(statusStep),
+                        // ExternalSystemNumber is the status row's OWN id (legacy IED_ID);
+                        // CusDecExternalSystemNumber is the parent SAD INSTANCEID; TableName is the real
+                        // legacy source table (never "cus_dec_statuses").
+                        ExternalSystemNumber = EventExternalId(externalSeq, kind: 0, a: 0, b: statusStep),
                         CusDecStatusNumber = statusStep, CusDecExternalSystemNumber = externalSeq,
-                        TableName = "cus_dec_statuses", LastSyncDateTime = nowUtc,
+                        TableName = DocTableFor(asycuda), LastSyncDateTime = nowUtc,
                     });
                 }
 
@@ -335,10 +349,10 @@ public static class MemberPortalSeedData
                 CusDecNumber = $"CUSDEC-{year}-C{completedExternalSeq % 100000:D4}",
                 GlobalIdentity = Guid.NewGuid(),
                 CusDecExternalSystemNumber = completedExternalSeq,
-                LastSyncDateTime = DateTime.SpecifyKind(registeredUtc, DateTimeKind.Unspecified),
-                CusDecDate = DateTime.SpecifyKind(registeredUtc, DateTimeKind.Unspecified),
-                RegistrationDate = DateTime.SpecifyKind(registeredUtc, DateTimeKind.Unspecified),
-                ReleaseDate = DateTime.SpecifyKind(exitUtc, DateTimeKind.Unspecified),
+                LastSyncDateTime = registeredUtc,
+                CusDecDate = registeredUtc,
+                RegistrationDate = registeredUtc,
+                ReleaseDate = exitUtc,
                 OfficeCode = "CBHQ1", Origin = "CN", Destination = "LK", Channel = channel,
                 Incoterm = "CIF", CusDecType = "IM4",
                 InvoiceValue = 20000m + completedExternalSeq % 1000 * 10m,
@@ -376,8 +390,10 @@ public static class MemberPortalSeedData
                 {
                     CusDec = cusDec, CusDecGlobalIdentity = cusDec.GlobalIdentity,
                     Status = asycuda, Description = cdns, StatusDateTime = at,
+                    // Own id (legacy IED_ID), parent SAD INSTANCEID, and a real source table name.
+                    ExternalSystemNumber = EventExternalId(completedExternalSeq, kind: 0, a: 0, b: n),
                     CusDecStatusNumber = n, CusDecExternalSystemNumber = completedExternalSeq,
-                    TableName = "cus_dec_statuses", LastSyncDateTime = nowUtc,
+                    TableName = DocTableFor(asycuda), LastSyncDateTime = nowUtc,
                 });
             }
             db.CusDecs.Add(cusDec);
@@ -421,7 +437,28 @@ public static class MemberPortalSeedData
             });
 
         await db.SaveChangesAsync();
+
+        // Commit only if everything above succeeded; otherwise the using-scope disposes the
+        // transaction uncommitted and Postgres rolls the whole batch back.
+        await tx.CommitAsync();
     }
+
+    // Deterministic, collision-free "external system number" for a seeded status event
+    // (legacy IED_ID for track/exit rows, INSTANCE_ID for inspections). Each event's own id must
+    // be globally unique, so it is derived from the parent CusDec's already-unique external number
+    // plus the child indices — no random values, stable across runs:
+    //   kind — table discriminator (0 = document status, 1 = container status)
+    //   a    — first child index (e.g. container index), must be in [0, 999]
+    //   b    — second child index (e.g. status step / version), must be in [0, 999]
+    // parentExternal ~9.5e8, so the result stays well within Int64/bigint range.
+    private static long EventExternalId(long parentExternal, int kind, int a, int b)
+        => ((parentExternal * 10 + kind) * 1000 + a) * 1000 + b;
+
+    // Real legacy source table for a document status row. The exit status (ASYCUDA 700) comes from
+    // the exit-note segment; every other document status comes from the ASYBRK track table. The
+    // value must be a real source table, never "cus_dec_statuses".
+    private static string DocTableFor(string asycudaStatus)
+        => asycudaStatus == "700" ? "EXIT_NOTE_DETAIL_GENERAL_SEG" : "UN_ASYBRK_TRACK";
 
     private static SubscriptionRequest NewRequest(
         long memberId, int companyId, SubscriptionType type,
