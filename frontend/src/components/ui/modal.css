@@ -77,6 +77,11 @@
   padding: 14px 24px;
 }
 
+/* Fixed-height variant — caller opts in with fixedHeight prop */
+.ui-modal--fixed-height {
+  height: min(88vh, 880px);
+}
+
 /* Near full-screen on small viewports */
 @media (max-width: 600px) {
   .ui-modal-backdrop {
@@ -87,5 +92,8 @@
     max-height: 94vh;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     max-width: 100% !important;
+  }
+  .ui-modal--fixed-height {
+    height: 94vh;
   }
 }

@@ -128,6 +128,15 @@ function RowActions({
       <div className="cd-row__action-group">
         <Button
           size="sm"
+          variant="secondary"
+          icon={FileText}
+          disabled={anyBusy}
+          onClick={() => onOpenModal(cusDecId, 'details')}
+        >
+          Details
+        </Button>
+        <Button
+          size="sm"
           icon={isBusy ? undefined : Check}
           disabled={anyBusy}
           onClick={() => onAcknowledge(cusDecId)}

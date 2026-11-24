@@ -1,6 +1,6 @@
 export const cusDecFeatures = {
-  detail: false,
-  status: false,
+  detail: true,
+  status: true,
   containers: false,
 };
 

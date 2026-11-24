@@ -251,6 +251,7 @@ export default function FilterBar({
                   value={cusDecNumber}
                   onChange={(e) => onChange('cusDecNumber', e.target.value)}
                 />
+                <span className="cd-field-hint" aria-hidden="true" />
               </div>
 
               <div className="cd-filter-field">

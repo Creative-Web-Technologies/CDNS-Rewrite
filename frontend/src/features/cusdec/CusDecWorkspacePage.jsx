@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { FileText, AlertCircle, RefreshCw, ShieldOff } from 'lucide-react';
 import { motion, useReducedMotion } from 'motion/react';
@@ -27,6 +27,8 @@ const TABS = [
   { key: 'completed',  label: 'Completed' },
   { key: 'disclaimed', label: 'Disclaimed' },
 ];
+
+const VALID_TAB_KEYS = new Set(TABS.map((t) => t.key));
 
 const INITIAL_FILTERS = {
   search: '', cusDecNumber: '', counterpartyTin: '',
@@ -76,8 +78,10 @@ export default function CusDecWorkspacePage({ portal }) {
   const shouldReduce = useReducedMotion();
 
   const [searchParams, setSearchParams] = useSearchParams();
-  const tab = searchParams.get('tab') || 'tracking';
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+  const rawTab = searchParams.get('tab') || 'tracking';
+  const tab = VALID_TAB_KEYS.has(rawTab) ? rawTab : 'tracking';
+  const rawPage = parseInt(searchParams.get('page') || '1', 10);
+  const page = Number.isNaN(rawPage) || rawPage < 1 ? 1 : rawPage;
 
   const subsLink = `/${portal}/subscriptions`;
   const pickerLink = `/${portal}/cusdecs`;
@@ -98,6 +102,14 @@ export default function CusDecWorkspacePage({ portal }) {
     toDate: filters.toDate,
     sort: filters.sort,
   }), [debouncedSearch, debouncedCusDecNumber, debouncedTin, filters.office, filters.fromDate, filters.toDate, filters.sort]);
+
+  // Refs that always hold the latest function identity so the load effect
+  // can read them without listing them as deps (avoids spurious re-runs).
+  // useLayoutEffect (not synchronous render assignment) keeps linter happy;
+  // it flushes synchronously after render, before any useEffect fires.
+  const setSearchParamsRef = useRef(setSearchParams);
+  useLayoutEffect(() => { setSearchParamsRef.current = setSearchParams; });
+  const prevSubIdRef = useRef(undefined);
 
   const mountedRef = useRef(false);
   const prevAppliedRef = useRef(appliedFilters);
@@ -135,6 +147,9 @@ export default function CusDecWorkspacePage({ portal }) {
     }
   }, [navigate, pickerLink, addToast]);
 
+  const handleGateErrorRef = useRef(handleGateError);
+  useLayoutEffect(() => { handleGateErrorRef.current = handleGateError; });
+
   const refetchStrip = useCallback(async () => {
     if (!subId) return;
     try {
@@ -152,17 +167,28 @@ export default function CusDecWorkspacePage({ portal }) {
     }
   }, [subId, pickerLink, navigate]);
 
+  // Runs only when subId changes. setSearchParamsRef / handleGateErrorRef are
+  // "latest value" refs so their identity churn never re-triggers this effect.
+  // prevSubIdRef distinguishes first mount (preserve URL) from a real subId
+  // change (reset filters + URL). StrictMode's double-fire is safe: the second
+  // invocation sees prevSubIdRef.current === subId → isSubIdChange = false.
   useEffect(() => {
     if (!subId) return;
+    const isSubIdChange = prevSubIdRef.current !== undefined && prevSubIdRef.current !== subId;
+    prevSubIdRef.current = subId;
+
     let alive = true;
     setStrip(null);
     setStripLoading(true);
     setStripError(null);
     setGateBlocked(null);
     setOffices([]);
-    setTrackingState('all');
-    setFilters(INITIAL_FILTERS);
-    setSearchParams({ tab: 'tracking', page: '1' }, { replace: true });
+
+    if (isSubIdChange) {
+      setTrackingState('all');
+      setFilters(INITIAL_FILTERS);
+      setSearchParamsRef.current({ tab: 'tracking', page: '1' }, { replace: true });
+    }
 
     Promise.all([
       getStrip(subId),
@@ -179,7 +205,7 @@ export default function CusDecWorkspacePage({ portal }) {
         if (!alive) return;
         const code = err.code;
         if (isGateError(code) || code === 'SubscriptionNotFound') {
-          handleGateError(code);
+          handleGateErrorRef.current(code);
         } else {
           setStripError(err);
         }
@@ -187,7 +213,7 @@ export default function CusDecWorkspacePage({ portal }) {
       .finally(() => { if (alive) setStripLoading(false); });
 
     return () => { alive = false; };
-  }, [subId, handleGateError, setSearchParams]);
+  }, [subId]);
 
   const {
     items, setItems, totalCount,
@@ -307,6 +333,30 @@ export default function CusDecWorkspacePage({ portal }) {
       const result = await complete(subId, cusDecId);
       setModalTarget(null);
       await afterAction(cusDecId, result, 'completed');
+    } catch (err) {
+      const code = err.code;
+      if (isGateError(code) || code === 'SubscriptionNotFound') {
+        setModalTarget(null);
+        handleGateError(code);
+      } else if (err.status === 409 || code === 'CusDecNotFound') {
+        addToast({ type: 'error', message: cusDecErrorMessage(code) });
+        refetchStrip();
+        refetchList();
+      } else {
+        addToast({ type: 'error', message: 'Something went wrong. Please try again.' });
+      }
+    } finally {
+      setBusyCardId(null);
+    }
+  }
+
+  async function handleAcknowledgeFromModal(cusDecId) {
+    if (busyCardId !== null) return;
+    setBusyCardId(cusDecId);
+    try {
+      const result = await acknowledge(subId, cusDecId);
+      setModalTarget((prev) => prev ? { ...prev, item: result } : prev);
+      await afterAction(cusDecId, result, 'acknowledged');
     } catch (err) {
       const code = err.code;
       if (isGateError(code) || code === 'SubscriptionNotFound') {
@@ -623,8 +673,9 @@ export default function CusDecWorkspacePage({ portal }) {
         item={modalTarget?.item ?? null}
         initialTab={modalTarget?.tab}
         subscriptionType={strip?.subscriptionType}
-        containersBlocked={strip?.containersBlocked}
+        subId={subId}
         busyId={busyCardId}
+        onAcknowledge={handleAcknowledgeFromModal}
         onComplete={handleCompleteFromModal}
         onClose={() => setModalTarget(null)}
       />

@@ -14,6 +14,12 @@ const dateFormatter2d = new Intl.DateTimeFormat('en-GB', {
   year: 'numeric',
 });
 
+const dateFormatterCompact = new Intl.DateTimeFormat('en-GB', {
+  timeZone: COLOMBO,
+  day: 'numeric',
+  month: 'short',
+});
+
 const timeFormatter = new Intl.DateTimeFormat('en-GB', {
   timeZone: COLOMBO,
   hour: '2-digit',
@@ -37,6 +43,19 @@ export function formatDatetime(iso) {
   try {
     const d = new Date(iso);
     const datePart = dateFormatter2d.format(d);
+    const timePart = timeFormatter.format(d);
+    return `${datePart}, ${timePart}`;
+  } catch {
+    return '—';
+  }
+}
+
+// "20 Nov, 00:09" — no year, single-line, for compact Status tile sub-text
+export function formatDatetimeCompact(iso) {
+  if (!iso) return '—';
+  try {
+    const d = new Date(iso);
+    const datePart = dateFormatterCompact.format(d);
     const timePart = timeFormatter.format(d);
     return `${datePart}, ${timePart}`;
   } catch {

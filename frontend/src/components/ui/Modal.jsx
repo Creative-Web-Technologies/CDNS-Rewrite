@@ -12,6 +12,7 @@ export default function Modal({
   title,
   subtitle,
   size = 'md',
+  fixedHeight = false,
   tabs,
   footer,
   children,
@@ -85,8 +86,8 @@ export default function Modal({
   const maxWidth = SIZES[size] ?? SIZES.md;
 
   const backdropVariants = shouldReduce
-    ? { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.08 } }
-    : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.16 } };
+    ? { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0, pointerEvents: 'none' }, transition: { duration: 0.08 } }
+    : { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0, pointerEvents: 'none' }, transition: { duration: 0.16 } };
 
   const dialogVariants = shouldReduce
     ? { initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 }, transition: { duration: 0.08 } }
@@ -111,7 +112,7 @@ export default function Modal({
             aria-modal="true"
             aria-labelledby={title ? titleId : undefined}
             aria-describedby={subtitle ? descId : undefined}
-            className="ui-modal"
+            className={`ui-modal${fixedHeight ? ' ui-modal--fixed-height' : ''}`}
             style={{ maxWidth }}
             {...dialogVariants}
           >
