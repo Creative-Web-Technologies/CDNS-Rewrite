@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Cdns.Infrastructure.Migrations
 {
     [DbContext(typeof(CdnsDbContext))]
-    [Migration("20261123053639_AddCusDecCompletion")]
+    [Migration("20261124163823_AddCusDecCompletion")]
     partial class AddCusDecCompletion
     {
         /// <inheritdoc />
