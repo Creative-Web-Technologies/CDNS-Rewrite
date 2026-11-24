@@ -1,6 +1,7 @@
 using Cdns.Application.Feature.Dashboard;
 using Cdns.Domain.Enums;
 using Cdns.Infrastructure.Persistence;
+using Cdns.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cdns.Infrastructure.Services.Dashboard;
@@ -58,7 +59,7 @@ internal static class DashboardSupport
             })
             .ToListAsync(ct);
 
-        var resolver = await StatusResolver.LoadAsync(db, ct);
+        var resolver = await AsycudaStatusResolver.LoadAsync(db, ct);
 
         return rows.Select(c => new CusDecView(
             c.RegistrationDate,
@@ -84,42 +85,4 @@ internal static class DashboardSupport
         CdnsDbContext db, long memberId, CancellationToken ct) =>
         db.MemberNotifications.CountAsync(
             n => n.MemberId == memberId && !n.IsDeleted && !n.IsSeen, ct);
-
-    /// <summary>
-    /// In-memory lookup from (ASYCUDA status, office) to a CDNS status name.
-    /// Office-specific mappings win over the office-agnostic default; an unmapped
-    /// code falls back to itself so it simply never matches exit/cancel.
-    /// </summary>
-    private sealed class StatusResolver
-    {
-        private readonly Dictionary<(string Asycuda, string Office), string> _byOffice = new();
-        private readonly Dictionary<string, string> _default = new();
-
-        internal static async Task<StatusResolver> LoadAsync(CdnsDbContext db, CancellationToken ct)
-        {
-            var resolver = new StatusResolver();
-            var mappings = await db.CusDecStatusMappings
-                .Where(m => m.AsycudaStatus != null && m.CdnsStatus != null)
-                .Select(m => new { m.AsycudaStatus, m.CdnsStatus, m.OfficeCode })
-                .ToListAsync(ct);
-
-            foreach (var m in mappings)
-            {
-                if (string.IsNullOrEmpty(m.OfficeCode))
-                    resolver._default[m.AsycudaStatus!] = m.CdnsStatus!;
-                else
-                    resolver._byOffice[(m.AsycudaStatus!, m.OfficeCode)] = m.CdnsStatus!;
-            }
-            return resolver;
-        }
-
-        internal string? ToCdns(string? asycudaStatus, string? officeCode)
-        {
-            if (string.IsNullOrEmpty(asycudaStatus)) return asycudaStatus;
-            if (!string.IsNullOrEmpty(officeCode) &&
-                _byOffice.TryGetValue((asycudaStatus, officeCode), out var officeHit))
-                return officeHit;
-            return _default.TryGetValue(asycudaStatus, out var hit) ? hit : asycudaStatus;
-        }
-    }
 }

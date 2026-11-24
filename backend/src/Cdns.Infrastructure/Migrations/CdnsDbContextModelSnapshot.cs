@@ -1062,6 +1062,14 @@ namespace Cdns.Infrastructure.Migrations
                         .HasColumnType("character varying(500)")
                         .HasColumnName("consignee_company_name");
 
+                    b.Property<long?>("ConsigneeCompletedById")
+                        .HasColumnType("bigint")
+                        .HasColumnName("consignee_completed_by_id");
+
+                    b.Property<DateTime?>("ConsigneeCompletedDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consignee_completed_date_time");
+
                     b.Property<long?>("ConsigneeDisclaimedById")
                         .HasColumnType("bigint")
                         .HasColumnName("consignee_disclaimed_by_id");
@@ -1109,6 +1117,14 @@ namespace Cdns.Infrastructure.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)")
                         .HasColumnName("declarant_company_name");
+
+                    b.Property<long?>("DeclarantCompletedById")
+                        .HasColumnType("bigint")
+                        .HasColumnName("declarant_completed_by_id");
+
+                    b.Property<DateTime?>("DeclarantCompletedDateTime")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("declarant_completed_date_time");
 
                     b.Property<long?>("DeclarantDisclaimedById")
                         .HasColumnType("bigint")
@@ -1207,13 +1223,45 @@ namespace Cdns.Infrastructure.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_cus_decs_cus_dec_external_system_number");
 
-                    b.HasIndex("ConsigneeCompanyId", "ConsigneeDisclaimedById", "ConsigneeClaimedById", "CusDecDate")
-                        .IsDescending(false, false, false, true)
-                        .HasDatabaseName("IX_CusDec_Consignee_Tabs");
+                    b.HasIndex(new[] { "ConsigneeCompanyId", "ConsigneeCompletedDateTime" }, "IX_CusDec_Consignee_Completed")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_cus_decs_consignee_company_id_consignee_completed_date_time")
+                        .HasFilter("consignee_claimed_by_id IS NOT NULL AND consignee_disclaimed_by_id IS NULL AND consignee_completed_date_time IS NOT NULL");
 
-                    b.HasIndex("DeclarantCompanyId", "DeclarantDisclaimedById", "DeclarantClaimedById", "CusDecDate")
-                        .IsDescending(false, false, false, true)
-                        .HasDatabaseName("IX_CusDec_Declarant_Tabs");
+                    b.HasIndex(new[] { "ConsigneeCompanyId", "ConsigneeDisclaimedDateTime" }, "IX_CusDec_Consignee_Disclaimed")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_cus_decs_consignee_company_id_consignee_disclaimed_date_time")
+                        .HasFilter("consignee_disclaimed_by_id IS NOT NULL");
+
+                    b.HasIndex(new[] { "ConsigneeCompanyId", "CusDecDate" }, "IX_CusDec_Consignee_InProgress")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_cus_decs_consignee_company_id_cus_dec_date")
+                        .HasFilter("consignee_claimed_by_id IS NOT NULL AND consignee_disclaimed_by_id IS NULL AND consignee_completed_date_time IS NULL");
+
+                    b.HasIndex(new[] { "ConsigneeCompanyId", "CusDecDate" }, "IX_CusDec_Consignee_New")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_cus_decs_consignee_company_id_cus_dec_date1")
+                        .HasFilter("consignee_claimed_by_id IS NULL AND consignee_disclaimed_by_id IS NULL");
+
+                    b.HasIndex(new[] { "DeclarantCompanyId", "DeclarantCompletedDateTime" }, "IX_CusDec_Declarant_Completed")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_cus_decs_declarant_company_id_declarant_completed_date_time")
+                        .HasFilter("declarant_claimed_by_id IS NOT NULL AND declarant_disclaimed_by_id IS NULL AND declarant_completed_date_time IS NOT NULL");
+
+                    b.HasIndex(new[] { "DeclarantCompanyId", "DeclarantDisclaimedDateTime" }, "IX_CusDec_Declarant_Disclaimed")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_cus_decs_declarant_company_id_declarant_disclaimed_date_time")
+                        .HasFilter("declarant_disclaimed_by_id IS NOT NULL");
+
+                    b.HasIndex(new[] { "DeclarantCompanyId", "CusDecDate" }, "IX_CusDec_Declarant_InProgress")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_cus_decs_declarant_company_id_cus_dec_date")
+                        .HasFilter("declarant_claimed_by_id IS NOT NULL AND declarant_disclaimed_by_id IS NULL AND declarant_completed_date_time IS NULL");
+
+                    b.HasIndex(new[] { "DeclarantCompanyId", "CusDecDate" }, "IX_CusDec_Declarant_New")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_cus_decs_declarant_company_id_cus_dec_date1")
+                        .HasFilter("declarant_claimed_by_id IS NULL AND declarant_disclaimed_by_id IS NULL");
 
                     b.ToTable("cus_decs", (string)null);
                 });

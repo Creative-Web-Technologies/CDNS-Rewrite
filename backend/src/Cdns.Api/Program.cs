@@ -1,5 +1,6 @@
 using Cdns.Api.Authentication;
 using Cdns.Api.Endpoints.Auth;
+using Cdns.Api.Endpoints.Dev;
 using Cdns.Application.Interfaces;
 using Cdns.Infrastructure;
 using Cdns.Infrastructure.Persistence;
@@ -36,6 +37,9 @@ builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("MemberOnly", p => p.RequireClaim("MemberType", "Member"));
     options.AddPolicy("MasterOnly", p => p.RequireClaim("MemberType", "CompanyMasterMember"));
+    // Shared CusDec page: either role. The service applies the role-specific
+    // ownership scope; this policy only requires an authenticated member of a known type.
+    options.AddPolicy("MemberOrMaster", p => p.RequireClaim("MemberType", "Member", "CompanyMasterMember"));
 });
 builder.Services.AddControllers();
 
@@ -91,6 +95,10 @@ if (app.Environment.IsDevelopment())
     await MemberPortalSeedData.SeedAsync(db);
 
     app.MapOpenApi();
+
+    // Development-only maintenance endpoints (e.g. subscription key backfill).
+    // Not registered at all outside Development.
+    app.MapDevSubscriptionEndpoints();
 }
 
 app.UseHttpsRedirection();

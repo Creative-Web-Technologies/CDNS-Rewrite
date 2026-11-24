@@ -34,9 +34,10 @@ async function request(url, options) {
 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
-    const error = new Error(data.message || `HTTP ${res.status}`);
+    const error = new Error(data.message || data.title || `HTTP ${res.status}`);
     error.status = res.status;
-    error.code = data.code;
+    // Surface code from both plain { code } bodies and ProblemDetails { extensions: { code } }
+    error.code = data.code ?? data.extensions?.code;
     error.field = data.field;
     throw error;
   }

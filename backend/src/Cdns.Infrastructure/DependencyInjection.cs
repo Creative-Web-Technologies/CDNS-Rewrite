@@ -10,9 +10,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Cdns.Application.Features.Signup;
+using Cdns.Application.Feature.Cusdec;
 using Cdns.Application.Feature.Dashboard;
 using Cdns.Application.Feature.Subscriptions;
 using Cdns.Infrastructure.Services;
+using Cdns.Infrastructure.Services.Cusdec;
 using Cdns.Infrastructure.Services.Dashboard;
 using Cdns.Infrastructure.Services.Subscriptions;
 using Cdns.Infrastructure.Sync;
@@ -60,8 +62,10 @@ public static class DependencyInjection
 
         services.AddSingleton<IBusinessClock, ColomboBusinessClock>();
         services.AddScoped<IMemberSubscriptionKeyService, MemberSubscriptionKeyService>();
+        services.AddScoped<ISubscriptionAccessService, SubscriptionAccessService>();
         services.AddScoped<IMasterSubscriptionRequestService, MasterSubscriptionRequestService>();
         services.AddScoped<IMasterSubscriptionService, MasterSubscriptionService>();
+        services.AddScoped<ICusDecService, CusDecService>();
 
         return services;
     }

@@ -61,6 +61,7 @@ public class CdnsDbContext : DbContext
     public DbSet<CusDecReadyToProcessSetting> CusDecReadyToProcessSettings => Set<CusDecReadyToProcessSetting>();
     public DbSet<ReadyToProcessConsignee> ReadyToProcessConsignees => Set<ReadyToProcessConsignee>();
     public DbSet<CusDecInspectionMapping> CusDecInspectionMappings => Set<CusDecInspectionMapping>();
+    public DbSet<CusDecInspectionSectionTab> CusDecInspectionSectionTabs => Set<CusDecInspectionSectionTab>();
     public DbSet<CusDecInspectionSectionTabStatusMapping> CusDecInspectionSectionTabStatusMappings => Set<CusDecInspectionSectionTabStatusMapping>();
     public DbSet<CusDecPaymentSummary> CusDecPaymentSummaries => Set<CusDecPaymentSummary>();
     

@@ -1,7 +1,10 @@
 using Cdns.Application.Feature.Subscriptions;
 using Cdns.Application.Feature.Dashboard;
 using Cdns.Domain.Entities.Company;
+using Cdns.Domain.Entities.CompanySubscriptionManagement;
 using Cdns.Domain.Enums;
+using Cdns.Infrastructure.Services.Subscriptions;
+using Microsoft.Extensions.Configuration;
 
 namespace Cdns.Application.Tests;
 
@@ -186,6 +189,172 @@ public class SubscriptionExpiryTests
         Assert.Equal(key1, key2);
     }
 
+    // ── PaidAmount decimal-scale independence ─────────────────────────────────
+
+    [Fact]
+    public void KeyService_PaidAmount_DifferentScales_ProduceIdenticalKey()
+    {
+        var keySvc = KeyServiceFactory.Create("my-secret");
+        var expiry = ColombMidnight(2026, 12, 31);
+
+        string Key(decimal paid) => keySvc.Generate(
+            memberId: 1, subscriptionId: 2, memberSubscriptionId: 3,
+            expiryDate: expiry, paidAmount: paid,
+            subscriptionActionTypeEnum: (int)SubscriptionActionTypeEnum.General,
+            subscriptionTypeEnum: (int)SubscriptionTypeEnum.Declarant);
+
+        // 25000, 25000.00 and 25000.0000 are the same value at different scales.
+        var k0 = Key(25000m);
+        var k2 = Key(25000.00m);
+        var k4 = Key(25000.0000m);
+
+        Assert.Equal(k0, k2);
+        Assert.Equal(k0, k4);
+    }
+
+    [Fact]
+    public void KeyService_PaidAmount_DifferentValue_ProducesDifferentKey()
+    {
+        var keySvc = KeyServiceFactory.Create("my-secret");
+        var expiry = ColombMidnight(2026, 12, 31);
+
+        string Key(decimal paid) => keySvc.Generate(1, 2, 3, expiry, paid,
+            (int)SubscriptionActionTypeEnum.General, (int)SubscriptionTypeEnum.Declarant);
+
+        // A real difference at 2 decimals must still change the key.
+        Assert.NotEqual(Key(25000.00m), Key(25000.01m));
+    }
+
+    [Fact]
+    public void KeyService_VerifyEntity_IgnoresScaleDrift_ButNotValueChange()
+    {
+        var keySvc = KeyServiceFactory.Create("my-secret");
+
+        // Simulate approve copying a numeric(18,4) plan amount into the entity, then
+        // the numeric(18,2) column returning it at scale 2 on the next read.
+        var sub = new MemberSubscription
+        {
+            MemberId = 1, SubscriptionId = 2, MemberSubscriptionId = 3,
+            ExpiryDate = ColombMidnight(2026, 12, 31),
+            PaidAmount = 25000.0000m,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General,
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            SubscriptionName = "x",
+        };
+        sub.Key = keySvc.Generate(sub);
+
+        // Reloaded at the column scale → still verifies.
+        sub.PaidAmount = 25000.00m;
+        Assert.True(keySvc.Verify(sub));
+
+        // A genuine value change → mismatch.
+        sub.PaidAmount = 25000.01m;
+        Assert.False(keySvc.Verify(sub));
+    }
+
+    // ── B13: Lifetime duration ────────────────────────────────────────────────
+
+    [Fact]
+    public void ComputeExpiry_Lifetime_Is_Start_Plus_500_Years()
+    {
+        var start = ColombMidnight(2026, 11, 15);
+        var expiry = SubscriptionExpiry.ComputeExpiryDate(
+            start, noOfActiveDuration: 1,
+            durationTypeEnum: (int)SubscriptionDurationTypeEnum.Lifetime);
+
+        var colomboExpiry = TimeZoneInfo.ConvertTime(expiry, Colombo);
+        Assert.Equal(2526, colomboExpiry.Year);
+        Assert.Equal(11, colomboExpiry.Month);
+        Assert.Equal(15, colomboExpiry.Day);
+    }
+
+    [Fact]
+    public void ComputeExpiry_UnknownDurationType_Throws()
+    {
+        var start = ColombMidnight(2026, 11, 15);
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            SubscriptionExpiry.ComputeExpiryDate(start, 1, durationTypeEnum: 99));
+    }
+
+    [Fact]
+    public void ComputeExpiry_NullDurationType_Throws()
+    {
+        var start = ColombMidnight(2026, 11, 15);
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            SubscriptionExpiry.ComputeExpiryDate(start, 1, durationTypeEnum: null));
+    }
+
+    [Theory]
+    [InlineData((int)SubscriptionDurationTypeEnum.Days, "Days")]
+    [InlineData((int)SubscriptionDurationTypeEnum.Months, "Months")]
+    [InlineData((int)SubscriptionDurationTypeEnum.Years, "Years")]
+    [InlineData((int)SubscriptionDurationTypeEnum.Lifetime, "Lifetime")]
+    public void DurationFormat_Label_MatchesType(int type, string expected)
+        => Assert.Equal(expected, SubscriptionDurationFormat.Label(type));
+
+    [Fact]
+    public void DurationFormat_Describe_Lifetime_IgnoresCount()
+        => Assert.Equal("Lifetime",
+            SubscriptionDurationFormat.Describe(12, (int)SubscriptionDurationTypeEnum.Lifetime));
+
+    [Fact]
+    public void DurationFormat_Describe_PluralisesCount()
+    {
+        Assert.Equal("1 month", SubscriptionDurationFormat.Describe(1, (int)SubscriptionDurationTypeEnum.Months));
+        Assert.Equal("12 months", SubscriptionDurationFormat.Describe(12, (int)SubscriptionDurationTypeEnum.Months));
+    }
+
+    [Fact]
+    public void DurationFormat_UnknownType_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() => SubscriptionDurationFormat.Label(99));
+        Assert.Throws<ArgumentOutOfRangeException>(() => SubscriptionDurationFormat.Describe(1, null));
+    }
+
+    // ── B01: shared usable rule — expression and in-memory predicate agree ────
+
+    [Fact]
+    public void Usable_ExpressionAndInMemoryPredicate_Agree_OnFixtureSet()
+    {
+        var today = ColombMidnight(2026, 11, 16);
+        var compiled = SubscriptionUsability.UsableExpression(today).Compile();
+
+        foreach (var sub in UsableFixtures(today))
+        {
+            Assert.Equal(
+                compiled(sub),
+                SubscriptionUsability.IsUsable(sub, today));
+        }
+    }
+
+    private static IEnumerable<MemberSubscription> UsableFixtures(DateTimeOffset today)
+    {
+        Company ActiveCompany() => new() { CompanyId = 1, CompanyName = "C", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active };
+        Company InactiveCompany() => new() { CompanyId = 2, CompanyName = "C", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Suspended };
+        Company DeletedCompany() => new() { CompanyId = 3, CompanyName = "C", TinNumber = "123456789", IsDeleted = true, CompanyStatusEnum = (int)CompanyStatusEnum.Active };
+
+        MemberSubscription Sub(int status, DateTimeOffset? expiry, Company? company) => new()
+        {
+            MemberSubscriptionId = 1, MemberId = 1, SubscriptionName = "x",
+            MemberSubscriptionStatusEnum = status, ExpiryDate = expiry, Company = company!,
+        };
+
+        // fully usable
+        yield return Sub((int)MemberSubscriptionStatusEnum.Activate, today, ActiveCompany());
+        yield return Sub((int)MemberSubscriptionStatusEnum.Activate, today.AddDays(5), ActiveCompany());
+        // expired by date
+        yield return Sub((int)MemberSubscriptionStatusEnum.Activate, today.AddDays(-1), ActiveCompany());
+        // null expiry
+        yield return Sub((int)MemberSubscriptionStatusEnum.Activate, null, ActiveCompany());
+        // inactive status
+        yield return Sub((int)MemberSubscriptionStatusEnum.Deactivate, today, ActiveCompany());
+        yield return Sub((int)MemberSubscriptionStatusEnum.Expired, today, ActiveCompany());
+        // company suspended
+        yield return Sub((int)MemberSubscriptionStatusEnum.Activate, today, InactiveCompany());
+        // company deleted
+        yield return Sub((int)MemberSubscriptionStatusEnum.Activate, today, DeletedCompany());
+    }
+
     // ── Helper ────────────────────────────────────────────────────────────────
 
     private static DateTimeOffset ColombMidnight(int year, int month, int day)
@@ -195,50 +364,20 @@ public class SubscriptionExpiryTests
     }
 }
 
-// ── Inline key service for the Application.Tests layer ───────────────────────
-// Application.Tests references only Cdns.Application, not Cdns.Infrastructure,
-// so we re-implement the HMAC logic inline rather than coupling to Infrastructure.
+// ── Production key service for the Application.Tests layer ────────────────────
+// Builds the real MemberSubscriptionKeyService (Infrastructure) with a test secret
+// via in-memory configuration, so these HMAC tests exercise production code.
 
 file static class KeyServiceFactory
 {
-    public static Cdns.Application.Feature.Subscriptions.IMemberSubscriptionKeyService Create(
-        string secret)
-        => new TestKeyService(secret);
-
-    private sealed class TestKeyService : Cdns.Application.Feature.Subscriptions.IMemberSubscriptionKeyService
+    public static IMemberSubscriptionKeyService Create(string secret)
     {
-        private static readonly TimeZoneInfo Colombo =
-            TimeZoneInfo.FindSystemTimeZoneById("Asia/Colombo");
-        private readonly string _secret;
-
-        public TestKeyService(string secret) => _secret = secret;
-
-        public string Generate(long memberId, int subscriptionId, long memberSubscriptionId,
-            DateTimeOffset expiryDate, decimal paidAmount, int subscriptionActionTypeEnum, int subscriptionTypeEnum)
-        {
-            var expiryDateStr = ToColomboDayString(expiryDate);
-            var data = $"{memberId}!{subscriptionId}!{memberSubscriptionId}!{expiryDateStr}!" +
-                       $"{paidAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)}!" +
-                       $"{subscriptionActionTypeEnum}!{subscriptionTypeEnum}";
-            var keyBytes = System.Text.Encoding.UTF8.GetBytes(_secret + expiryDateStr);
-            var dataBytes = System.Text.Encoding.UTF8.GetBytes(data);
-            using var hmac = new System.Security.Cryptography.HMACSHA512(keyBytes);
-            return Convert.ToBase64String(hmac.ComputeHash(dataBytes));
-        }
-
-        public bool Verify(long memberId, int subscriptionId, long memberSubscriptionId,
-            DateTimeOffset expiryDate, decimal paidAmount, int subscriptionActionTypeEnum, int subscriptionTypeEnum,
-            string key)
-            => string.Equals(
-                Generate(memberId, subscriptionId, memberSubscriptionId,
-                    expiryDate, paidAmount, subscriptionActionTypeEnum, subscriptionTypeEnum),
-                key,
-                StringComparison.Ordinal);
-
-        private static string ToColomboDayString(DateTimeOffset date)
-        {
-            var colombo = TimeZoneInfo.ConvertTime(date, Colombo);
-            return colombo.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
-        }
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Cdns:MemberSubscriptionSecret"] = secret,
+            })
+            .Build();
+        return new MemberSubscriptionKeyService(config);
     }
 }

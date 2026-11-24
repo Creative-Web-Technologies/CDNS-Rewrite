@@ -14,6 +14,8 @@ export default function MemberDashboard() {
   const loading = status === 'loading';
 
   usePortalChrome({
+    showDate: true,
+    compactHeader: false,
     actions: (
       <Button icon={Plus} onClick={() => navigate('/member/requests/new')}>
         New declaration subscription

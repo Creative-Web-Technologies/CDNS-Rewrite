@@ -1,4 +1,5 @@
 using Cdns.Application.Feature.Dashboard;
+using Cdns.Application.Feature.Subscriptions;
 using Cdns.Application.Interfaces;
 using Cdns.Domain.Entities.Company;
 using Cdns.Domain.Enums;
@@ -16,12 +17,18 @@ public sealed class CompanyDashboardService : ICompanyDashboardService
     private readonly CdnsDbContext _db;
     private readonly ICurrentUser _currentUser;
     private readonly IBusinessClock _clock;
+    private readonly ISubscriptionAccessService _access;
 
-    public CompanyDashboardService(CdnsDbContext db, ICurrentUser currentUser, IBusinessClock clock)
+    public CompanyDashboardService(
+        CdnsDbContext db,
+        ICurrentUser currentUser,
+        IBusinessClock clock,
+        ISubscriptionAccessService access)
     {
         _db = db;
         _currentUser = currentUser;
         _clock = clock;
+        _access = access;
     }
 
     public async Task<CompanyDashboardSummary> GetSummaryAsync(CancellationToken ct = default)
@@ -42,19 +49,12 @@ public sealed class CompanyDashboardService : ICompanyDashboardService
             .Select(c => DashboardSupport.Key(c.TinNumber))
             .Where(k => k is not null).Select(k => k!).Distinct().ToList();
 
-        // Subscriptions under those companies (carry TIN for visibility scopes).
-        var subs = await (
-            from s in _db.MemberSubscriptions
-            where companyIds.Contains(s.CompanyId)
-            join c in _db.Companies on s.CompanyId equals c.CompanyId into gj
-            from c in gj.DefaultIfEmpty()
-            select new
-            {
-                s.MemberSubscriptionStatusEnum,
-                s.SubscriptionTypeEnum,
-                s.ExpiryDate,
-                CompanyTin = c.TinNumber,
-            }).ToListAsync(ct);
+        // All subscriptions under those companies, reduced to the fields the
+        // display counts need (status + expiry).
+        var subs = await _db.MemberSubscriptions
+            .Where(s => companyIds.Contains(s.CompanyId))
+            .Select(s => new SubscriptionView(s.MemberSubscriptionStatusEnum, s.ExpiryDate))
+            .ToListAsync(ct);
 
         // Pending excludes the master's own requests.
         var requestStatuses = await _db.SubscriptionRequests
@@ -63,15 +63,15 @@ public sealed class CompanyDashboardService : ICompanyDashboardService
             .Select(r => r.SubscriptionRequestStatusEnum ?? -1)
             .ToListAsync(ct);
 
-        var activeSubs = subs
-            .Where(s => s.MemberSubscriptionStatusEnum == (int)MemberSubscriptionStatusEnum.Activate
-                        && s.ExpiryDate is not null && s.ExpiryDate >= today)
-            .ToList();
+        // Usable subscriptions (access list: shared SQL rule + HMAC verification)
+        // decide which declarations are visible under these companies.
+        var usableSubs = await _access.GetUsableAsync(
+            _db.MemberSubscriptions.Where(s => companyIds.Contains(s.CompanyId)), today, ct);
 
-        var scopes = activeSubs
-            .Where(s => DashboardSupport.Key(s.CompanyTin) is not null)
+        var scopes = usableSubs
+            .Where(s => DashboardSupport.Key(s.Company.TinNumber) is not null)
             .Select(s => new DashboardSupport.Scope(
-                DashboardSupport.Key(s.CompanyTin)!, (SubscriptionType)s.SubscriptionTypeEnum))
+                DashboardSupport.Key(s.Company.TinNumber)!, (SubscriptionType)s.SubscriptionTypeEnum))
             .ToList();
 
         var visible = await DashboardSupport.LoadVisibleCusDecsAsync(_db, scopes, ct);
@@ -80,9 +80,7 @@ public sealed class CompanyDashboardService : ICompanyDashboardService
 
         return new CompanyDashboardSummary(
             Subscriptions: DashboardCalculator.SubscriptionCounts(
-                requestStatuses,
-                subs.Select(s => new SubscriptionView(s.MemberSubscriptionStatusEnum, s.ExpiryDate)),
-                today),
+                requestStatuses, subs, today),
             CusDecs: DashboardCalculator.CountCusDecs(visible),
             MonthlyCompleted: DashboardCalculator.MonthlyCompleted(visible, nowColombo.Year),
             Weekly: weekly,

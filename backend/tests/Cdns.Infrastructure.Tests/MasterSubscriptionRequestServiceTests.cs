@@ -232,25 +232,25 @@ public class MasterSubscriptionRequestServiceTests
 
         // Should be returned: Active, Declarant
         db.Subscriptions.Add(new Subscription { SubscriptionId = 1, SubscriptionName = "Good Plan", Description = "ok",
-            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
             SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = false,
             SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
 
         // Excluded: wrong type (Consignee)
         db.Subscriptions.Add(new Subscription { SubscriptionId = 2, SubscriptionName = "Consignee Plan", Description = "ok",
-            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
             SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = false,
             SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
 
         // Excluded: Inactive
         db.Subscriptions.Add(new Subscription { SubscriptionId = 3, SubscriptionName = "Inactive Plan", Description = "ok",
-            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
             SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Inactive, IsDeleted = false,
             SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
 
         // Excluded: Deleted
         db.Subscriptions.Add(new Subscription { SubscriptionId = 4, SubscriptionName = "Deleted Plan", Description = "ok",
-            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
             SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = true,
             SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
 
@@ -361,6 +361,8 @@ public class MasterSubscriptionRequestServiceTests
         Assert.Null(subscription.PaidDate);
         Assert.Equal("", subscription.TransactionReferenceNumber);
         Assert.NotNull(subscription.Key);
+        // The key produced by approve must verify against the stored values.
+        Assert.True(keySvc.Verify(subscription));
 
         var req = db.SubscriptionRequests.Single(r => r.SubscriptionRequestId == 1);
         Assert.Equal((int)SubscriptionRequestStatusEnum.Approved, req.SubscriptionRequestStatusEnum);
@@ -494,7 +496,7 @@ public class MasterSubscriptionRequestServiceTests
         });
         // Plan is Declarant — mismatched
         db.Subscriptions.Add(new Subscription { SubscriptionId = 1, SubscriptionName = "Declarant Plan", Description = "ok",
-            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
             SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = false,
             SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
         await db.SaveChangesAsync();
@@ -572,23 +574,23 @@ public class MasterSubscriptionRequestServiceTests
 
         // Both types returned
         db.Subscriptions.Add(new Subscription { SubscriptionId = 1, SubscriptionName = "Consignee Plan", Description = "ok",
-            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
             SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = false,
             SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
         db.Subscriptions.Add(new Subscription { SubscriptionId = 2, SubscriptionName = "Declarant Plan", Description = "ok",
-            Amount = 200, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            Amount = 200, NoOfActiveDuration = 1, SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
             SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = false,
             SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
 
         // Excluded: Inactive
         db.Subscriptions.Add(new Subscription { SubscriptionId = 3, SubscriptionName = "Inactive Plan", Description = "ok",
-            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
             SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Inactive, IsDeleted = false,
             SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
 
         // Excluded: Deleted
         db.Subscriptions.Add(new Subscription { SubscriptionId = 4, SubscriptionName = "Deleted Plan", Description = "ok",
-            Amount = 100, NoOfActiveDuration = 1, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
+            Amount = 100, NoOfActiveDuration = 1, SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months, SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Consignee,
             SubscriptionStatusEnum = (int)SubscriptionStatusEnum.Active, IsDeleted = true,
             SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General });
         await db.SaveChangesAsync();

@@ -68,6 +68,8 @@ export default function CompanyDashboard() {
   }
 
   usePortalChrome({
+    showDate: true,
+    compactHeader: false,
     actions: (
       <div style={{ display: 'flex', gap: 8 }}>
         <Button icon={PlusCircle} disabled={creating} onClick={handleNewSubscription}>

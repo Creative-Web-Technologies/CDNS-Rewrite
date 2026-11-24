@@ -28,5 +28,7 @@ public class CusDecInspectionSectionTabConfiguration : IEntityTypeConfiguration<
         builder.Property(x => x.CusDecExternalSystemNumber).IsRequired();
         builder.Property(x => x.InsTabExternalSystemNumber).IsRequired();
         builder.Property(x => x.KeySecNumber).IsRequired();
+
+        builder.ToTable("cus_dec_inspection_section_tab");
     }
 }

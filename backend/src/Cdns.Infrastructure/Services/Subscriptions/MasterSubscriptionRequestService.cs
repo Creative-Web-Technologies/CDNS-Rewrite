@@ -191,7 +191,7 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
                 s.Description,
                 s.Amount,
                 s.NoOfActiveDuration,
-                DurationLabel(s.SubscriptionDurationTypeEnum),
+                SubscriptionDurationFormat.Label(s.SubscriptionDurationTypeEnum),
                 s.SubscriptionTypeEnum == (int)SubscriptionTypeEnum.Declarant ? "Declarant" : "Consignee",
                 s.SubscriptionActionTypeEnum == (int)SubscriptionActionTypeEnum.OnlyForAcknowledgement
                     ? "AcknowledgementOnly" : "General"
@@ -257,7 +257,10 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
             PaidDate = null,
             TransactionReferenceNumber = "",
             MemberSubscriptionStatusEnum = (int)MemberSubscriptionStatusEnum.Activate,
-            SubscriptionAmount = plan.Amount,
+            // plan.Amount is numeric(18,4); SubscriptionAmount is numeric(18,2).
+            // Round explicitly (away from zero) so the stored value is deterministic
+            // rather than relying on the DB provider's rounding on save.
+            SubscriptionAmount = decimal.Round(plan.Amount, 2, MidpointRounding.AwayFromZero),
             NoOfActiveDuration = plan.NoOfActiveDuration,
             SubscriptionDurationTypeEnum = plan.SubscriptionDurationTypeEnum,
             SubscriptionName = plan.SubscriptionName,
@@ -269,18 +272,12 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
         _db.MemberSubscriptions.Add(subscription);
         await _db.SaveChangesAsync(ct);
 
-        // Set number and HMAC key after ID is known.
-        // Generate uses ToColomboDayString internally, so passing the original
-        // Colombo-offset expiryDate or its UTC equivalent both yield the same date.
+        // Set number and HMAC key after ID is known. Generate from the subscription's
+        // own stored values so the key is computed from exactly what Verify will read
+        // back (Generate converts the stored UTC ExpiryDate to the Colombo day string,
+        // matching the Colombo-offset expiryDate used above).
         subscription.MemberSubscriptionNumber = $"MS-{subscription.MemberSubscriptionId:D6}";
-        subscription.Key = _keyService.Generate(
-            subscription.MemberId,
-            subscription.SubscriptionId,
-            subscription.MemberSubscriptionId,
-            expiryDate,
-            subscription.PaidAmount,
-            subscription.SubscriptionActionTypeEnum,
-            subscription.SubscriptionTypeEnum);
+        subscription.Key = _keyService.Generate(subscription);
 
         // Approve the request; for own request sync the type to match the chosen plan.
         if (isSelf)
@@ -452,12 +449,5 @@ public sealed class MasterSubscriptionRequestService : IMasterSubscriptionReques
         (int)SubscriptionRequestStatusEnum.Rejected  => "Rejected",
         (int)SubscriptionRequestStatusEnum.Cancelled => "Cancelled",
         _ => "Unknown",
-    };
-
-    private static string DurationLabel(int? durationType) => durationType switch
-    {
-        (int)SubscriptionDurationTypeEnum.Months => "Months",
-        (int)SubscriptionDurationTypeEnum.Years  => "Years",
-        _ => "Days",
     };
 }

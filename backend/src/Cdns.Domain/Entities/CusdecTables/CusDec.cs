@@ -27,6 +27,13 @@ public class CusDec
     public DateTime? DeclarantDisclaimedDateTime { get; set; }
     public DateTime? ConsigneeDisclaimedDateTime { get; set; }
 
+    // User-driven completion (set by CompleteAsync; cleared by ReopenAsync).
+    // Plain bigint, no FK, same convention as the claimed/disclaimed columns.
+    public long? DeclarantCompletedById { get; set; }
+    public long? ConsigneeCompletedById { get; set; }
+    public DateTime? DeclarantCompletedDateTime { get; set; }
+    public DateTime? ConsigneeCompletedDateTime { get; set; }
+
     public bool IsReadyToProcess { get; set; }
     public long? ReadyToProcessMarkById { get; set; }
     public DateTime? ReadyToProcessMarkDateTime { get; set; }

@@ -11,5 +11,8 @@ public enum SubscriptionDurationTypeEnum
     Months = 1,
 
     [Description("Years")]
-    Years = 2
+    Years = 2,
+
+    [Description("Lifetime")]
+    Lifetime = 3
 }

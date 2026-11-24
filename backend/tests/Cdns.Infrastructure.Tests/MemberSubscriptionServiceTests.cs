@@ -18,6 +18,10 @@ public class MemberSubscriptionServiceTests
         return new DateTimeOffset(dt, Colombo.GetUtcOffset(dt));
     }
 
+    // Access-list fixtures now require the owning company to be Active and the row
+    // to carry a valid HMAC key; the shared AssignSubscriptionKeys backfills keys so
+    // each test isolates the single dimension it asserts.
+
     // ── Existing tests (now pass a FakeBusinessClock) ─────────────────────────
 
     [Fact]
@@ -26,8 +30,9 @@ public class MemberSubscriptionServiceTests
         await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_ExcludesExpired));
         var currentUser = new FakeCurrentUser(1);
         var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keys = FakeKeyServiceFactory.Create();
 
-        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false });
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
 
         db.MemberSubscriptions.Add(new MemberSubscription
         {
@@ -44,9 +49,10 @@ public class MemberSubscriptionServiceTests
             SubscriptionRequestId = 0,
             SubscriptionId = 0,
         });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
         await db.SaveChangesAsync();
 
-        var svc = new MemberSubscriptionService(db, currentUser, clock);
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
         var result = await svc.GetActiveSubscriptionsAsync();
 
         Assert.Empty(result);
@@ -58,8 +64,9 @@ public class MemberSubscriptionServiceTests
         await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_ExpiryDateToday_IsIncluded));
         var currentUser = new FakeCurrentUser(1);
         var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keys = FakeKeyServiceFactory.Create();
 
-        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false });
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
 
         db.MemberSubscriptions.Add(new MemberSubscription
         {
@@ -76,9 +83,10 @@ public class MemberSubscriptionServiceTests
             SubscriptionRequestId = 0,
             SubscriptionId = 0,
         });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
         await db.SaveChangesAsync();
 
-        var svc = new MemberSubscriptionService(db, currentUser, clock);
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
         var result = await svc.GetActiveSubscriptionsAsync();
 
         Assert.Single(result);
@@ -90,8 +98,9 @@ public class MemberSubscriptionServiceTests
         await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_ExpiryDateYesterday_IsExcluded));
         var currentUser = new FakeCurrentUser(1);
         var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keys = FakeKeyServiceFactory.Create();
 
-        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false });
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
 
         db.MemberSubscriptions.Add(new MemberSubscription
         {
@@ -108,9 +117,10 @@ public class MemberSubscriptionServiceTests
             SubscriptionRequestId = 0,
             SubscriptionId = 0,
         });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
         await db.SaveChangesAsync();
 
-        var svc = new MemberSubscriptionService(db, currentUser, clock);
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
         var result = await svc.GetActiveSubscriptionsAsync();
 
         Assert.Empty(result);
@@ -122,8 +132,9 @@ public class MemberSubscriptionServiceTests
         await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_ExcludesOtherMember));
         var currentUser = new FakeCurrentUser(1);
         var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keys = FakeKeyServiceFactory.Create();
 
-        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false });
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
 
         db.MemberSubscriptions.Add(new MemberSubscription
         {
@@ -140,9 +151,10 @@ public class MemberSubscriptionServiceTests
             SubscriptionRequestId = 0,
             SubscriptionId = 0,
         });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
         await db.SaveChangesAsync();
 
-        var svc = new MemberSubscriptionService(db, currentUser, clock);
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
         var result = await svc.GetActiveSubscriptionsAsync();
 
         Assert.Empty(result);
@@ -154,8 +166,9 @@ public class MemberSubscriptionServiceTests
         await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_ExcludesInactiveStatus));
         var currentUser = new FakeCurrentUser(1);
         var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keys = FakeKeyServiceFactory.Create();
 
-        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false });
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
 
         db.MemberSubscriptions.Add(new MemberSubscription
         {
@@ -172,9 +185,10 @@ public class MemberSubscriptionServiceTests
             SubscriptionRequestId = 0,
             SubscriptionId = 0,
         });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
         await db.SaveChangesAsync();
 
-        var svc = new MemberSubscriptionService(db, currentUser, clock);
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
         var result = await svc.GetActiveSubscriptionsAsync();
 
         Assert.Empty(result);
@@ -186,8 +200,10 @@ public class MemberSubscriptionServiceTests
         await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_ExcludesSoftDeletedCompany));
         var currentUser = new FakeCurrentUser(1);
         var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keys = FakeKeyServiceFactory.Create();
 
-        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Deleted Corp", TinNumber = "987654321", IsDeleted = true });
+        // Active status but soft-deleted → excluded by the company rule.
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Deleted Corp", TinNumber = "987654321", IsDeleted = true, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
 
         db.MemberSubscriptions.Add(new MemberSubscription
         {
@@ -204,30 +220,32 @@ public class MemberSubscriptionServiceTests
             SubscriptionRequestId = 0,
             SubscriptionId = 0,
         });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
         await db.SaveChangesAsync();
 
-        var svc = new MemberSubscriptionService(db, currentUser, clock);
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
         var result = await svc.GetActiveSubscriptionsAsync();
 
         Assert.Empty(result);
     }
 
     [Fact]
-    public async Task GetActiveSubscriptions_ExpiredStatus_IsExcluded()
+    public async Task GetActiveSubscriptions_ExcludesInactiveCompany()
     {
-        await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_ExpiredStatus_IsExcluded));
+        await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_ExcludesInactiveCompany));
         var currentUser = new FakeCurrentUser(1);
         var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keys = FakeKeyServiceFactory.Create();
 
-        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false });
+        // Not deleted, but company status is not Active → excluded.
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Inprogress Corp", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Suspended });
 
-        // Status = Expired(4) — excluded even if ExpiryDate is in the future
         db.MemberSubscriptions.Add(new MemberSubscription
         {
             MemberSubscriptionId = 1,
             MemberId = 1,
             CompanyId = 1,
-            MemberSubscriptionStatusEnum = (int)MemberSubscriptionStatusEnum.Expired,
+            MemberSubscriptionStatusEnum = (int)MemberSubscriptionStatusEnum.Activate,
             ExpiryDate = DateTimeOffset.UtcNow.AddDays(30),
             SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
             SubscriptionName = "Basic",
@@ -237,9 +255,52 @@ public class MemberSubscriptionServiceTests
             SubscriptionRequestId = 0,
             SubscriptionId = 0,
         });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
         await db.SaveChangesAsync();
 
-        var svc = new MemberSubscriptionService(db, currentUser, clock);
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
+        var result = await svc.GetActiveSubscriptionsAsync();
+
+        Assert.Empty(result);
+    }
+
+    [Fact]
+    public async Task GetActiveSubscriptions_NullOrTamperedKey_IsExcluded()
+    {
+        await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_NullOrTamperedKey_IsExcluded));
+        var currentUser = new FakeCurrentUser(1);
+        var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keys = FakeKeyServiceFactory.Create();
+
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
+
+        // Row 1: no key at all → KeyMissing → excluded.
+        db.MemberSubscriptions.Add(new MemberSubscription
+        {
+            MemberSubscriptionId = 1, MemberId = 1, CompanyId = 1,
+            MemberSubscriptionStatusEnum = (int)MemberSubscriptionStatusEnum.Activate,
+            ExpiryDate = DateTimeOffset.UtcNow.AddDays(30),
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            SubscriptionName = "No Key", NoOfActiveDuration = 1,
+            SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General,
+            SubscriptionRequestId = 0, SubscriptionId = 0, Key = null,
+        });
+        // Row 2: a wrong key → KeyMismatch → excluded.
+        db.MemberSubscriptions.Add(new MemberSubscription
+        {
+            MemberSubscriptionId = 2, MemberId = 1, CompanyId = 1,
+            MemberSubscriptionStatusEnum = (int)MemberSubscriptionStatusEnum.Activate,
+            ExpiryDate = DateTimeOffset.UtcNow.AddDays(30),
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            SubscriptionName = "Bad Key", NoOfActiveDuration = 1,
+            SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General,
+            SubscriptionRequestId = 0, SubscriptionId = 0, Key = "not-a-valid-key",
+        });
+        await db.SaveChangesAsync();
+
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
         var result = await svc.GetActiveSubscriptionsAsync();
 
         Assert.Empty(result);
@@ -251,8 +312,9 @@ public class MemberSubscriptionServiceTests
         await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_General_IsAcknowledgementOnly_False));
         var currentUser = new FakeCurrentUser(1);
         var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keys = FakeKeyServiceFactory.Create();
 
-        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false });
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
 
         db.MemberSubscriptions.Add(new MemberSubscription
         {
@@ -269,9 +331,10 @@ public class MemberSubscriptionServiceTests
             SubscriptionRequestId = 0,
             SubscriptionId = 0,
         });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
         await db.SaveChangesAsync();
 
-        var svc = new MemberSubscriptionService(db, currentUser, clock);
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
         var result = await svc.GetActiveSubscriptionsAsync();
 
         Assert.Single(result);
@@ -284,8 +347,9 @@ public class MemberSubscriptionServiceTests
         await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_OnlyForAcknowledgement_IsAcknowledgementOnly_True));
         var currentUser = new FakeCurrentUser(1);
         var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keys = FakeKeyServiceFactory.Create();
 
-        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false });
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
 
         db.MemberSubscriptions.Add(new MemberSubscription
         {
@@ -302,13 +366,45 @@ public class MemberSubscriptionServiceTests
             SubscriptionRequestId = 0,
             SubscriptionId = 0,
         });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
         await db.SaveChangesAsync();
 
-        var svc = new MemberSubscriptionService(db, currentUser, clock);
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
         var result = await svc.GetActiveSubscriptionsAsync();
 
         Assert.Single(result);
         Assert.True(result[0].IsAcknowledgementOnly);
+    }
+
+    [Fact]
+    public async Task GetActiveSubscriptions_LifetimePlan_ShowsLifetimeDuration()
+    {
+        await using var db = TestHelpers.CreateDb(nameof(GetActiveSubscriptions_LifetimePlan_ShowsLifetimeDuration));
+        var currentUser = new FakeCurrentUser(1);
+        var clock = new FakeBusinessClock(DateTimeOffset.UtcNow);
+        var keys = FakeKeyServiceFactory.Create();
+
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Acme Ltd", TinNumber = "123456789", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
+
+        db.MemberSubscriptions.Add(new MemberSubscription
+        {
+            MemberSubscriptionId = 1, MemberId = 1, CompanyId = 1,
+            MemberSubscriptionStatusEnum = (int)MemberSubscriptionStatusEnum.Activate,
+            ExpiryDate = DateTimeOffset.UtcNow.AddYears(500),
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            SubscriptionName = "Lifetime Plan", NoOfActiveDuration = 1,
+            SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Lifetime,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General,
+            SubscriptionRequestId = 0, SubscriptionId = 0,
+        });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
+        await db.SaveChangesAsync();
+
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
+        var result = await svc.GetActiveSubscriptionsAsync();
+
+        Assert.Single(result);
+        Assert.Equal("Lifetime", result[0].PlanDuration);
     }
 
     // ── D4 Colombo clock boundary tests ──────────────────────────────────────
@@ -329,10 +425,11 @@ public class MemberSubscriptionServiceTests
         // 02:00 Colombo on 16 Nov = 20:30 UTC on 15 Nov
         var colomboTwo = new DateTime(2026, 11, 16, 2, 0, 0, DateTimeKind.Unspecified);
         var clock = new FakeBusinessClock(new DateTimeOffset(colomboTwo, Colombo.GetUtcOffset(colomboTwo)));
+        var keys = FakeKeyServiceFactory.Create();
 
         await using var db = TestHelpers.CreateDb(nameof(MemberList_At0200Colombo_ExpiredYesterdayColombo_IsExcluded));
         var currentUser = new FakeCurrentUser(1);
-        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Corp", TinNumber = "111111111", IsDeleted = false });
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Corp", TinNumber = "111111111", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
 
         // Expired: ExpiryDate = 15 Nov 2026 Colombo midnight (the day before)
         db.MemberSubscriptions.Add(new MemberSubscription
@@ -346,9 +443,10 @@ public class MemberSubscriptionServiceTests
             SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General,
             SubscriptionRequestId = 0, SubscriptionId = 0,
         });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
         await db.SaveChangesAsync();
 
-        var svc = new MemberSubscriptionService(db, currentUser, clock);
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
         var result = await svc.GetActiveSubscriptionsAsync();
 
         Assert.Empty(result);
@@ -360,10 +458,11 @@ public class MemberSubscriptionServiceTests
         // 02:00 Colombo on 16 Nov = 20:30 UTC on 15 Nov
         var colomboTwo = new DateTime(2026, 11, 16, 2, 0, 0, DateTimeKind.Unspecified);
         var clock = new FakeBusinessClock(new DateTimeOffset(colomboTwo, Colombo.GetUtcOffset(colomboTwo)));
+        var keys = FakeKeyServiceFactory.Create();
 
         await using var db = TestHelpers.CreateDb(nameof(MemberList_At0200Colombo_ExpiringTodayColombо_IsIncluded));
         var currentUser = new FakeCurrentUser(1);
-        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Corp", TinNumber = "111111111", IsDeleted = false });
+        db.Companies.Add(new Company { CompanyId = 1, CompanyName = "Corp", TinNumber = "111111111", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
 
         // Active: ExpiryDate = 16 Nov 2026 Colombo midnight (== today)
         db.MemberSubscriptions.Add(new MemberSubscription
@@ -377,9 +476,10 @@ public class MemberSubscriptionServiceTests
             SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General,
             SubscriptionRequestId = 0, SubscriptionId = 0,
         });
+        TestHelpers.AssignSubscriptionKeys(db, keys);
         await db.SaveChangesAsync();
 
-        var svc = new MemberSubscriptionService(db, currentUser, clock);
+        var svc = TestHelpers.NewMemberSubscriptionService(db, currentUser, clock, keys);
         var result = await svc.GetActiveSubscriptionsAsync();
 
         Assert.Single(result);
@@ -400,7 +500,7 @@ public class MemberSubscriptionServiceTests
         await using var db = TestHelpers.CreateDb(nameof(MasterList_At0200Colombo_ExpiredYesterdayColombо_IsExpiredStatus));
         var master = new FakeMasterUser(10);
 
-        db.Companies.Add(new Company { CompanyId = 5, CompanyName = "Corp", TinNumber = "111111111", IsDeleted = false });
+        db.Companies.Add(new Company { CompanyId = 5, CompanyName = "Corp", TinNumber = "111111111", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
         db.Members.Add(new Cdns.Domain.Entities.MemberSignupTables.Member
             { MemberId = 1, FirstName = "Alice", Email = "alice@test.cdns", MemberType = Cdns.Domain.Enums.MemberType.Member });
         db.SubscriptionRequests.Add(new Cdns.Domain.Entities.CompanySubscriptionManagement.SubscriptionRequest
@@ -437,7 +537,7 @@ public class MemberSubscriptionServiceTests
         await using var db = TestHelpers.CreateDb(nameof(MasterList_At0200Colombo_ExpiringTodayColombо_IsActiveStatus));
         var master = new FakeMasterUser(10);
 
-        db.Companies.Add(new Company { CompanyId = 5, CompanyName = "Corp", TinNumber = "111111111", IsDeleted = false });
+        db.Companies.Add(new Company { CompanyId = 5, CompanyName = "Corp", TinNumber = "111111111", IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
         db.Members.Add(new Cdns.Domain.Entities.MemberSignupTables.Member
             { MemberId = 1, FirstName = "Alice", Email = "alice@test.cdns", MemberType = Cdns.Domain.Enums.MemberType.Member });
         db.SubscriptionRequests.Add(new Cdns.Domain.Entities.CompanySubscriptionManagement.SubscriptionRequest

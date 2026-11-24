@@ -5,6 +5,8 @@ import { formatAmount, formatDuration } from './planUtils';
 import './plan-card.css';
 
 function toDays(plan) {
+  // Lifetime sorts after every finite plan.
+  if (plan.durationType === 'Lifetime') return Infinity;
   if (plan.durationType === 'Years') return plan.noOfActiveDuration * 365;
   if (plan.durationType === 'Months') return plan.noOfActiveDuration * 30;
   return plan.noOfActiveDuration;
