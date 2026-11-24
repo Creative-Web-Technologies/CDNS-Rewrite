@@ -63,8 +63,8 @@
   cursor: pointer;
   padding: 0;
   flex-shrink: 0;
-  transition: background 0.15s ease, width 0.18s ease, border-radius 0.18s ease;
   position: relative;
+  /* width / borderRadius / backgroundColor animated by Motion */
 }
 /* Expand hit area to 40×40px without affecting layout */
 .dp-dot::after {
@@ -78,8 +78,11 @@
   outline-offset: 3px;
   border-radius: 999px;
 }
-.dp-dot--active {
-  width: 20px;
-  border-radius: 4px;
-  background: var(--primary);
+/* CSS fallback for reduced-motion (Motion animate is suppressed) */
+@media (prefers-reduced-motion: reduce) {
+  .dp-dot--active {
+    width: 20px;
+    border-radius: 4px;
+    background: var(--primary);
+  }
 }

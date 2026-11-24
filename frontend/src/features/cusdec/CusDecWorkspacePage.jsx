@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { FileText, AlertCircle, RefreshCw, ShieldOff } from 'lucide-react';
-import { motion, useReducedMotion } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { Button, Card, EmptyState, PageTransition } from '../../components/ui';
 import DotPagination from '../../components/ui/DotPagination';
 import { usePortalChrome } from '../../components/portal/portalChrome';
@@ -132,6 +132,17 @@ export default function CusDecWorkspacePage({ portal }) {
   const [gateBlocked, setGateBlocked] = useState(null);
   const [busyCardId, setBusyCardId] = useState(null);
   const [highlightedCardId, setHighlightedCardId] = useState(null);
+
+  // ── Page-change animation state ──────────────────────────────────────────
+  // commitKey only advances when a load completes; AnimatePresence keys on it.
+  // direction: +1 = forward, -1 = back, 0 = tab/filter change (fade only).
+  const [commitKey, setCommitKey] = useState(() => `${tab}-${page}`);
+  const [direction, setDirection] = useState(0);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const committedPageRef = useRef(page);
+  const committedTabRef = useRef(tab);
+  const isFirstCommitRef = useRef(true);
+
   const [disclaimTarget, setDisclaimTarget] = useState(null);
   const [disclaimBusy, setDisclaimBusy] = useState(false);
   const [modalTarget, setModalTarget] = useState(null); // { item, tab }
@@ -241,6 +252,32 @@ export default function CusDecWorkspacePage({ portal }) {
     const t = setTimeout(() => setHighlightedCardId(null), 1800);
     return () => clearTimeout(t);
   }, [highlightedCardId]);
+
+  // Commit animation key when load finishes; compute slide direction.
+  // Runs on every load completion — including in-place row updates (acknowledge
+  // etc.) where tab/page don't change, so commitKey value stays identical and
+  // AnimatePresence sees no key change → no animation replay.
+  useEffect(() => {
+    if (listLoading) return;
+    const newKey = `${tab}-${page}`;
+    if (isFirstCommitRef.current) {
+      isFirstCommitRef.current = false;
+      committedPageRef.current = page;
+      committedTabRef.current = tab;
+      setCommitKey(newKey);
+      setHasLoadedOnce(true);
+      return;
+    }
+    if (committedTabRef.current !== tab) {
+      setDirection(0);
+    } else {
+      setDirection(page > committedPageRef.current ? 1 : page < committedPageRef.current ? -1 : 0);
+    }
+    committedPageRef.current = page;
+    committedTabRef.current = tab;
+    setCommitKey(newKey);
+    setHasLoadedOnce(true);
+  }, [listLoading, tab, page]);
 
   function setPage(n) {
     setSearchParams((prev) => {
@@ -591,60 +628,116 @@ export default function CusDecWorkspacePage({ portal }) {
                 </div>
               </div>
 
-              {/* Declaration list */}
-              {listLoading ? (
-                <ul className="cd-list" aria-busy="true" aria-label="Loading declarations">
-                  {Array.from({ length: PAGE_SIZE }, (_, k) => (
-                    <li key={k} className="cd-list-item"><SkeletonCard /></li>
-                  ))}
-                </ul>
-              ) : listError && !isGateError(listError?.code) ? (
-                <div className="cd-error-state">
-                  <EmptyState
-                    icon={AlertCircle}
-                    title="Couldn't load declarations"
-                    message="Something went wrong while fetching declarations."
-                    action={
-                      <Button variant="secondary" icon={RefreshCw} onClick={refetchList}>
-                        Retry
-                      </Button>
-                    }
-                  />
-                </div>
-              ) : items.length === 0 ? (
-                <div className="cd-empty-state">
-                  <EmptyState
-                    icon={FileText}
-                    title={hasFilters ? 'No declarations match these filters' : `No ${tab} declarations`}
-                    message={hasFilters ? undefined : `There are no ${tab} declarations for this subscription.`}
-                    action={hasFilters ? (
-                      <Button variant="secondary" icon={RefreshCw} onClick={handleClearFilters}>
-                        Clear filters
-                      </Button>
-                    ) : undefined}
-                  />
-                </div>
-              ) : (
-                <ul className="cd-list" role="list" aria-label="Declarations">
-                  {items.map((item) => (
-                    <li key={item.cusDecId} className="cd-list-item">
-                      <CusDecCard
-                        item={item}
-                        subscriptionType={strip.subscriptionType}
-                        containersBlocked={strip.containersBlocked}
-                        busyCardId={busyCardId}
-                        highlighted={highlightedCardId === item.cusDecId}
-                        onAcknowledge={handleAcknowledge}
-                        onDisclaimRequest={setDisclaimTarget}
-                        onReopen={handleReopen}
-                        onOpenModal={handleOpenModal}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              )}
+              {/* Declaration list — fixed-height area keeps pagination anchored */}
+              <div className={`cd-list-area${listLoading && hasLoadedOnce ? ' cd-list-area--loading' : ''}`}>
+                {/* Thin progress bar during subsequent (non-first) loads */}
+                {listLoading && hasLoadedOnce && (
+                  <div className="cd-list-progress" aria-hidden="true" />
+                )}
 
-              {/* Pagination */}
+                {listLoading && !hasLoadedOnce ? (
+                  /* First load: show skeleton so the area doesn't appear empty */
+                  <ul className="cd-list" aria-busy="true" aria-label="Loading declarations">
+                    {Array.from({ length: PAGE_SIZE }, (_, k) => (
+                      <li key={k} className="cd-list-item"><SkeletonCard /></li>
+                    ))}
+                  </ul>
+                ) : listError && !isGateError(listError?.code) ? (
+                  /* Error state — not animated */
+                  <div className="cd-error-state">
+                    <EmptyState
+                      icon={AlertCircle}
+                      title="Couldn't load declarations"
+                      message="Something went wrong while fetching declarations."
+                      action={
+                        <Button variant="secondary" icon={RefreshCw} onClick={refetchList}>
+                          Retry
+                        </Button>
+                      }
+                    />
+                  </div>
+                ) : listLoading ? (
+                  /* Subsequent loads: keep previous items mounted and dimmed */
+                  <ul className="cd-list" role="list" aria-busy="true" aria-label="Declarations">
+                    {items.map((item) => (
+                      <li key={item.cusDecId} className="cd-list-item">
+                        <CusDecCard
+                          item={item}
+                          subscriptionType={strip.subscriptionType}
+                          containersBlocked={strip.containersBlocked}
+                          busyCardId={busyCardId}
+                          highlighted={false}
+                          onAcknowledge={handleAcknowledge}
+                          onDisclaimRequest={setDisclaimTarget}
+                          onReopen={handleReopen}
+                          onOpenModal={handleOpenModal}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  /* Loaded — AnimatePresence keyed on commitKey drives the transition */
+                  <AnimatePresence mode="wait">
+                    {items.length === 0 ? (
+                      <motion.div
+                        key={`empty-${commitKey}`}
+                        className="cd-empty-state"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.18 }}
+                      >
+                        <EmptyState
+                          icon={FileText}
+                          title={hasFilters ? 'No declarations match these filters' : `No ${tab} declarations`}
+                          message={hasFilters ? undefined : `There are no ${tab} declarations for this subscription.`}
+                          action={hasFilters ? (
+                            <Button variant="secondary" icon={RefreshCw} onClick={handleClearFilters}>
+                              Clear filters
+                            </Button>
+                          ) : undefined}
+                        />
+                      </motion.div>
+                    ) : (
+                      <motion.ul
+                        key={commitKey}
+                        className="cd-list"
+                        role="list"
+                        aria-label="Declarations"
+                        exit={{ opacity: 0, transition: { duration: 0.12 } }}
+                      >
+                        {items.map((item, index) => (
+                          <motion.li
+                            key={item.cusDecId}
+                            className="cd-list-item"
+                            initial={shouldReduce ? { opacity: 0 } : { opacity: 0, x: direction * 16 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{
+                              duration: shouldReduce ? 0.15 : 0.24,
+                              ease: 'easeOut',
+                              delay: shouldReduce ? 0 : index * 0.04,
+                            }}
+                          >
+                            <CusDecCard
+                              item={item}
+                              subscriptionType={strip.subscriptionType}
+                              containersBlocked={strip.containersBlocked}
+                              busyCardId={busyCardId}
+                              highlighted={highlightedCardId === item.cusDecId}
+                              onAcknowledge={handleAcknowledge}
+                              onDisclaimRequest={setDisclaimTarget}
+                              onReopen={handleReopen}
+                              onOpenModal={handleOpenModal}
+                            />
+                          </motion.li>
+                        ))}
+                      </motion.ul>
+                    )}
+                  </AnimatePresence>
+                )}
+              </div>
+
+              {/* Pagination — rendered outside cd-list-area; min-height above keeps it anchored */}
               {totalCount > PAGE_SIZE && (
                 <div className="cd-pagination-block">
                   <DotPagination

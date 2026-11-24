@@ -577,6 +577,46 @@
 .cd-state-btn--active .cd-state-count { background: var(--primary-soft); color: var(--primary); }
 .cd-result-count { font-size: 13px; color: var(--muted); white-space: nowrap; }
 
+/* ── List area — reserves space for 4 rows + 3 gaps so pagination is fixed ── */
+/* --cd-row-h must match the tallest card at each breakpoint (see responsive   */
+/* overrides below). min-height is set on .cd-row to enforce uniformity.       */
+:root {
+  --cd-row-h: 80px;
+  --cd-list-gap: 14px;
+}
+.cd-list-area {
+  position: relative;
+  min-height: calc(var(--cd-row-h) * 4 + var(--cd-list-gap) * 3);
+}
+/* Dim previous content while next page loads */
+.cd-list-area--loading > .cd-list,
+.cd-list-area--loading > .cd-empty-state,
+.cd-list-area--loading > .cd-error-state {
+  opacity: 0.6;
+  pointer-events: none;
+}
+/* Thin indeterminate progress line at top of list area */
+.cd-list-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, transparent 0%, var(--primary) 40%, var(--primary) 60%, transparent 100%);
+  background-size: 300% 100%;
+  border-radius: 1px;
+  z-index: 2;
+  animation: cd-progress-sweep 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes cd-progress-sweep {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cd-list-progress { animation: none; opacity: 0.5; }
+}
+
 /* ── Declaration list — gap between individual row cards ─────────────────── */
 .cd-list {
   list-style: none;
@@ -603,13 +643,10 @@
   transition: background 0.15s ease;
   position: relative;
   box-sizing: border-box;
+  min-height: var(--cd-row-h);
 }
 
-/* State accent stripes */
-.cd-row--new        { box-shadow: var(--shadow-card), inset 3px 0 0 var(--pill-amber-fg); }
-.cd-row--inprogress { box-shadow: var(--shadow-card), inset 3px 0 0 var(--pill-blue-fg); }
-.cd-row--completed  { box-shadow: var(--shadow-card), inset 3px 0 0 var(--pill-green-fg); }
-.cd-row--disclaimed { box-shadow: var(--shadow-card), inset 3px 0 0 var(--pill-red-fg); }
+/* State-specific row overrides — accent stripes removed; status is communicated by pills */
 
 .cd-row--highlighted { animation: cd-flash 1.6s ease-out forwards; }
 .cd-row--busy        { opacity: 0.75; pointer-events: none; }
@@ -1770,6 +1807,7 @@
 
 /* 900–1279px: 3-column, actions wrap to full-width own row, left-aligned */
 @media (max-width: 1279px) and (min-width: 900px) {
+  :root { --cd-row-h: 134px; }
   .cd-row {
     grid-template-columns: 220px minmax(0, 1.2fr) minmax(0, 1.4fr);
     gap: 16px;
@@ -1792,6 +1830,9 @@
 }
 
 /* 600–899px: 2-line row layout */
+@media (max-width: 899px) and (min-width: 600px) {
+  :root { --cd-row-h: 182px; }
+}
 @media (max-width: 899px) {
   .cd-row {
     grid-template-columns: 1fr 1fr;
@@ -1835,6 +1876,7 @@
 
 /* <600px: stacked row layout, 2-column action grid */
 @media (max-width: 599px) {
+  :root { --cd-row-h: 222px; }
   .cd-row {
     grid-template-columns: 1fr;
     grid-template-areas:
