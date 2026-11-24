@@ -80,5 +80,15 @@ BEGIN
         consignee_company_name = EXCLUDED.consignee_company_name,
         supplier_company_name  = EXCLUDED.supplier_company_name,
         last_sync_date_time    = EXCLUDED.last_sync_date_time;
+
+    -- Reconciliation: fix up any previously-orphaned CusDecItem rows whose
+    -- parent CusDec just got synced (parent may arrive after a child, since
+    -- each table syncs independently on its own schedule/window).
+    UPDATE cus_dec_items ci
+    SET cus_dec_id = cd.cus_dec_id,
+        cus_dec_global_identity = cd.global_identity
+    FROM cus_decs cd
+    WHERE ci.cus_dec_id IS NULL
+      AND ci.cus_dec_external_system_number = cd.cus_dec_external_system_number;
 END;
 $$;

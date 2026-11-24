@@ -42,6 +42,7 @@ public class Worker(IServiceScopeFactory scopeFactory, ILogger<Worker> logger) :
         var db = scope.ServiceProvider.GetRequiredService<CdnsDbContext>();
         var asycudaSyncService = scope.ServiceProvider.GetRequiredService<IAsycudaSyncService>();
         var processor = scope.ServiceProvider.GetRequiredService<CusDecSyncProcessor>();
+        var itemProcessor = scope.ServiceProvider.GetRequiredService<CusDecItemSyncProcessor>();
 
         var appDetail = await db.TaskScheduleAppDetails
             .FirstOrDefaultAsync(a => a.AppId == AsycudaSyncAppId, stoppingToken);
@@ -71,6 +72,9 @@ public class Worker(IServiceScopeFactory scopeFactory, ILogger<Worker> logger) :
             var rows = await asycudaSyncService.GetChangedCusDecsAsync(since, stoppingToken);
             await processor.ProcessAsync(rows, stoppingToken);
 
+            var itemRows = await asycudaSyncService.GetChangedCusDecItemsAsync(since, stoppingToken);
+            await itemProcessor.ProcessAsync(itemRows, stoppingToken);
+
             // Only advance the watermark when the whole cycle succeeds — this is the
             // legacy bug we're deliberately fixing: a failed run must not lose its window.
             appDetail.LastRunDateTime = runStartTime;
@@ -78,6 +82,7 @@ public class Worker(IServiceScopeFactory scopeFactory, ILogger<Worker> logger) :
             appDetail.Errors = null;
 
             logger.LogInformation("CusDec sync finished. {RowCount} rows processed.", rows.Count);
+            logger.LogInformation("CusDecItem sync finished. {RowCount} rows processed.", itemRows.Count);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {

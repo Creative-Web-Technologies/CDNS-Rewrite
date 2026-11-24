@@ -197,4 +197,88 @@ public class AsycudaSyncService : IAsycudaSyncService
         var ordinal = reader.GetOrdinal(column);
         return reader.IsDBNull(ordinal) ? null : Convert.ToInt32(reader.GetValue(ordinal));
     }
+
+    public async Task<IReadOnlyList<CusDecItemSyncRow>> GetChangedCusDecItemsAsync(DateTime since, CancellationToken cancellationToken)
+{
+    var results = new List<CusDecItemSyncRow>();
+    const int pageSize = 500;
+    var pageNumber = 1;
+    var endDate = DateTime.Now;
+
+    await using var connection = new OracleConnection(_connectionString);
+    await connection.OpenAsync(cancellationToken);
+
+    var hasMore = true;
+    while (hasMore)
+    {
+        var offset = (pageNumber - 1) * pageSize;
+
+        const string query = @"
+            SELECT *
+            FROM (
+                SELECT
+                    si.INSTANCEID AS Instance_Id,
+                    si.KEY_ITM_NBR AS Item_Number,
+                    si.TAR_HSC_NB1 AS Hs_Code,
+                    si.GDS_DSC AS Description,
+                    (ssu.TAR_SUP_QTY || ' ' || ssu.TAR_SUP_COD) AS Qty,
+                    si.VIT_INV_AMT_NMU AS Total_Value,
+                    si.LNK_TPT AS Bl_Number
+                FROM AWUNADM.SAD_ITEM si
+                INNER JOIN AWUNADM.SAD_GENERAL_SEGMENT sgs ON sgs.INSTANCEID = si.INSTANCEID
+                INNER JOIN AWUNADM.SAD_SUPPLEMENTARY_UNIT ssu ON ssu.INSTANCEID = si.INSTANCEID AND ssu.KEY_ITM_NBR = si.KEY_ITM_NBR
+                WHERE
+                    EXISTS (
+                        SELECT *
+                        FROM awunadm.UN_ASYBRK_TRACK k
+                        JOIN awunadm.UN_ASYBRK_IED e ON e.ied_id = k.ied_id
+                        WHERE
+                            sgs.instanceid = e.instance_id AND
+                            k.OP_DATE_TIME >= TO_DATE(:startDate, 'YYYY-MM-DD HH24:MI:SS') AND
+                            k.OP_DATE_TIME <= TO_DATE(:endDate, 'YYYY-MM-DD HH24:MI:SS') AND
+                            e.BINDER_ID = 'B_asysad'
+                    )
+                ORDER BY sgs.INSTANCEID
+            )
+            OFFSET :offset ROWS FETCH NEXT :pageSize ROWS ONLY";
+
+        await using var command = new OracleCommand(query, connection);
+        command.Parameters.Add("startDate", since.ToString("yyyy-MM-dd HH:mm:ss"));
+        command.Parameters.Add("endDate", endDate.ToString("yyyy-MM-dd HH:mm:ss"));
+        command.Parameters.Add("offset", offset);
+        command.Parameters.Add("pageSize", pageSize);
+
+        var rowsThisPage = 0;
+        await using var reader = (OracleDataReader)await command.ExecuteReaderAsync(cancellationToken);
+
+        while (await reader.ReadAsync(cancellationToken))
+        {
+            rowsThisPage++;
+            try
+            {
+                results.Add(new CusDecItemSyncRow
+                {
+                    CusDecExternalSystemNumber = Convert.ToInt64(reader["Instance_Id"]),
+                    CusDecItemNumber = Convert.ToInt32(reader["Item_Number"]),
+                    HsCode = GetString(reader, "Hs_Code"),
+                    Description = GetString(reader, "Description"),
+                    Quantity = GetString(reader, "Qty"),
+                    TotalValue = GetNullableDecimal(reader, "Total_Value") ?? 0,
+                    BlNumber = GetString(reader, "Bl_Number"),
+                    GlobalIdentity = Guid.NewGuid(),
+                    UnitPrice = null,
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Skipping a CusDecItem row from Oracle due to a mapping error.");
+            }
+        }
+
+        hasMore = rowsThisPage == pageSize;
+        pageNumber++;
+    }
+
+    return results;
+}
 }

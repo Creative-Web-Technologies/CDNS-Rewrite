@@ -89,6 +89,11 @@ public class CusDecSyncProcessorTests
 
             return Task.FromResult<IReadOnlyList<CusDecSyncRow>>(Array.Empty<CusDecSyncRow>());
         }
+
+        public Task<IReadOnlyList<CusDecItemSyncRow>> GetChangedCusDecItemsAsync(DateTime since, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IReadOnlyList<CusDecItemSyncRow>>(Array.Empty<CusDecItemSyncRow>());
+        }
     }
 
         [Fact]

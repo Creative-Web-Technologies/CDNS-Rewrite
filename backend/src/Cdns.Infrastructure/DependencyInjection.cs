@@ -62,6 +62,9 @@ public static class DependencyInjection
         services.AddScoped<IMemberSubscriptionKeyService, MemberSubscriptionKeyService>();
         services.AddScoped<IMasterSubscriptionRequestService, MasterSubscriptionRequestService>();
         services.AddScoped<IMasterSubscriptionService, MasterSubscriptionService>();
+        services.AddScoped<IAsycudaSyncService, AsycudaSyncService>();
+        services.AddScoped<CusDecSyncProcessor>();
+        services.AddScoped<CusDecItemSyncProcessor>();
 
         return services;
     }
