@@ -48,6 +48,22 @@ public interface ICusDecService
     /// </summary>
     Task<CusDecAccess<string[]>> GetOfficeCodesAsync(
         long memberSubscriptionId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Endpoint 9 — full detail for a single CusDec: header, declarant/consignee
+    /// names and TINs, items (capped at 1 000), taxes (grouped by item), inspections
+    /// with their sections, and this side's state/status.
+    /// </summary>
+    Task<CusDecAccess<CusDecDetailDto>> GetCusDecDetailAsync(
+        long memberSubscriptionId, long cusDecId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Endpoint 10 — full status timeline for one CusDec, visible to the caller's
+    /// side only when that side has claimed and not disclaimed the declaration.
+    /// Returns 404 (NotFound) for new or disclaimed states.
+    /// </summary>
+    Task<CusDecAccess<CusDecTimelineDto>> GetCusDecTimelineAsync(
+        long memberSubscriptionId, long cusDecId, CancellationToken ct = default);
 }
 
 /// <summary>

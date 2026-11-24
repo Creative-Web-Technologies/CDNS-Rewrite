@@ -80,6 +80,93 @@ public sealed record CusDecListResponse(
     int PageSize,
     bool ContainersBlocked);
 
+// ── Detail (endpoint 9) ───────────────────────────────────────────────────────
+
+public sealed record CusDecItemDto(
+    long CusDecItemId,
+    int ItemNumber,
+    string? HsCode,
+    string? Description,
+    string? Quantity,
+    decimal? UnitPrice,
+    decimal? TotalValue,
+    string? BlNumber);
+
+public sealed record CusDecTaxDto(
+    long CusDecTaxId,
+    string? TaxCode,
+    decimal TaxAmount,
+    int TaxRank);
+
+public sealed record CusDecTaxGroupDto(
+    int ItemNumber,
+    IReadOnlyList<CusDecTaxDto> Taxes);
+
+public sealed record CusDecInspectionSectionDto(
+    long CusDecInspectionSectionTabId,
+    int KeySecNumber,
+    string? SectionName,
+    DateTimeOffset? SectionDate);
+
+public sealed record CusDecInspectionDto(
+    long CusDecInspectionId,
+    long InspectionInstanceId,
+    string? IssueCode,
+    string? Description,
+    decimal? Value,
+    int KeyFrdNumber,
+    string? FrdNfr,
+    string? FrdUni,
+    string? FrdUbr,
+    IReadOnlyList<CusDecInspectionSectionDto> Sections);
+
+public sealed record CusDecDetailDto(
+    long CusDecId,
+    string? CusDecNumber,
+    DateTimeOffset? CusDecDate,
+    DateTimeOffset? RegistrationDate,
+    DateTimeOffset? ReleaseDate,
+    string? OfficeCode,
+    string? Origin,
+    string? Destination,
+    string? CusDecType,
+    string? Channel,
+    string? Incoterm,
+    string? BlNumber,
+    decimal? InvoiceValue,
+    int? NoOfItems,
+    int NoOfContainers,
+    string? Exporter,
+    string? SupplierCompanyName,
+    string? DeclarantCompanyName,
+    string? DeclarantTin,
+    string? ConsigneeCompanyName,
+    string? ConsigneeTin,
+    string Tab,
+    string? State,
+    string? CurrentStatus,
+    DateTimeOffset? LastUpdate,
+    bool IsExited,
+    IReadOnlyList<CusDecItemDto> Items,
+    bool ItemsTruncated,
+    IReadOnlyList<CusDecTaxGroupDto> Taxes,
+    IReadOnlyList<CusDecInspectionDto> Inspections);
+
+// ── Timeline (endpoint 10) ────────────────────────────────────────────────────
+
+public sealed record CusDecTimelineRowDto(
+    string? Label,
+    DateTimeOffset? DateUtc,
+    string Kind);  // "document" | "inspection"
+
+public sealed record CusDecTimelineDto(
+    IReadOnlyList<CusDecTimelineRowDto> Items,
+    bool Truncated,
+    string? CurrentStatus,
+    DateTimeOffset? LastUpdate,
+    bool IsExited,
+    string State);  // "inprogress" | "completed"
+
 // ── Access wrapper ───────────────────────────────────────────────────────────
 
 /// <summary>

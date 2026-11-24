@@ -335,6 +335,217 @@ public sealed class CusDecService : ICusDecService
         return CusDecActionResponse.Of(CusDecActionStatus.Ok, await BuildSingleItemAsync(sub, cusDecId, ct));
     }
 
+    // ── Endpoint 9: detail ───────────────────────────────────────────────────
+
+    private const int ItemCap = 1_000;
+    private const int TimelineCap = 500;
+
+    public async Task<CusDecAccess<CusDecDetailDto>> GetCusDecDetailAsync(
+        long memberSubscriptionId, long cusDecId, CancellationToken ct = default)
+    {
+        var access = await ResolveSubscriptionAsync(memberSubscriptionId, ct);
+        if (!access.IsOk) return CusDecAccess<CusDecDetailDto>.Fail(access.Code);
+        var sub = access.Value!;
+        var isDeclarant = IsDeclarant(sub);
+
+        var cusDec = await SideScoped(sub)
+            .FirstOrDefaultAsync(c => c.CusDecId == cusDecId, ct);
+        if (cusDec is null)
+            return CusDecAccess<CusDecDetailDto>.Fail(SubscriptionAccessCode.NotFound);
+
+        var claimedById  = isDeclarant ? cusDec.DeclarantClaimedById  : cusDec.ConsigneeClaimedById;
+        var disclaimedById = isDeclarant ? cusDec.DeclarantDisclaimedById : cusDec.ConsigneeDisclaimedById;
+        var completedAt  = isDeclarant ? cusDec.DeclarantCompletedDateTime : cusDec.ConsigneeCompletedDateTime;
+
+        var pageRow = new PageRow(
+            cusDec.CusDecId, cusDec.CusDecNumber, cusDec.CusDecDate, cusDec.RegistrationDate,
+            cusDec.OfficeCode, cusDec.DeclarantCompanyName, cusDec.ConsigneeCompanyName,
+            claimedById,
+            isDeclarant ? cusDec.DeclarantClaimedDateTime   : cusDec.ConsigneeClaimedDateTime,
+            disclaimedById,
+            isDeclarant ? cusDec.DeclarantDisclaimedDateTime : cusDec.ConsigneeDisclaimedDateTime,
+            isDeclarant ? cusDec.DeclarantCompletedById      : cusDec.ConsigneeCompletedById,
+            completedAt);
+
+        var tab   = DeriveTab(pageRow);
+        string? state = tab == "tracking" ? (claimedById is null ? "new" : "inprogress") : null;
+
+        var resolver  = await AsycudaStatusResolver.LoadAsync(_db, ct);
+        var statusMap = await LoadStatusMapAsync([cusDecId], resolver.DefaultHiddenAsycudaCodes, ct);
+        var (currentStatus, lastUpdate) = ComputeStatus(pageRow, statusMap, resolver);
+
+        var exitedIds = tab == "tracking" && claimedById is not null
+            ? await LoadExitedIdsAsync([cusDecId], ct)
+            : new HashSet<long>();
+        var isExited = exitedIds.Contains(cusDecId);
+
+        // Items — cap at 1 000, flag if more exist
+        var rawItems = await _db.CusDecItems
+            .Where(x => x.CusDecId == cusDecId)
+            .OrderBy(x => x.CusDecItemNumber)
+            .Take(ItemCap + 1)
+            .Select(x => new CusDecItemDto(x.CusDecItemId, x.CusDecItemNumber,
+                x.HsCode, x.Description, x.Quantity, x.UnitPrice, x.TotalValue, x.BlNumber))
+            .ToListAsync(ct);
+        var itemsTruncated = rawItems.Count > ItemCap;
+        var items = itemsTruncated
+            ? (IReadOnlyList<CusDecItemDto>)rawItems.Take(ItemCap).ToList()
+            : rawItems;
+
+        // Taxes — all, grouped by item number
+        var rawTaxes = await _db.CusDecTaxes
+            .Where(x => x.CusDecId == cusDecId)
+            .OrderBy(x => x.ItemNumber).ThenBy(x => x.TaxRank)
+            .Select(x => new { x.ItemNumber, Dto = new CusDecTaxDto(x.CusDecTaxId, x.TaxCode, x.TaxAmount, x.TaxRank) })
+            .ToListAsync(ct);
+        var taxes = rawTaxes
+            .GroupBy(x => x.ItemNumber)
+            .Select(g => new CusDecTaxGroupDto(g.Key, g.Select(x => x.Dto).ToList()))
+            .ToList();
+
+        // Inspections
+        var inspRows = await _db.CusDecInspections
+            .Where(x => x.CusDecId == cusDecId)
+            .OrderBy(x => x.InspectionInstanceId).ThenBy(x => x.KeyFrdNumber)
+            .ToListAsync(ct);
+
+        var secRows = await _db.CusDecInspectionSectionTabs
+            .Where(x => x.CusDecId == cusDecId)
+            .OrderBy(x => x.InsTabExternalSystemNumber).ThenBy(x => x.KeySecNumber)
+            .ToListAsync(ct);
+
+        var secsByInspId = secRows
+            .GroupBy(x => x.InsTabExternalSystemNumber)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var inspections = inspRows.Select(i =>
+        {
+            var secs = secsByInspId.TryGetValue(i.InspectionInstanceId, out var s) ? s : [];
+            return new CusDecInspectionDto(
+                i.CusDecInspectionId, i.InspectionInstanceId,
+                i.IssueCode, i.Description, i.Value, i.KeyFrdNumber,
+                i.FrdNfr, i.FrdUni, i.FrdUbr,
+                secs.Select(x => new CusDecInspectionSectionDto(
+                    x.CusDecInspectionSectionTabId, x.KeySecNumber, x.SectionName, ToDto(x.SectionDate)))
+                    .ToList());
+        }).ToList();
+
+        return CusDecAccess<CusDecDetailDto>.Ok(new CusDecDetailDto(
+            cusDec.CusDecId,
+            cusDec.CusDecNumber,
+            ToDto(cusDec.CusDecDate),
+            ToDto(cusDec.RegistrationDate),
+            ToDto(cusDec.ReleaseDate),
+            cusDec.OfficeCode,
+            cusDec.Origin,
+            cusDec.Destination,
+            cusDec.CusDecType,
+            cusDec.Channel,
+            cusDec.Incoterm,
+            cusDec.BlNumber,
+            cusDec.InvoiceValue,
+            cusDec.NoOfItems,
+            cusDec.NoOfContainers,
+            cusDec.Exporter,
+            cusDec.SupplierCompanyName,
+            cusDec.DeclarantCompanyName,
+            cusDec.DeclarantTinNumber,
+            cusDec.ConsigneeCompanyName,
+            cusDec.ConsigneeTinNumber,
+            tab,
+            state,
+            currentStatus,
+            ToDto(lastUpdate),
+            isExited,
+            items,
+            itemsTruncated,
+            taxes,
+            inspections));
+    }
+
+    // ── Endpoint 10: timeline ─────────────────────────────────────────────────
+
+    public async Task<CusDecAccess<CusDecTimelineDto>> GetCusDecTimelineAsync(
+        long memberSubscriptionId, long cusDecId, CancellationToken ct = default)
+    {
+        var access = await ResolveSubscriptionAsync(memberSubscriptionId, ct);
+        if (!access.IsOk) return CusDecAccess<CusDecTimelineDto>.Fail(access.Code);
+        var sub = access.Value!;
+        var isDeclarant = IsDeclarant(sub);
+
+        var cusDec = await SideScoped(sub)
+            .FirstOrDefaultAsync(c => c.CusDecId == cusDecId, ct);
+        if (cusDec is null)
+            return CusDecAccess<CusDecTimelineDto>.Fail(SubscriptionAccessCode.NotFound);
+
+        var claimedById  = isDeclarant ? cusDec.DeclarantClaimedById  : cusDec.ConsigneeClaimedById;
+        var disclaimedById = isDeclarant ? cusDec.DeclarantDisclaimedById : cusDec.ConsigneeDisclaimedById;
+
+        // Timeline only when this side has claimed and not disclaimed.
+        if (claimedById is null || disclaimedById is not null)
+            return CusDecAccess<CusDecTimelineDto>.Fail(SubscriptionAccessCode.NotFound);
+
+        var completedAt = isDeclarant ? cusDec.DeclarantCompletedDateTime : cusDec.ConsigneeCompletedDateTime;
+        var state = completedAt is null ? "inprogress" : "completed";
+
+        var resolver = await AsycudaStatusResolver.LoadAsync(_db, ct);
+        var hiddenArr = resolver.DefaultHiddenAsycudaCodes.Count == 0
+            ? Array.Empty<string>()
+            : resolver.DefaultHiddenAsycudaCodes.ToArray();
+
+        // Load all rows from both tables — no Take; SQL pre-filter removes default-hidden codes.
+        var docRows = await _db.CusDecStatuses
+            .Where(s => s.CusDecId == cusDecId)
+            .Where(s => hiddenArr.Length == 0 || s.Status == null || !hiddenArr.Contains(s.Status))
+            .Select(s => new TimelineRow(s.CusDecStatusId, s.Status, s.StatusDateTime, false))
+            .ToListAsync(ct);
+
+        var inspRows = await _db.CusDecInspectStatuses
+            .Where(s => s.CusDecId == cusDecId)
+            .Where(s => hiddenArr.Length == 0 || !hiddenArr.Contains(s.Status))
+            .Select(s => new TimelineRow(s.CusDecInspectStatusId, s.Status, s.StatusDateTime, true))
+            .ToListAsync(ct);
+
+        // Merge, sort: date DESC nulls last, then id DESC.
+        var office = cusDec.OfficeCode;
+        var merged = docRows.Concat(inspRows)
+            .OrderBy(r => r.At is null)
+            .ThenByDescending(r => r.At)
+            .ThenByDescending(r => r.Id)
+            .ToList();
+
+        // Apply IsHidden in memory per row; cap visible rows at TimelineCap.
+        var visible = new List<CusDecTimelineRowDto>(Math.Min(merged.Count, TimelineCap));
+        var total = 0;
+        foreach (var r in merged)
+        {
+            if (resolver.IsHidden(r.Status, office)) continue;
+            total++;
+            if (total <= TimelineCap)
+                visible.Add(new CusDecTimelineRowDto(
+                    resolver.ToCdns(r.Status, office),
+                    r.At is null ? null : new DateTimeOffset(DateTime.SpecifyKind(r.At.Value, DateTimeKind.Utc)),
+                    r.IsInspect ? "inspection" : "document"));
+        }
+
+        // Current status uses the already-loaded rows (avoid a second DB query).
+        var statusRows = merged.Select(r => new StatusRow(cusDecId, r.Status, r.At));
+        var (currentStatus, lastUpdate) = ResolveCurrentStatus(statusRows, office, resolver);
+
+        var exitedIds = state == "inprogress"
+            ? await LoadExitedIdsAsync([cusDecId], ct)
+            : new HashSet<long>();
+        var isExited = exitedIds.Contains(cusDecId);
+
+        return CusDecAccess<CusDecTimelineDto>.Ok(new CusDecTimelineDto(
+            visible,
+            total > TimelineCap,
+            currentStatus,
+            ToDto(lastUpdate),
+            isExited,
+            state));
+    }
+
     // ── Endpoint 8: office codes ──────────────────────────────────────────────
 
     public async Task<CusDecAccess<string[]>> GetOfficeCodesAsync(
@@ -558,20 +769,25 @@ public sealed class CusDecService : ICusDecService
         return [..fromNormal, ..fromInspect];
     }
 
+    // Shared helper: pick the newest non-hidden row from a pre-merged list.
+    // Used by both the list page (via ComputeStatus) and the detail/timeline endpoints.
+    private static (string? CurrentStatus, DateTime? LastUpdate) ResolveCurrentStatus(
+        IEnumerable<StatusRow> rows, string? officeCode, AsycudaStatusResolver resolver)
+    {
+        var latest = rows
+            .OrderByDescending(s => s.At ?? DateTime.MinValue)
+            .Where(s => !resolver.IsHidden(s.Status, officeCode))
+            .Select(s => (CdnsStatus: resolver.ToCdns(s.Status, officeCode), s.At))
+            .FirstOrDefault();
+        return (latest.CdnsStatus, latest.At);
+    }
+
     private static (string? CurrentStatus, DateTime? LastUpdate) ComputeStatus(
         PageRow row, Dictionary<long, List<StatusRow>> statusMap, AsycudaStatusResolver resolver)
     {
         if (!statusMap.TryGetValue(row.CusDecId, out var rows) || rows.Count == 0)
             return (null, null);
-
-        // Order by StatusDateTime DESC; skip rows whose mapping has IsShow = false.
-        var latest = rows
-            .OrderByDescending(s => s.At ?? DateTime.MinValue)
-            .Where(s => !resolver.IsHidden(s.Status, row.Office))
-            .Select(s => (CdnsStatus: resolver.ToCdns(s.Status, row.Office), s.At))
-            .FirstOrDefault();
-
-        return (latest.CdnsStatus, latest.At);
+        return ResolveCurrentStatus(rows, row.Office, resolver);
     }
 
     // ── DTO assembly ──────────────────────────────────────────────────────────
@@ -727,6 +943,8 @@ public sealed class CusDecService : ICusDecService
     // ── Internal records ──────────────────────────────────────────────────────
 
     private sealed record StatusRow(long CusDecId, string? Status, DateTime? At);
+
+    private sealed record TimelineRow(long Id, string? Status, DateTime? At, bool IsInspect);
 
     private sealed record PageRow(
         long CusDecId,

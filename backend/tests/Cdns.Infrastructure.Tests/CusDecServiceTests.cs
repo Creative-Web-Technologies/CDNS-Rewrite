@@ -1557,6 +1557,645 @@ public class CusDecServiceTests
     }
 }
 
+// ── Detail endpoint tests ─────────────────────────────────────────────────────
+
+public class CusDecDetailTests
+{
+    private const int CompanyId = 1;
+    private const long MemberOwner = 1;
+    private const long MasterId = 10;
+    private const long SubId = 100;
+    private static readonly DateTimeOffset Now = new(2026, 11, 23, 6, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime StatusBase = new(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static long _nextId = 2000;
+
+    private static (CdnsDbContext Db, CusDecService Service) NewHarness(string name,
+        int subType = (int)SubscriptionTypeEnum.Declarant)
+    {
+        var db    = TestHelpers.CreateDb(name);
+        var clock = new FakeBusinessClock(Now);
+        var keys  = FakeKeyServiceFactory.Create();
+        db.Companies.Add(new Company { CompanyId = CompanyId, CompanyName = "Acme", TinNumber = "TIN1",
+            IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
+        db.Members.Add(new Member { MemberId = MemberOwner, FirstName = "A", LastName = "B",
+            Email = "a@b", MemberType = MemberType.Member });
+        var sub = new MemberSubscription
+        {
+            MemberSubscriptionId = SubId, MemberId = MemberOwner, CompanyId = CompanyId,
+            CompanyMasterMemberId = MasterId,
+            MemberSubscriptionStatusEnum = (int)MemberSubscriptionStatusEnum.Activate,
+            ExpiryDate = clock.StartOfToday().AddDays(30), PaidAmount = 0m,
+            SubscriptionTypeEnum = subType,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General,
+            SubscriptionName = "Gold", NoOfActiveDuration = 1,
+            SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months,
+            SubscriptionRequestId = 0, SubscriptionId = 0,
+        };
+        db.MemberSubscriptions.Add(sub);
+        db.SaveChanges();
+        sub.Key = keys.Generate(sub);
+        db.SaveChanges();
+        return (db, new CusDecService(db, new FakeCurrentUser(MemberOwner), clock,
+            TestHelpers.AccessService(db, clock, keys)));
+    }
+
+    private static CusDec AddCusDec(CdnsDbContext db, long id,
+        int? declarantCompanyId = CompanyId, int? consigneeCompanyId = null,
+        long? declarantClaimedBy = null, long? consigneeClaimedBy = null,
+        long? declarantDisclaimedBy = null, long? consigneeDisclaimedBy = null,
+        long? declarantCompletedBy = null, string? office = "COL")
+    {
+        var c = new CusDec
+        {
+            CusDecId = id, CusDecNumber = $"CD-{id}",
+            DeclarantCompanyId = declarantCompanyId, ConsigneeCompanyId = consigneeCompanyId,
+            DeclarantCompanyName = "Decl Co", ConsigneeCompanyName = "Cons Co",
+            DeclarantTinNumber = "DEC-TIN", ConsigneeTinNumber = "CON-TIN",
+            DeclarantClaimedById = declarantClaimedBy,
+            DeclarantClaimedDateTime = declarantClaimedBy is null ? null : StatusBase,
+            DeclarantDisclaimedById = declarantDisclaimedBy,
+            DeclarantDisclaimedDateTime = declarantDisclaimedBy is null ? null : StatusBase,
+            ConsigneeClaimedById = consigneeClaimedBy,
+            ConsigneeClaimedDateTime = consigneeClaimedBy is null ? null : StatusBase,
+            ConsigneeDisclaimedById = consigneeDisclaimedBy,
+            ConsigneeDisclaimedDateTime = consigneeDisclaimedBy is null ? null : StatusBase,
+            DeclarantCompletedById = declarantCompletedBy,
+            DeclarantCompletedDateTime = declarantCompletedBy is null ? null : StatusBase,
+            CusDecDate = StatusBase, OfficeCode = office,
+            GlobalIdentity = Guid.NewGuid(), CusDecExternalSystemNumber = id,
+            InvoiceValue = 1000m, BlNumber = "BL-001", Origin = "CN",
+            Destination = "LK", CusDecType = "IM4", Channel = "Green",
+            Incoterm = "CIF", Exporter = "ExportCo", NoOfItems = 2, NoOfContainers = 1,
+        };
+        db.CusDecs.Add(c);
+        return c;
+    }
+
+    // ── Access gate ───────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Detail_UnknownSubscription_Returns404()
+    {
+        var (db, svc) = NewHarness(nameof(Detail_UnknownSubscription_Returns404));
+        await using var _ = db;
+        var r = await svc.GetCusDecDetailAsync(999, 1);
+        Assert.Equal(SubscriptionAccessCode.NotFound, r.Code);
+    }
+
+    [Fact]
+    public async Task Detail_OtherCompanyCusDec_Returns404()
+    {
+        var (db, svc) = NewHarness(nameof(Detail_OtherCompanyCusDec_Returns404));
+        await using var _ = db;
+        AddCusDec(db, 1, declarantCompanyId: 777);
+        await db.SaveChangesAsync();
+        var r = await svc.GetCusDecDetailAsync(SubId, 1);
+        Assert.Equal(SubscriptionAccessCode.NotFound, r.Code);
+    }
+
+    [Fact]
+    public async Task Detail_ExpiredSubscription_Returns403()
+    {
+        var db    = TestHelpers.CreateDb(nameof(Detail_ExpiredSubscription_Returns403));
+        var clock = new FakeBusinessClock(Now);
+        var keys  = FakeKeyServiceFactory.Create();
+        db.Companies.Add(new Company { CompanyId = CompanyId, CompanyName = "Acme", TinNumber = "TIN1",
+            IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
+        db.Members.Add(new Member { MemberId = MemberOwner, FirstName = "A", LastName = "B",
+            Email = "a@b", MemberType = MemberType.Member });
+        var sub = new MemberSubscription
+        {
+            MemberSubscriptionId = SubId, MemberId = MemberOwner, CompanyId = CompanyId,
+            CompanyMasterMemberId = MasterId,
+            MemberSubscriptionStatusEnum = (int)MemberSubscriptionStatusEnum.Activate,
+            ExpiryDate = clock.StartOfToday().AddDays(-1), PaidAmount = 0m,
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.General,
+            SubscriptionName = "Gold", NoOfActiveDuration = 1,
+            SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months,
+            SubscriptionRequestId = 0, SubscriptionId = 0,
+        };
+        db.MemberSubscriptions.Add(sub);
+        db.SaveChanges();
+        sub.Key = keys.Generate(sub);
+        db.SaveChanges();
+        await using var _db = db;
+        var svc = new CusDecService(db, new FakeCurrentUser(MemberOwner), clock,
+            TestHelpers.AccessService(db, clock, keys));
+        AddCusDec(db, 1);
+        await db.SaveChangesAsync();
+        var r = await svc.GetCusDecDetailAsync(SubId, 1);
+        Assert.Equal(SubscriptionAccessCode.Expired, r.Code);
+    }
+
+    [Fact]
+    public async Task Detail_AcknowledgementOnly_Succeeds()
+    {
+        var db    = TestHelpers.CreateDb(nameof(Detail_AcknowledgementOnly_Succeeds));
+        var clock = new FakeBusinessClock(Now);
+        var keys  = FakeKeyServiceFactory.Create();
+        db.Companies.Add(new Company { CompanyId = CompanyId, CompanyName = "Acme", TinNumber = "TIN1",
+            IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
+        db.Members.Add(new Member { MemberId = MemberOwner, FirstName = "A", LastName = "B",
+            Email = "a@b", MemberType = MemberType.Member });
+        var sub = new MemberSubscription
+        {
+            MemberSubscriptionId = SubId, MemberId = MemberOwner, CompanyId = CompanyId,
+            CompanyMasterMemberId = MasterId,
+            MemberSubscriptionStatusEnum = (int)MemberSubscriptionStatusEnum.Activate,
+            ExpiryDate = clock.StartOfToday().AddDays(30), PaidAmount = 0m,
+            SubscriptionTypeEnum = (int)SubscriptionTypeEnum.Declarant,
+            SubscriptionActionTypeEnum = (int)SubscriptionActionTypeEnum.OnlyForAcknowledgement,
+            SubscriptionName = "Gold", NoOfActiveDuration = 1,
+            SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months,
+            SubscriptionRequestId = 0, SubscriptionId = 0,
+        };
+        db.MemberSubscriptions.Add(sub);
+        db.SaveChanges();
+        sub.Key = keys.Generate(sub);
+        db.SaveChanges();
+        await using var _db = db;
+        var svc = new CusDecService(db, new FakeCurrentUser(MemberOwner), clock,
+            TestHelpers.AccessService(db, clock, keys));
+        AddCusDec(db, 1);
+        await db.SaveChangesAsync();
+        var r = await svc.GetCusDecDetailAsync(SubId, 1);
+        Assert.True(r.IsOk);
+    }
+
+    // ── State/tab passthrough ─────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Detail_ReturnsState_ForEachTab()
+    {
+        var (db, svc) = NewHarness(nameof(Detail_ReturnsState_ForEachTab));
+        await using var _ = db;
+        AddCusDec(db, 1);                                              // new
+        AddCusDec(db, 2, declarantClaimedBy: MemberOwner);             // inprogress
+        AddCusDec(db, 3, declarantClaimedBy: MemberOwner, declarantCompletedBy: MemberOwner); // completed
+        AddCusDec(db, 4, declarantDisclaimedBy: MemberOwner);          // disclaimed
+        await db.SaveChangesAsync();
+
+        var d1 = (await svc.GetCusDecDetailAsync(SubId, 1)).Value!;
+        Assert.Equal("tracking", d1.Tab); Assert.Equal("new", d1.State);
+
+        var d2 = (await svc.GetCusDecDetailAsync(SubId, 2)).Value!;
+        Assert.Equal("tracking", d2.Tab); Assert.Equal("inprogress", d2.State);
+
+        var d3 = (await svc.GetCusDecDetailAsync(SubId, 3)).Value!;
+        Assert.Equal("completed", d3.Tab); Assert.Null(d3.State);
+
+        var d4 = (await svc.GetCusDecDetailAsync(SubId, 4)).Value!;
+        Assert.Equal("disclaimed", d4.Tab); Assert.Null(d4.State);
+    }
+
+    // ── Other side's claim state never leaks ──────────────────────────────────
+
+    [Fact]
+    public async Task Detail_DeclarantSide_DoesNotExposeConsigneeClaimState()
+    {
+        var (db, svc) = NewHarness(nameof(Detail_DeclarantSide_DoesNotExposeConsigneeClaimState));
+        await using var _ = db;
+        // Declarant is new (unclaimed), consignee is in-progress
+        AddCusDec(db, 1, declarantCompanyId: CompanyId, consigneeCompanyId: 999,
+            declarantClaimedBy: null, consigneeClaimedBy: MemberOwner);
+        await db.SaveChangesAsync();
+
+        var d = (await svc.GetCusDecDetailAsync(SubId, 1)).Value!;
+        Assert.Equal("new", d.State);  // declarant side is new
+    }
+
+    // ── Children: empty arrays ────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Detail_NoChusdren_ReturnsEmptyArrays()
+    {
+        var (db, svc) = NewHarness(nameof(Detail_NoChusdren_ReturnsEmptyArrays));
+        await using var _ = db;
+        AddCusDec(db, 1);
+        await db.SaveChangesAsync();
+
+        var d = (await svc.GetCusDecDetailAsync(SubId, 1)).Value!;
+        Assert.Empty(d.Items);
+        Assert.False(d.ItemsTruncated);
+        Assert.Empty(d.Taxes);
+        Assert.Empty(d.Inspections);
+    }
+
+    // ── Items and taxes ───────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Detail_ReturnsItemsOrderedByItemNumber_AndTaxesGrouped()
+    {
+        var (db, svc) = NewHarness(nameof(Detail_ReturnsItemsOrderedByItemNumber_AndTaxesGrouped));
+        await using var _ = db;
+        AddCusDec(db, 1);
+        db.CusDecItems.Add(new CusDecItem { CusDecItemId = ++_nextId, CusDecId = 1,
+            CusDecItemNumber = 2, HsCode = "HS2", CusDecExternalSystemNumber = 20 });
+        db.CusDecItems.Add(new CusDecItem { CusDecItemId = ++_nextId, CusDecId = 1,
+            CusDecItemNumber = 1, HsCode = "HS1", CusDecExternalSystemNumber = 10 });
+        db.CusDecTaxes.Add(new CusDecTax { CusDecTaxId = ++_nextId, CusDecId = 1,
+            ItemNumber = 1, TaxCode = "VAT", TaxAmount = 100m, TaxRank = 1,
+            CusDecExternalSystemNumber = 1 });
+        db.CusDecTaxes.Add(new CusDecTax { CusDecTaxId = ++_nextId, CusDecId = 1,
+            ItemNumber = 2, TaxCode = "NBT", TaxAmount = 50m, TaxRank = 1,
+            CusDecExternalSystemNumber = 2 });
+        await db.SaveChangesAsync();
+
+        var d = (await svc.GetCusDecDetailAsync(SubId, 1)).Value!;
+        Assert.Equal(2, d.Items.Count);
+        Assert.Equal(1, d.Items[0].ItemNumber);  // ordered by item number
+        Assert.Equal(2, d.Items[1].ItemNumber);
+        Assert.Equal(2, d.Taxes.Count);
+        Assert.Contains(d.Taxes, g => g.ItemNumber == 1 && g.Taxes[0].TaxCode == "VAT");
+        Assert.Contains(d.Taxes, g => g.ItemNumber == 2 && g.Taxes[0].TaxCode == "NBT");
+    }
+
+    [Fact]
+    public async Task Detail_ItemsTruncatedAt1000()
+    {
+        var (db, svc) = NewHarness(nameof(Detail_ItemsTruncatedAt1000));
+        await using var _ = db;
+        AddCusDec(db, 1);
+        for (var i = 1; i <= 1001; i++)
+            db.CusDecItems.Add(new CusDecItem { CusDecItemId = ++_nextId, CusDecId = 1,
+                CusDecItemNumber = i, CusDecExternalSystemNumber = i });
+        await db.SaveChangesAsync();
+
+        var d = (await svc.GetCusDecDetailAsync(SubId, 1)).Value!;
+        Assert.Equal(1000, d.Items.Count);
+        Assert.True(d.ItemsTruncated);
+    }
+
+    [Fact]
+    public async Task Detail_OtherCusDecsItems_NotIncluded()
+    {
+        var (db, svc) = NewHarness(nameof(Detail_OtherCusDecsItems_NotIncluded));
+        await using var _ = db;
+        AddCusDec(db, 1);
+        AddCusDec(db, 2);
+        db.CusDecItems.Add(new CusDecItem { CusDecItemId = ++_nextId, CusDecId = 1,
+            CusDecItemNumber = 1, CusDecExternalSystemNumber = 1 });
+        db.CusDecItems.Add(new CusDecItem { CusDecItemId = ++_nextId, CusDecId = 2,
+            CusDecItemNumber = 1, CusDecExternalSystemNumber = 2 });
+        await db.SaveChangesAsync();
+
+        var d1 = (await svc.GetCusDecDetailAsync(SubId, 1)).Value!;
+        Assert.Single(d1.Items);
+
+        var d2 = (await svc.GetCusDecDetailAsync(SubId, 2)).Value!;
+        Assert.Single(d2.Items);
+    }
+
+    // ── Inspections with sections ─────────────────────────────────────────────
+
+    [Fact]
+    public async Task Detail_ReturnsInspectionsWithSections()
+    {
+        var (db, svc) = NewHarness(nameof(Detail_ReturnsInspectionsWithSections));
+        await using var _ = db;
+        AddCusDec(db, 1);
+        db.CusDecInspections.Add(new CusDecInspection { CusDecInspectionId = ++_nextId, CusDecId = 1,
+            InspectionInstanceId = 10, KeyFrdNumber = 1, IssueCode = "IC1",
+            CusDecExternalSystemNumber = 100 });
+        db.CusDecInspectionSectionTabs.Add(new CusDecInspectionSectionTab
+        {
+            CusDecInspectionSectionTabId = ++_nextId, CusDecId = 1,
+            InsTabExternalSystemNumber = 10, KeySecNumber = 1, SectionName = "Sec A",
+            CusDecExternalSystemNumber = 100,
+        });
+        db.CusDecInspectionSectionTabs.Add(new CusDecInspectionSectionTab
+        {
+            CusDecInspectionSectionTabId = ++_nextId, CusDecId = 1,
+            InsTabExternalSystemNumber = 10, KeySecNumber = 2, SectionName = "Sec B",
+            CusDecExternalSystemNumber = 100,
+        });
+        await db.SaveChangesAsync();
+
+        var d = (await svc.GetCusDecDetailAsync(SubId, 1)).Value!;
+        var insp = Assert.Single(d.Inspections);
+        Assert.Equal(10, insp.InspectionInstanceId);
+        Assert.Equal(2, insp.Sections.Count);
+        Assert.Equal(1, insp.Sections[0].KeySecNumber);
+        Assert.Equal(2, insp.Sections[1].KeySecNumber);
+    }
+}
+
+// ── Timeline endpoint tests ────────────────────────────────────────────────────
+
+public class CusDecTimelineTests
+{
+    private const int CompanyId = 1;
+    private const long MemberOwner = 1;
+    private const long MasterId = 10;
+    private const long SubId = 100;
+    private static readonly DateTimeOffset Now = new(2026, 11, 23, 6, 0, 0, TimeSpan.Zero);
+    private static readonly DateTime StatusBase = new(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static long _nextId = 3000;
+
+    private static (CdnsDbContext Db, CusDecService Service) NewHarness(string name,
+        int subType = (int)SubscriptionTypeEnum.Declarant,
+        int actionType = (int)SubscriptionActionTypeEnum.General)
+    {
+        var db    = TestHelpers.CreateDb(name);
+        var clock = new FakeBusinessClock(Now);
+        var keys  = FakeKeyServiceFactory.Create();
+        db.Companies.Add(new Company { CompanyId = CompanyId, CompanyName = "Acme", TinNumber = "TIN1",
+            IsDeleted = false, CompanyStatusEnum = (int)CompanyStatusEnum.Active });
+        db.Members.Add(new Member { MemberId = MemberOwner, FirstName = "A", LastName = "B",
+            Email = "a@b", MemberType = MemberType.Member });
+        var sub = new MemberSubscription
+        {
+            MemberSubscriptionId = SubId, MemberId = MemberOwner, CompanyId = CompanyId,
+            CompanyMasterMemberId = MasterId,
+            MemberSubscriptionStatusEnum = (int)MemberSubscriptionStatusEnum.Activate,
+            ExpiryDate = clock.StartOfToday().AddDays(30), PaidAmount = 0m,
+            SubscriptionTypeEnum = subType, SubscriptionActionTypeEnum = actionType,
+            SubscriptionName = "Gold", NoOfActiveDuration = 1,
+            SubscriptionDurationTypeEnum = (int)SubscriptionDurationTypeEnum.Months,
+            SubscriptionRequestId = 0, SubscriptionId = 0,
+        };
+        db.MemberSubscriptions.Add(sub);
+        db.SaveChanges();
+        sub.Key = keys.Generate(sub);
+        db.SaveChanges();
+        return (db, new CusDecService(db, new FakeCurrentUser(MemberOwner), clock,
+            TestHelpers.AccessService(db, clock, keys)));
+    }
+
+    private static CusDec AddCusDec(CdnsDbContext db, long id,
+        long? declarantClaimedBy = null, long? declarantDisclaimedBy = null,
+        long? declarantCompletedBy = null, string? office = "COL")
+    {
+        var c = new CusDec
+        {
+            CusDecId = id, CusDecNumber = $"CD-{id}",
+            DeclarantCompanyId = CompanyId, ConsigneeCompanyId = null,
+            DeclarantCompanyName = "Decl Co", ConsigneeCompanyName = "Cons Co",
+            DeclarantClaimedById = declarantClaimedBy,
+            DeclarantClaimedDateTime = declarantClaimedBy is null ? null : StatusBase,
+            DeclarantDisclaimedById = declarantDisclaimedBy,
+            DeclarantDisclaimedDateTime = declarantDisclaimedBy is null ? null : StatusBase,
+            DeclarantCompletedById = declarantCompletedBy,
+            DeclarantCompletedDateTime = declarantCompletedBy is null ? null : StatusBase,
+            CusDecDate = StatusBase, OfficeCode = office,
+            GlobalIdentity = Guid.NewGuid(), CusDecExternalSystemNumber = id,
+        };
+        db.CusDecs.Add(c);
+        return c;
+    }
+
+    private static void AddStatus(CdnsDbContext db, long cusDecId, string status,
+        DateTime at, bool inspect = false, string? mappedCdns = null, bool isHidden = false)
+    {
+        if (mappedCdns is not null)
+            db.CusDecStatusMappings.Add(new CusDecStatusMapping
+            {
+                CusDecStatusMappingId = (int)++_nextId,
+                AsycudaStatus = status, CdnsStatus = mappedCdns, IsShow = !isHidden,
+            });
+
+        if (inspect)
+            db.CusDecInspectStatuses.Add(new CusDecInspectStatus
+            {
+                CusDecInspectStatusId = ++_nextId, CusDecId = cusDecId,
+                Status = status, StatusDateTime = at, TableName = "inspect",
+            });
+        else
+            db.CusDecStatuses.Add(new CusDecStatus
+            {
+                CusDecStatusId = ++_nextId, CusDecId = cusDecId,
+                Status = status, StatusDateTime = at, TableName = "normal",
+            });
+    }
+
+    // ── Access gate ───────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Timeline_UnknownSubscription_Returns404()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_UnknownSubscription_Returns404));
+        await using var _ = db;
+        var r = await svc.GetCusDecTimelineAsync(999, 1);
+        Assert.Equal(SubscriptionAccessCode.NotFound, r.Code);
+    }
+
+    [Fact]
+    public async Task Timeline_OtherCompanyCusDec_Returns404()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_OtherCompanyCusDec_Returns404));
+        await using var _ = db;
+        db.CusDecs.Add(new CusDec { CusDecId = 1, DeclarantCompanyId = 777, GlobalIdentity = Guid.NewGuid(),
+            CusDecExternalSystemNumber = 1, DeclarantClaimedById = MemberOwner,
+            DeclarantClaimedDateTime = StatusBase });
+        await db.SaveChangesAsync();
+        var r = await svc.GetCusDecTimelineAsync(SubId, 1);
+        Assert.Equal(SubscriptionAccessCode.NotFound, r.Code);
+    }
+
+    [Fact]
+    public async Task Timeline_NewCusDec_Returns404()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_NewCusDec_Returns404));
+        await using var _ = db;
+        AddCusDec(db, 1);  // unclaimed
+        await db.SaveChangesAsync();
+        var r = await svc.GetCusDecTimelineAsync(SubId, 1);
+        Assert.Equal(SubscriptionAccessCode.NotFound, r.Code);
+    }
+
+    [Fact]
+    public async Task Timeline_DisclaimedCusDec_Returns404()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_DisclaimedCusDec_Returns404));
+        await using var _ = db;
+        AddCusDec(db, 1, declarantDisclaimedBy: MemberOwner);
+        await db.SaveChangesAsync();
+        var r = await svc.GetCusDecTimelineAsync(SubId, 1);
+        Assert.Equal(SubscriptionAccessCode.NotFound, r.Code);
+    }
+
+    [Fact]
+    public async Task Timeline_AcknowledgementOnly_Succeeds()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_AcknowledgementOnly_Succeeds),
+            actionType: (int)SubscriptionActionTypeEnum.OnlyForAcknowledgement);
+        await using var _ = db;
+        AddCusDec(db, 1, declarantClaimedBy: MemberOwner);
+        await db.SaveChangesAsync();
+        var r = await svc.GetCusDecTimelineAsync(SubId, 1);
+        Assert.True(r.IsOk);
+    }
+
+    // ── Row ordering ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Timeline_DocumentAndInspectRows_MergedInDateOrder()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_DocumentAndInspectRows_MergedInDateOrder));
+        await using var _ = db;
+        AddCusDec(db, 1, declarantClaimedBy: MemberOwner);
+        AddStatus(db, 1, "DocOld",   StatusBase);
+        AddStatus(db, 1, "InspNew",  StatusBase.AddDays(2), inspect: true);
+        AddStatus(db, 1, "DocMid",   StatusBase.AddDays(1));
+        await db.SaveChangesAsync();
+
+        var r = (await svc.GetCusDecTimelineAsync(SubId, 1)).Value!;
+        Assert.Equal(3, r.Items.Count);
+        Assert.Equal("InspNew", r.Items[0].Label);  // newest first
+        Assert.Equal("DocMid",  r.Items[1].Label);
+        Assert.Equal("DocOld",  r.Items[2].Label);
+        Assert.Equal("inspection", r.Items[0].Kind);
+        Assert.Equal("document",   r.Items[2].Kind);
+    }
+
+    [Fact]
+    public async Task Timeline_NullDateRows_SortLast()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_NullDateRows_SortLast));
+        await using var _ = db;
+        AddCusDec(db, 1, declarantClaimedBy: MemberOwner);
+        db.CusDecStatuses.Add(new CusDecStatus { CusDecStatusId = ++_nextId, CusDecId = 1,
+            Status = "NullDate", StatusDateTime = null, TableName = "normal" });
+        db.CusDecStatuses.Add(new CusDecStatus { CusDecStatusId = ++_nextId, CusDecId = 1,
+            Status = "HasDate", StatusDateTime = StatusBase, TableName = "normal" });
+        await db.SaveChangesAsync();
+
+        var r = (await svc.GetCusDecTimelineAsync(SubId, 1)).Value!;
+        Assert.Equal("HasDate",  r.Items[0].Label);
+        Assert.Equal("NullDate", r.Items[1].Label);
+    }
+
+    // ── Visibility ────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Timeline_HiddenDefaultStatus_Excluded()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_HiddenDefaultStatus_Excluded));
+        await using var _ = db;
+        db.CusDecStatusMappings.Add(new CusDecStatusMapping { CusDecStatusMappingId = (int)++_nextId,
+            AsycudaStatus = "INTERNAL", CdnsStatus = "Internal", IsShow = false });
+        AddCusDec(db, 1, declarantClaimedBy: MemberOwner);
+        AddStatus(db, 1, "Registered", StatusBase);
+        AddStatus(db, 1, "INTERNAL",   StatusBase.AddDays(1));  // hidden by mapping
+        await db.SaveChangesAsync();
+
+        var r = (await svc.GetCusDecTimelineAsync(SubId, 1)).Value!;
+        Assert.Single(r.Items);
+        Assert.Equal("Registered", r.Items[0].Label);
+    }
+
+    [Fact]
+    public async Task Timeline_OfficeMappingWins_OverDefault()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_OfficeMappingWins_OverDefault));
+        await using var _ = db;
+        db.CusDecStatusMappings.Add(new CusDecStatusMapping { CusDecStatusMappingId = (int)++_nextId,
+            AsycudaStatus = "PROC", CdnsStatus = "Processing (default)", IsShow = false });
+        db.CusDecStatusMappings.Add(new CusDecStatusMapping { CusDecStatusMappingId = (int)++_nextId,
+            AsycudaStatus = "PROC", CdnsStatus = "In Processing", OfficeCode = "COL", IsShow = true });
+        AddCusDec(db, 1, declarantClaimedBy: MemberOwner, office: "COL");
+        AddStatus(db, 1, "PROC", StatusBase);
+        await db.SaveChangesAsync();
+
+        var r = (await svc.GetCusDecTimelineAsync(SubId, 1)).Value!;
+        Assert.Single(r.Items);
+        Assert.Equal("In Processing", r.Items[0].Label);
+    }
+
+    [Fact]
+    public async Task Timeline_EmptyOfficeMapping_AppliesAllOffices()
+    {
+        // A mapping with no OfficeCode is the default and applies to all offices.
+        var (db, svc) = NewHarness(nameof(Timeline_EmptyOfficeMapping_AppliesAllOffices));
+        await using var _ = db;
+        db.CusDecStatusMappings.Add(new CusDecStatusMapping { CusDecStatusMappingId = (int)++_nextId,
+            AsycudaStatus = "REG", CdnsStatus = "Registered (CDNS)", IsShow = true });
+        AddCusDec(db, 1, declarantClaimedBy: MemberOwner, office: "GAL");
+        AddStatus(db, 1, "REG", StatusBase);
+        await db.SaveChangesAsync();
+
+        var r = (await svc.GetCusDecTimelineAsync(SubId, 1)).Value!;
+        Assert.Equal("Registered (CDNS)", r.Items[0].Label);
+    }
+
+    // ── 45 rows, newest 35 all hidden — older 10 all appear ──────────────────
+
+    [Fact]
+    public async Task Timeline_Outlier_45Rows_Newest35Hidden_Older10Visible()
+    {
+        // Defensive check that there is no top-K: if there were a Take(35), the visible
+        // 10 would never be loaded. All 10 visible rows must appear in the response.
+        var (db, svc) = NewHarness(nameof(Timeline_Outlier_45Rows_Newest35Hidden_Older10Visible));
+        await using var _ = db;
+
+        const string HiddenCode = "HIDDEN";
+        db.CusDecStatusMappings.Add(new CusDecStatusMapping { CusDecStatusMappingId = (int)++_nextId,
+            AsycudaStatus = HiddenCode, CdnsStatus = "Hidden", IsShow = false });
+
+        AddCusDec(db, 1, declarantClaimedBy: MemberOwner);
+        for (var i = 0; i < 10; i++)
+            AddStatus(db, 1, $"Visible-{i}", StatusBase.AddSeconds(i));      // older visible
+        for (var i = 0; i < 35; i++)
+            AddStatus(db, 1, HiddenCode, StatusBase.AddSeconds(100 + i));    // newer hidden
+        await db.SaveChangesAsync();
+
+        var r = (await svc.GetCusDecTimelineAsync(SubId, 1)).Value!;
+        Assert.Equal(10, r.Items.Count);
+        Assert.False(r.Truncated);
+        Assert.All(r.Items, row => Assert.StartsWith("Visible-", row.Label));
+    }
+
+    // ── Defensive cap ─────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Timeline_MoreThan500VisibleRows_TruncatesAt500()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_MoreThan500VisibleRows_TruncatesAt500));
+        await using var _ = db;
+        AddCusDec(db, 1, declarantClaimedBy: MemberOwner);
+        for (var i = 0; i < 501; i++)
+            AddStatus(db, 1, $"S-{i}", StatusBase.AddSeconds(i));
+        await db.SaveChangesAsync();
+
+        var r = (await svc.GetCusDecTimelineAsync(SubId, 1)).Value!;
+        Assert.Equal(500, r.Items.Count);
+        Assert.True(r.Truncated);
+    }
+
+    // ── State in response ─────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task Timeline_InProgressState()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_InProgressState));
+        await using var _ = db;
+        AddCusDec(db, 1, declarantClaimedBy: MemberOwner);
+        AddStatus(db, 1, "Registered", StatusBase);
+        await db.SaveChangesAsync();
+
+        var r = (await svc.GetCusDecTimelineAsync(SubId, 1)).Value!;
+        Assert.Equal("inprogress", r.State);
+        Assert.Equal("Registered", r.CurrentStatus);
+    }
+
+    [Fact]
+    public async Task Timeline_CompletedState()
+    {
+        var (db, svc) = NewHarness(nameof(Timeline_CompletedState));
+        await using var _ = db;
+        AddCusDec(db, 1, declarantClaimedBy: MemberOwner, declarantCompletedBy: MemberOwner);
+        AddStatus(db, 1, "Totally exited", StatusBase);
+        await db.SaveChangesAsync();
+
+        var r = (await svc.GetCusDecTimelineAsync(SubId, 1)).Value!;
+        Assert.Equal("completed", r.State);
+        // IsExited is only meaningful for in-progress rows, same as the list.
+        Assert.False(r.IsExited);
+        Assert.Equal("Totally exited", r.CurrentStatus);
+    }
+}
+
 // ── SQL translation (Npgsql provider, no live DB needed) ─────────────────────
 
 public class CusDecSqlTranslationTests
@@ -1604,6 +2243,16 @@ public class CusDecSqlTranslationTests
 
         Assert.Contains("LOWER", sql, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("LIKE", sql, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void CusDecInspectionSectionTab_MapsToCorrectTableName()
+    {
+        using var db = CreateNpgsqlContext();
+        var tableName = db.Model
+            .FindEntityType(typeof(CusDecInspectionSectionTab))!
+            .GetTableName();
+        Assert.Equal("cus_dec_inspection_section_tab", tableName);
     }
 
     [Fact]

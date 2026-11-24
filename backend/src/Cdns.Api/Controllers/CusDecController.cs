@@ -90,6 +90,22 @@ public class CusDecController : ControllerBase
     public async Task<IActionResult> Reopen(long subId, long id, CancellationToken ct)
         => ActionResponse(await _cusDecs.ReopenAsync(subId, id, ct));
 
+    // GET /api/cusdec/{subId}/cusdecs/{id}
+    [HttpGet("{subId:long}/cusdecs/{id:long}")]
+    public async Task<IActionResult> GetDetail(long subId, long id, CancellationToken ct)
+    {
+        var result = await _cusDecs.GetCusDecDetailAsync(subId, id, ct);
+        return result.IsOk ? Ok(result.Value) : AccessProblem(result.Code);
+    }
+
+    // GET /api/cusdec/{subId}/cusdecs/{id}/timeline
+    [HttpGet("{subId:long}/cusdecs/{id:long}/timeline")]
+    public async Task<IActionResult> GetTimeline(long subId, long id, CancellationToken ct)
+    {
+        var result = await _cusDecs.GetCusDecTimelineAsync(subId, id, ct);
+        return result.IsOk ? Ok(result.Value) : AccessProblem(result.Code);
+    }
+
     private IActionResult ActionResponse(CusDecActionResponse response)
     {
         if (response.Access != SubscriptionAccessCode.Ok)
