@@ -2256,6 +2256,36 @@ public class CusDecSqlTranslationTests
     }
 
     [Fact]
+    public void ContainerStatusMapping_MapsToCorrectTableName()
+    {
+        using var db = CreateNpgsqlContext();
+        var tableName = db.Model
+            .FindEntityType(typeof(ContainerStatusMapping))!
+            .GetTableName();
+        Assert.Equal("container_status_mappings", tableName);
+    }
+
+    [Fact]
+    public void CusDecContainer_MapsToCorrectTableName()
+    {
+        using var db = CreateNpgsqlContext();
+        var tableName = db.Model
+            .FindEntityType(typeof(CusDecContainer))!
+            .GetTableName();
+        Assert.Equal("CusDecContainers", tableName);
+    }
+
+    [Fact]
+    public void CusDecContainerStatus_MapsToCorrectTableName()
+    {
+        using var db = CreateNpgsqlContext();
+        var tableName = db.Model
+            .FindEntityType(typeof(CusDecContainerStatus))!
+            .GetTableName();
+        Assert.Equal("CusDecContainerStatuses", tableName);
+    }
+
+    [Fact]
     public void Offices_Distinct_OrderBy_TranslatesToSql()
     {
         using var db = CreateNpgsqlContext();

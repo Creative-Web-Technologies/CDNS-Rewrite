@@ -50,6 +50,7 @@ public class CdnsDbContext : DbContext
 
     //Cusdec Tables
     public DbSet<CusDecStatusMapping> CusDecStatusMappings => Set<CusDecStatusMapping>();
+    public DbSet<ContainerStatusMapping> ContainerStatusMappings => Set<ContainerStatusMapping>();
     public DbSet<CusDec> CusDecs => Set<CusDec>();
     public DbSet<CusDecContainer> CusDecContainers => Set<CusDecContainer>();
     public DbSet<CusDecContainerStatus> CusDecContainerStatuses => Set<CusDecContainerStatus>(); 

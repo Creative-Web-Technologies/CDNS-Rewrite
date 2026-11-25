@@ -994,6 +994,68 @@ namespace Cdns.Infrastructure.Migrations
                     b.ToTable("subscription_requests", (string)null);
                 });
 
+            modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.ContainerStatusMapping", b =>
+                {
+                    b.Property<int>("ContainerStatusMappingId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("container_status_mapping_id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ContainerStatusMappingId"));
+
+                    b.Property<string>("AsycudaDescription")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("asycuda_description");
+
+                    b.Property<string>("AsycudaDescriptionKey")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("text")
+                        .HasColumnName("asycuda_description_key")
+                        .HasComputedColumnSql("lower(btrim(asycuda_description))", true);
+
+                    b.Property<string>("AsycudaStatus")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("asycuda_status");
+
+                    b.Property<string>("AsycudaStatusKey")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("text")
+                        .HasColumnName("asycuda_status_key")
+                        .HasComputedColumnSql("lower(btrim(asycuda_status))", true);
+
+                    b.Property<string>("CdnsDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("cdns_description");
+
+                    b.Property<string>("CdnsStatus")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("cdns_status");
+
+                    b.Property<bool>("IsShow")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_show");
+
+                    b.HasKey("ContainerStatusMappingId")
+                        .HasName("pk_container_status_mappings");
+
+                    b.HasIndex("AsycudaStatusKey", "AsycudaDescriptionKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_container_status_mappings_asycuda_status_key_asycuda_descri");
+
+                    b.ToTable("container_status_mappings", (string)null);
+                });
+
             modelBuilder.Entity("Cdns.Domain.Entities.CusdecTables.CusDec", b =>
                 {
                     b.Property<long>("CusDecId")
