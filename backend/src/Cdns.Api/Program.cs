@@ -1,6 +1,7 @@
 using Cdns.Api.Authentication;
 using Cdns.Api.Endpoints.Auth;
 using Cdns.Api.Endpoints.Dev;
+using Cdns.Api.Filters;
 using Cdns.Application.Interfaces;
 using Cdns.Infrastructure;
 using Cdns.Infrastructure.Persistence;
@@ -41,7 +42,8 @@ builder.Services.AddAuthorization(options =>
     // ownership scope; this policy only requires an authenticated member of a known type.
     options.AddPolicy("MemberOrMaster", p => p.RequireClaim("MemberType", "Member", "CompanyMasterMember"));
 });
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+    options.Filters.Add<NullCharacterQueryStringFilter>());
 
 // Fail fast if required secrets are absent — a missing secret means every subscription endpoint returns 500.
 if (string.IsNullOrWhiteSpace(builder.Configuration["Cdns:MemberSubscriptionSecret"]))
