@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Cdns.Application.Features.Signup;
+using Cdns.Application.Feature.Container;
 using Cdns.Application.Feature.Cusdec;
 using Cdns.Application.Feature.Dashboard;
 using Cdns.Application.Feature.Subscriptions;
@@ -65,7 +66,9 @@ public static class DependencyInjection
         services.AddScoped<ISubscriptionAccessService, SubscriptionAccessService>();
         services.AddScoped<IMasterSubscriptionRequestService, MasterSubscriptionRequestService>();
         services.AddScoped<IMasterSubscriptionService, MasterSubscriptionService>();
+        services.AddScoped<CusDecSubscriptionScope>();
         services.AddScoped<ICusDecService, CusDecService>();
+        services.AddScoped<IContainerService, ContainerService>();
 
         return services;
     }

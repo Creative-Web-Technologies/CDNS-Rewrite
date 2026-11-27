@@ -76,7 +76,7 @@ public class CusDecServiceTests
         return new Harness
         {
             Db = db, Clock = clock, Keys = keys,
-            Service = new CusDecService(db, user, clock, TestHelpers.AccessService(db, clock, keys)),
+            Service = new CusDecService(db, user, clock, TestHelpers.SubscriptionScope(db, user, keys, clock)),
         };
     }
 
@@ -791,6 +791,34 @@ public class CusDecServiceTests
     }
 
     [Fact]
+    public async Task Paging_IntMaxValuePage_Returns200Empty()
+    {
+        // (int.MaxValue - 1) * MaxPageSize overflows int; must return 200 empty, not 500.
+        var h = NewHarness(nameof(Paging_IntMaxValuePage_Returns200Empty), new FakeCurrentUser(MemberOwner));
+        await using var _ = h.Db;
+        AddCusDec(h.Db, 1);
+        await h.Db.SaveChangesAsync();
+
+        var result = (await h.Service.GetCusDecsAsync(SubId, Query(tab: "tracking", page: int.MaxValue, pageSize: 100))).Value!;
+        Assert.Empty(result.Items);
+        Assert.Equal(1, result.TotalCount);
+    }
+
+    [Fact]
+    public async Task Paging_FirstOverflowPage_Returns200Empty()
+    {
+        // First page where (page-1) * MaxPageSize overflows int: (21474838-1)*100 = 2147483700 > int.MaxValue.
+        var h = NewHarness(nameof(Paging_FirstOverflowPage_Returns200Empty), new FakeCurrentUser(MemberOwner));
+        await using var _ = h.Db;
+        AddCusDec(h.Db, 1);
+        await h.Db.SaveChangesAsync();
+
+        var result = (await h.Service.GetCusDecsAsync(SubId, Query(tab: "tracking", page: 21474838, pageSize: 100))).Value!;
+        Assert.Empty(result.Items);
+        Assert.Equal(1, result.TotalCount);
+    }
+
+    [Fact]
     public async Task Sort_NewestFirstByDefault_OldestWhenRequested()
     {
         var h = NewHarness(nameof(Sort_NewestFirstByDefault_OldestWhenRequested), new FakeCurrentUser(MemberOwner));
@@ -942,11 +970,10 @@ public class CusDecServiceTests
         memberSub.Key = keys.Generate(memberSub);
         db.SaveChanges();
 
-        var access = TestHelpers.AccessService(db, clock, keys);
         return (
             db,
-            new CusDecService(db, new FakeMasterUser(MasterId),    clock, access),
-            new CusDecService(db, new FakeCurrentUser(MemberUnderId), clock, access));
+            new CusDecService(db, new FakeMasterUser(MasterId),       clock, TestHelpers.SubscriptionScope(db, new FakeMasterUser(MasterId),       keys, clock)),
+            new CusDecService(db, new FakeCurrentUser(MemberUnderId), clock, TestHelpers.SubscriptionScope(db, new FakeCurrentUser(MemberUnderId), keys, clock)));
     }
 
     [Fact]
@@ -1596,7 +1623,7 @@ public class CusDecDetailTests
         sub.Key = keys.Generate(sub);
         db.SaveChanges();
         return (db, new CusDecService(db, new FakeCurrentUser(MemberOwner), clock,
-            TestHelpers.AccessService(db, clock, keys)));
+            TestHelpers.SubscriptionScope(db, new FakeCurrentUser(MemberOwner), keys, clock)));
     }
 
     private static CusDec AddCusDec(CdnsDbContext db, long id,
@@ -1681,7 +1708,7 @@ public class CusDecDetailTests
         db.SaveChanges();
         await using var _db = db;
         var svc = new CusDecService(db, new FakeCurrentUser(MemberOwner), clock,
-            TestHelpers.AccessService(db, clock, keys));
+            TestHelpers.SubscriptionScope(db, new FakeCurrentUser(MemberOwner), keys, clock));
         AddCusDec(db, 1);
         await db.SaveChangesAsync();
         var r = await svc.GetCusDecDetailAsync(SubId, 1);
@@ -1716,7 +1743,7 @@ public class CusDecDetailTests
         db.SaveChanges();
         await using var _db = db;
         var svc = new CusDecService(db, new FakeCurrentUser(MemberOwner), clock,
-            TestHelpers.AccessService(db, clock, keys));
+            TestHelpers.SubscriptionScope(db, new FakeCurrentUser(MemberOwner), keys, clock));
         AddCusDec(db, 1);
         await db.SaveChangesAsync();
         var r = await svc.GetCusDecDetailAsync(SubId, 1);
@@ -1920,7 +1947,7 @@ public class CusDecTimelineTests
         sub.Key = keys.Generate(sub);
         db.SaveChanges();
         return (db, new CusDecService(db, new FakeCurrentUser(MemberOwner), clock,
-            TestHelpers.AccessService(db, clock, keys)));
+            TestHelpers.SubscriptionScope(db, new FakeCurrentUser(MemberOwner), keys, clock)));
     }
 
     private static CusDec AddCusDec(CdnsDbContext db, long id,

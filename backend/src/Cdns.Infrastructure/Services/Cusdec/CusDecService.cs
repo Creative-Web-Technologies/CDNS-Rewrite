@@ -33,18 +33,18 @@ public sealed class CusDecService : ICusDecService
     private readonly CdnsDbContext _db;
     private readonly ICurrentUser _currentUser;
     private readonly IBusinessClock _clock;
-    private readonly ISubscriptionAccessService _access;
+    private readonly CusDecSubscriptionScope _scope;
 
     public CusDecService(
         CdnsDbContext db,
         ICurrentUser currentUser,
         IBusinessClock clock,
-        ISubscriptionAccessService access)
+        CusDecSubscriptionScope scope)
     {
         _db = db;
         _currentUser = currentUser;
         _clock = clock;
-        _access = access;
+        _scope = scope;
     }
 
     // ── Endpoint 1: switcher ──────────────────────────────────────────────────
@@ -53,7 +53,7 @@ public sealed class CusDecService : ICusDecService
         CancellationToken ct = default)
     {
         var today = _clock.StartOfToday();
-        var usable = await _access.GetUsableAsync(OwnedSubscriptions(), today, ct);
+        var usable = await _scope.GetUsableOwnedSubscriptionsAsync(today, ct);
 
         return usable.Select(s => new CusDecSubscriptionDto(
             s.MemberSubscriptionId,
@@ -163,6 +163,13 @@ public sealed class CusDecService : ICusDecService
 
         // ── 2. Count (stays in SQL) ────────────────────────────────────────────
         var total = await q.CountAsync(ct);
+
+        if ((long)(page - 1) * pageSize >= total)
+        {
+            var blocked2 = IsAcknowledgementOnly(sub.SubscriptionActionTypeEnum);
+            return CusDecAccess<CusDecListResponse>.Ok(
+                new CusDecListResponse([], total, page, pageSize, blocked2));
+        }
 
         // ── 3. Sort + page (SQL) ──────────────────────────────────────────────
         var paged = ApplySortSql(q, tab, isDeclarant, oldest)
@@ -567,33 +574,14 @@ public sealed class CusDecService : ICusDecService
 
     // ── Subscription resolution ───────────────────────────────────────────────
 
-    // Own subscriptions only for BOTH roles: MemberId == caller.
-    private IQueryable<MemberSubscription> OwnedSubscriptions() =>
-        _db.MemberSubscriptions.Where(s => s.MemberId == _currentUser.MemberId);
-
-    private async Task<CusDecAccess<MemberSubscription>> ResolveSubscriptionAsync(
-        long memberSubscriptionId, CancellationToken ct)
-    {
-        var ownerMemberId = await OwnedSubscriptions()
-            .Where(s => s.MemberSubscriptionId == memberSubscriptionId)
-            .Select(s => (long?)s.MemberId)
-            .FirstOrDefaultAsync(ct);
-
-        if (ownerMemberId is null)
-            return CusDecAccess<MemberSubscription>.Fail(SubscriptionAccessCode.NotFound);
-
-        var check = await _access.CheckAsync(memberSubscriptionId, ownerMemberId.Value, ct);
-        return check.IsOk
-            ? CusDecAccess<MemberSubscription>.Ok(check.Subscription!)
-            : CusDecAccess<MemberSubscription>.Fail(check.Code);
-    }
+    private Task<CusDecAccess<MemberSubscription>> ResolveSubscriptionAsync(
+        long memberSubscriptionId, CancellationToken ct) =>
+        _scope.ResolveAsync(memberSubscriptionId, ct);
 
     // ── SQL query builders ────────────────────────────────────────────────────
 
     private IQueryable<CusDec> SideScoped(MemberSubscription sub) =>
-        IsDeclarant(sub)
-            ? _db.CusDecs.Where(c => c.DeclarantCompanyId == sub.CompanyId)
-            : _db.CusDecs.Where(c => c.ConsigneeCompanyId == sub.CompanyId);
+        _scope.CusDecsScopedTo(sub);
 
     private static IQueryable<CusDec> BuildTabQuery(
         IQueryable<CusDec> q, bool isDeclarant, string tab, string state)

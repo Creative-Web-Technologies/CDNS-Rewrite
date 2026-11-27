@@ -3,6 +3,7 @@ using Cdns.Application.Interfaces;
 using Cdns.Domain.Entities.CompanySubscriptionManagement;
 using Cdns.Domain.Enums;
 using Cdns.Infrastructure.Persistence;
+using Cdns.Infrastructure.Services.Cusdec;
 using Cdns.Infrastructure.Services.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -31,6 +32,25 @@ internal static class TestHelpers
     public static MemberSubscriptionService NewMemberSubscriptionService(
         CdnsDbContext db, ICurrentUser user, IBusinessClock clock, IMemberSubscriptionKeyService keys)
         => new(db, user, clock, AccessService(db, clock, keys));
+
+    /// <summary>Shared subscription scope backed by an InMemory db context.</summary>
+    public static CusDecSubscriptionScope SubscriptionScope(
+        CdnsDbContext db, ICurrentUser user, IMemberSubscriptionKeyService keys, IBusinessClock clock)
+        => new(db, user, AccessService(db, clock, keys));
+
+    /// <summary>
+    /// Creates a Npgsql-wired DbContext for table-name and migration checks.
+    /// Uses the same conventions as DependencyInjection (UseSnakeCaseNamingConvention).
+    /// Pass a real connection string; this context is for model inspection only.
+    /// </summary>
+    public static CdnsDbContext CreateNpgsqlContext(string connectionString)
+    {
+        var options = new DbContextOptionsBuilder<CdnsDbContext>()
+            .UseNpgsql(connectionString)
+            .UseSnakeCaseNamingConvention()
+            .Options;
+        return new CdnsDbContext(options);
+    }
 
     /// <summary>
     /// Backfills a valid HMAC key (computed from stored values) onto every tracked

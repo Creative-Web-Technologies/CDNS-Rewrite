@@ -16,6 +16,7 @@ public enum SubscriptionAccessCode
     CompanyInactive,
     KeyMissing,
     KeyMismatch,
+    AcknowledgementOnly,  // subscription is usable but restricted to acknowledgement actions only
 }
 
 /// <summary>

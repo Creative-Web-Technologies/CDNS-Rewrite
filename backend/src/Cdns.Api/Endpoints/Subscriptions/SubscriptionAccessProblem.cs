@@ -19,9 +19,10 @@ public static class SubscriptionAccessProblem
         SubscriptionAccessCode.Inactive        => "SubscriptionInactive",
         SubscriptionAccessCode.Expired         => "SubscriptionExpired",
         SubscriptionAccessCode.CompanyInactive => "CompanyInactive",
-        SubscriptionAccessCode.KeyMissing      => "SubscriptionKeyInvalid",
-        SubscriptionAccessCode.KeyMismatch     => "SubscriptionKeyInvalid",
-        SubscriptionAccessCode.Ok              => "Ok",
+        SubscriptionAccessCode.KeyMissing          => "SubscriptionKeyInvalid",
+        SubscriptionAccessCode.KeyMismatch         => "SubscriptionKeyInvalid",
+        SubscriptionAccessCode.AcknowledgementOnly => "SubscriptionAcknowledgementOnly",
+        SubscriptionAccessCode.Ok                  => "Ok",
         _ => "SubscriptionAccessDenied",
     };
 
