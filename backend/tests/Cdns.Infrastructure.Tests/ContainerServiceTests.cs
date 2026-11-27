@@ -1779,4 +1779,29 @@ public class ContainerServiceTests
         Assert.Equal(SubscriptionAccessCode.NotFound, rNone.Code);
         Assert.Equal(SubscriptionAccessCode.NotFound, rOther.Code);
     }
+
+    // ── Consignee: company is only on declarant side ──────────────────────────
+
+    [Fact]
+    public async Task Consignee_OnDeclarantSideOnly_ExcludedFromListAndDetailAndHistory()
+    {
+        // Consignee subscription: container whose CusDec has our company as declarant only.
+        // The declarant side IS claimed and NOT disclaimed, so only the side rule blocks access.
+        var h = NewHarness(nameof(Consignee_OnDeclarantSideOnly_ExcludedFromListAndDetailAndHistory),
+            new FakeCurrentUser(MemberOwner), subType: (int)SubscriptionTypeEnum.Consignee);
+        await using var _ = h.Db;
+        // declarantClaimed: true so the claim rule is satisfied; only being on the wrong
+        // side (declarant vs consignee subscription) must be what blocks access.
+        AddContainer(h.Db, 1, 1, declarantCompanyId: CompanyId, consigneeCompanyId: null,
+            declarantClaimed: true, declarantDisclaimed: false);
+        await h.Db.SaveChangesAsync();
+
+        var list    = (await h.Service.GetContainersAsync(SubId, ListQuery())).Value!;
+        var detail  = await h.Service.GetContainerDetailAsync(SubId, 1);
+        var history = await h.Service.GetContainerHistoryAsync(SubId, 1);
+
+        Assert.Equal(0, list.TotalCount);
+        Assert.Equal(SubscriptionAccessCode.NotFound, detail.Code);
+        Assert.Equal(SubscriptionAccessCode.NotFound, history.Code);
+    }
 }

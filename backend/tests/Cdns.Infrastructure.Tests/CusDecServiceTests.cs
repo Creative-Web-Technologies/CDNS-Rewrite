@@ -562,6 +562,37 @@ public class CusDecServiceTests
         Assert.Equal(CusDecActionStatus.Ok, ack.Status);
     }
 
+    [Fact]
+    public async Task ContainersBlocked_AcknowledgementOnly_EmptyList()
+    {
+        // The early-return path (total == 0) must still set ContainersBlocked = true.
+        var h = NewHarness(nameof(ContainersBlocked_AcknowledgementOnly_EmptyList),
+            new FakeCurrentUser(MemberOwner),
+            actionType: (int)SubscriptionActionTypeEnum.OnlyForAcknowledgement);
+        await using var _ = h.Db;
+
+        var list = (await h.Service.GetCusDecsAsync(SubId, Query())).Value!;
+        Assert.Equal(0, list.TotalCount);
+        Assert.True(list.ContainersBlocked);
+    }
+
+    [Fact]
+    public async Task ContainersBlocked_AcknowledgementOnly_PagePastEnd()
+    {
+        // The early-return path ((page-1)*pageSize >= total) must still set ContainersBlocked = true.
+        var h = NewHarness(nameof(ContainersBlocked_AcknowledgementOnly_PagePastEnd),
+            new FakeCurrentUser(MemberOwner),
+            actionType: (int)SubscriptionActionTypeEnum.OnlyForAcknowledgement);
+        await using var _ = h.Db;
+        AddCusDec(h.Db, 1);
+        await h.Db.SaveChangesAsync();
+
+        var list = (await h.Service.GetCusDecsAsync(SubId, Query(page: 2, pageSize: 4))).Value!;
+        Assert.Equal(1, list.TotalCount);
+        Assert.Empty(list.Items);
+        Assert.True(list.ContainersBlocked);
+    }
+
     // ── Acknowledge ───────────────────────────────────────────────────────────
 
     [Fact]
